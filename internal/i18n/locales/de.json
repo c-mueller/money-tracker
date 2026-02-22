@@ -87,6 +87,11 @@
     "error_prefix": "Fehler: ",
     "user_settings": "Einstellungen",
     "display_name": "Anzeigename",
-    "email_address": "E-Mail-Adresse"
+    "email_address": "E-Mail-Adresse",
+    "recurring_income": "Wiederkehrende Einnahmen",
+    "recurring_expenses": "Wiederkehrende Ausgaben",
+    "one_time_income": "Einmalige Einnahmen",
+    "one_time_expenses": "Einmalige Ausgaben",
+    "monthly_total": "Monatliches Gesamtergebnis"
   }
 }

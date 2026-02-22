@@ -104,6 +104,48 @@ func TestGetMonthlySummary(t *testing.T) {
 		}
 	})
 
+	t.Run("recurring income and expenses split", func(t *testing.T) {
+		hh5, _ := svc.Household.Create(ctx, "Summary Test 5", "", "EUR", "")
+		cat5, _ := svc.Category.Create(ctx, hh5.ID, "Split", "")
+
+		recurExpense, _ := domain.NewMoney("-800.00")
+		recurIncome, _ := domain.NewMoney("3000.00")
+		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Rent", "", recurExpense, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Salary", "", recurIncome, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+
+		oneTimeExpense, _ := domain.NewMoney("-50.00")
+		oneTimeIncome, _ := domain.NewMoney("200.00")
+		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeExpense, "Groceries", time.Date(2026, 1, 5, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeIncome, "Refund", time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
+
+		summary, err := svc.Summary.GetMonthlySummary(ctx, hh5.ID, 2026, time.January)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		wantRecIncome, _ := domain.NewMoney("3000")
+		wantRecExpenses, _ := domain.NewMoney("-800")
+		wantOneIncome, _ := domain.NewMoney("200")
+		wantOneExpenses, _ := domain.NewMoney("-50")
+		wantMonthlyTotal, _ := domain.NewMoney("2350") // (3000-800) + (200-50)
+
+		if !summary.RecurringIncome.Equal(wantRecIncome) {
+			t.Errorf("RecurringIncome = %s, want %s", summary.RecurringIncome.String(), wantRecIncome.String())
+		}
+		if !summary.RecurringExpenses.Equal(wantRecExpenses) {
+			t.Errorf("RecurringExpenses = %s, want %s", summary.RecurringExpenses.String(), wantRecExpenses.String())
+		}
+		if !summary.OneTimeIncome.Equal(wantOneIncome) {
+			t.Errorf("OneTimeIncome = %s, want %s", summary.OneTimeIncome.String(), wantOneIncome.String())
+		}
+		if !summary.OneTimeExpenses.Equal(wantOneExpenses) {
+			t.Errorf("OneTimeExpenses = %s, want %s", summary.OneTimeExpenses.String(), wantOneExpenses.String())
+		}
+		if !summary.MonthlyTotal.Equal(wantMonthlyTotal) {
+			t.Errorf("MonthlyTotal = %s, want %s", summary.MonthlyTotal.String(), wantMonthlyTotal.String())
+		}
+	})
+
 	t.Run("category breakdown", func(t *testing.T) {
 		hh4, _ := svc.Household.Create(ctx, "Summary Test 4", "", "EUR", "")
 		catA, _ := svc.Category.Create(ctx, hh4.ID, "Food", "")

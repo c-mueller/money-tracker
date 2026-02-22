@@ -44,7 +44,12 @@ func toSummaryResponse(s *domain.MonthlySummary) SummaryResponse {
 		TotalIncome:       s.TotalIncome.String(),
 		TotalExpenses:     s.TotalExpenses.String(),
 		RecurringTotal:    s.RecurringTotal.String(),
+		RecurringIncome:   s.RecurringIncome.String(),
+		RecurringExpenses: s.RecurringExpenses.String(),
 		OneTimeTotal:      s.OneTimeTotal.String(),
+		OneTimeIncome:     s.OneTimeIncome.String(),
+		OneTimeExpenses:   s.OneTimeExpenses.String(),
+		MonthlyTotal:      s.MonthlyTotal.String(),
 		CategoryBreakdown: breakdown,
 	}
 }

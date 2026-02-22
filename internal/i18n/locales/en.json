@@ -87,6 +87,11 @@
     "error_prefix": "Error: ",
     "user_settings": "Settings",
     "display_name": "Display Name",
-    "email_address": "Email Address"
+    "email_address": "Email Address",
+    "recurring_income": "Recurring Income",
+    "recurring_expenses": "Recurring Expenses",
+    "one_time_income": "One-time Income",
+    "one_time_expenses": "One-time Expenses",
+    "monthly_total": "Monthly Total"
   }
 }

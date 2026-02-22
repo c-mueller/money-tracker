@@ -68,7 +68,12 @@ type MonthlySummary struct {
 	TotalIncome       string            `json:"totalIncome"`
 	TotalExpenses     string            `json:"totalExpenses"`
 	RecurringTotal    string            `json:"recurringTotal"`
+	RecurringIncome   string            `json:"recurringIncome"`
+	RecurringExpenses string            `json:"recurringExpenses"`
 	OneTimeTotal      string            `json:"oneTimeTotal"`
+	OneTimeIncome     string            `json:"oneTimeIncome"`
+	OneTimeExpenses   string            `json:"oneTimeExpenses"`
+	MonthlyTotal      string            `json:"monthlyTotal"`
 	CategoryBreakdown []CategorySummary `json:"categoryBreakdown"`
 }
 

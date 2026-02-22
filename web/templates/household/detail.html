@@ -1,9 +1,9 @@
 {{define "content"}}
 {{template "household_header" .}}
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center">
+<div class="row mb-4 g-3">
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
             <div class="card-body">
                 <h6 class="card-subtitle mb-2 text-muted">{{t "month"}}</h6>
                 <div class="d-flex justify-content-center align-items-center gap-2">
@@ -15,27 +15,43 @@
         </div>
     </div>
     {{if .Summary}}
-    <div class="col-md-3">
-        <div class="card text-center">
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring"}}</h6>
-                <h4>{{formatMoneyWithCurrency .Summary.RecurringTotal .Household.Currency}}</h4>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_income"}}</h6>
+                <h5 class="text-success">{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</h5>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center">
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time"}}</h6>
-                <h4>{{formatMoneyWithCurrency .Summary.OneTimeTotal .Household.Currency}}</h4>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_expenses"}}</h6>
+                <h5 class="text-danger">{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</h5>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center">
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "income"}}</h6>
-                <h4 class="text-success">{{formatMoneyWithCurrency .Summary.TotalIncome .Household.Currency}}</h4>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time_income"}}</h6>
+                <h5 class="text-success">{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time_expenses"}}</h6>
+                <h5 class="text-danger">{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{t "monthly_total"}}</h6>
+                <h5>{{formatMoneyWithCurrency .Summary.MonthlyTotal .Household.Currency}}</h5>
             </div>
         </div>
     </div>

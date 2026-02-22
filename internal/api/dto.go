@@ -118,7 +118,12 @@ type SummaryResponse struct {
 	TotalIncome       string                    `json:"total_income"`
 	TotalExpenses     string                    `json:"total_expenses"`
 	RecurringTotal    string                    `json:"recurring_total"`
+	RecurringIncome   string                    `json:"recurring_income"`
+	RecurringExpenses string                    `json:"recurring_expenses"`
 	OneTimeTotal      string                    `json:"one_time_total"`
+	OneTimeIncome     string                    `json:"one_time_income"`
+	OneTimeExpenses   string                    `json:"one_time_expenses"`
+	MonthlyTotal      string                    `json:"monthly_total"`
 	CategoryBreakdown []CategorySummaryResponse `json:"category_breakdown"`
 }
 

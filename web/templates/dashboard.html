@@ -18,18 +18,22 @@
                 <h5 class="card-title"><span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}</h5>
                 {{if .Description}}<p class="card-text text-muted small mb-2">{{.Description}}</p>{{end}}
                 {{if $summary}}
-                <div class="row text-center mb-3">
-                    <div class="col-4">
+                <div class="row text-center mb-3 g-1">
+                    <div class="col">
+                        <div class="small text-muted">{{t "recurring_income"}}</div>
+                        <strong class="text-success small">{{formatMoneyWithCurrency $summary.RecurringIncome .Currency}}</strong>
+                    </div>
+                    <div class="col">
+                        <div class="small text-muted">{{t "recurring_expenses"}}</div>
+                        <strong class="text-danger small">{{formatMoneyWithCurrency $summary.RecurringExpenses .Currency}}</strong>
+                    </div>
+                    <div class="col">
                         <div class="small text-muted">{{t "one_time"}}</div>
-                        <strong>{{formatMoneyWithCurrency $summary.OneTimeTotal .Currency}}</strong>
+                        <strong class="small">{{formatMoneyWithCurrency $summary.OneTimeTotal .Currency}}</strong>
                     </div>
-                    <div class="col-4">
-                        <div class="small text-muted">{{t "recurring"}}</div>
-                        <strong>{{formatMoneyWithCurrency $summary.RecurringTotal .Currency}}</strong>
-                    </div>
-                    <div class="col-4">
-                        <div class="small text-muted">{{t "income"}}</div>
-                        <strong class="text-success">{{formatMoneyWithCurrency $summary.TotalIncome .Currency}}</strong>
+                    <div class="col">
+                        <div class="small text-muted">{{t "monthly_total"}}</div>
+                        <strong class="small">{{formatMoneyWithCurrency $summary.MonthlyTotal .Currency}}</strong>
                     </div>
                 </div>
                 {{end}}

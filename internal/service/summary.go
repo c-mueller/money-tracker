@@ -64,6 +64,8 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 	catOneTime := make(map[int]decimal.Decimal)
 
 	totalRecurring := decimal.Zero
+	recurringIncome := decimal.Zero
+	recurringExpenses := decimal.Zero
 	for _, re := range recurring {
 		monthly, err := domain.NormalizeToMonthly(re.Amount, re.Frequency, refMonth)
 		if err != nil {
@@ -71,6 +73,11 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		}
 		catRecurring[re.CategoryID] = catRecurring[re.CategoryID].Add(monthly)
 		totalRecurring = totalRecurring.Add(monthly)
+		if monthly.IsPositive() {
+			recurringIncome = recurringIncome.Add(monthly)
+		} else {
+			recurringExpenses = recurringExpenses.Add(monthly)
+		}
 	}
 
 	totalOneTime := decimal.Zero
@@ -116,7 +123,12 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		TotalIncome:       totalIncome,
 		TotalExpenses:     totalExpenses,
 		RecurringTotal:    totalRecurring,
+		RecurringIncome:   recurringIncome,
+		RecurringExpenses: recurringExpenses,
 		OneTimeTotal:      totalOneTime,
+		OneTimeIncome:     totalIncome,
+		OneTimeExpenses:   totalExpenses,
+		MonthlyTotal:      totalRecurring.Add(totalOneTime),
 		CategoryBreakdown: breakdown,
 	}, nil
 }

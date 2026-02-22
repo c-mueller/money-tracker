@@ -274,9 +274,24 @@ components:
         recurring_total:
           type: string
           example: "-800"
+        recurring_income:
+          type: string
+          example: "2000"
+        recurring_expenses:
+          type: string
+          example: "-800"
         one_time_total:
           type: string
           example: "-75"
+        one_time_income:
+          type: string
+          example: "1000"
+        one_time_expenses:
+          type: string
+          example: "-75"
+        monthly_total:
+          type: string
+          example: "-875"
         category_breakdown:
           type: array
           items:

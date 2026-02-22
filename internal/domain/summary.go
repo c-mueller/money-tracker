@@ -6,7 +6,12 @@ type MonthlySummary struct {
 	TotalIncome       Money
 	TotalExpenses     Money
 	RecurringTotal    Money
+	RecurringIncome   Money
+	RecurringExpenses Money
 	OneTimeTotal      Money
+	OneTimeIncome     Money
+	OneTimeExpenses   Money
+	MonthlyTotal      Money
 	CategoryBreakdown []CategorySummary
 }
 

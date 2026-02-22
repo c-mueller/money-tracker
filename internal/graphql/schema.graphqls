@@ -58,7 +58,12 @@ type MonthlySummary {
   totalIncome: String!
   totalExpenses: String!
   recurringTotal: String!
+  recurringIncome: String!
+  recurringExpenses: String!
   oneTimeTotal: String!
+  oneTimeIncome: String!
+  oneTimeExpenses: String!
+  monthlyTotal: String!
   categoryBreakdown: [CategorySummary!]!
 }
 
