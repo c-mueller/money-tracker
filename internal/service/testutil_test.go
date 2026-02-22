@@ -1,31 +1,30 @@
-//go:build integration
-
-package integration
+package service_test
 
 import (
 	"context"
-	"net/http/httptest"
 	"testing"
 
 	"icekalt.dev/money-tracker/ent"
-	"icekalt.dev/money-tracker/internal/api"
-	"icekalt.dev/money-tracker/internal/auth"
 	"icekalt.dev/money-tracker/internal/config"
-	"icekalt.dev/money-tracker/internal/logging"
+	"icekalt.dev/money-tracker/internal/domain"
 	"icekalt.dev/money-tracker/internal/repository"
 	"icekalt.dev/money-tracker/internal/service"
 
 	_ "modernc.org/sqlite"
 )
 
-type testEnv struct {
-	server   *httptest.Server
-	client   *ent.Client
-	services *api.Services
-	token    string // Bearer token for authenticated requests
+type testServices struct {
+	client           *ent.Client
+	User             *service.UserService
+	Household        *service.HouseholdService
+	Category         *service.CategoryService
+	Transaction      *service.TransactionService
+	RecurringExpense *service.RecurringExpenseService
+	Summary          *service.SummaryService
+	APIToken         *service.APITokenService
 }
 
-func setupTestEnv(t *testing.T) *testEnv {
+func setupTestServices(t *testing.T) *testServices {
 	t.Helper()
 
 	dbCfg := config.DatabaseConfig{
@@ -57,7 +56,12 @@ func setupTestEnv(t *testing.T) *testEnv {
 	summarySvc := service.NewSummaryService(txRepo, recurringRepo, categoryRepo, householdSvc)
 	tokenSvc := service.NewAPITokenService(tokenRepo)
 
-	svcs := &api.Services{
+	t.Cleanup(func() {
+		client.Close()
+	})
+
+	return &testServices{
+		client:           client,
 		User:             userSvc,
 		Household:        householdSvc,
 		Category:         categorySvc,
@@ -66,36 +70,35 @@ func setupTestEnv(t *testing.T) *testEnv {
 		Summary:          summarySvc,
 		APIToken:         tokenSvc,
 	}
+}
 
-	logger, _ := logging.New("error")
-	srv := api.NewServer(logger, "127.0.0.1", 0, svcs)
-
-	devUser, err := userSvc.GetOrCreate(context.Background(), "test-user", "test@example.com", "Test User")
+// createTestUser creates a user and returns a context with the user ID set.
+func createTestUser(t *testing.T, svc *testServices) (context.Context, *domain.User) {
+	t.Helper()
+	user, err := svc.User.GetOrCreate(context.Background(), "test-sub", "test@example.com", "Test User")
 	if err != nil {
-		t.Fatalf("failed to create dev user: %v", err)
+		t.Fatalf("failed to create test user: %v", err)
 	}
+	ctx := service.WithUserID(context.Background(), user.ID)
+	return ctx, user
+}
 
-	store := auth.NewSessionStore("test-secret-key-for-testing-only", 3600)
-	srv.SetupAuth(nil, store, devUser.ID)
-
-	// Create an API token for authenticated requests
-	userCtx := service.WithUserID(context.Background(), devUser.ID)
-	plainToken, _, err := tokenSvc.Create(userCtx, "test-token")
+// createTestHousehold creates a household and returns it.
+func createTestHousehold(t *testing.T, svc *testServices, ctx context.Context) *domain.Household {
+	t.Helper()
+	hh, err := svc.Household.Create(ctx, "Test Household", "", "EUR", "")
 	if err != nil {
-		t.Fatalf("failed to create test token: %v", err)
+		t.Fatalf("failed to create test household: %v", err)
 	}
+	return hh
+}
 
-	ts := httptest.NewServer(srv.Echo())
-
-	t.Cleanup(func() {
-		ts.Close()
-		client.Close()
-	})
-
-	return &testEnv{
-		server:   ts,
-		client:   client,
-		services: svcs,
-		token:    plainToken,
+// createTestCategory creates a category and returns it.
+func createTestCategory(t *testing.T, svc *testServices, ctx context.Context, householdID int) *domain.Category {
+	t.Helper()
+	cat, err := svc.Category.Create(ctx, householdID, "Test Category", "")
+	if err != nil {
+		t.Fatalf("failed to create test category: %v", err)
 	}
+	return cat
 }
