@@ -75,7 +75,7 @@ func setupTestEnv(t *testing.T) *testEnv {
 	}
 
 	store := auth.NewSessionStore("test-secret-key-for-testing-only", 3600)
-	srv.SetupAuth(nil, store, true, devUser.ID)
+	srv.SetupAuth(nil, store, devUser.ID)
 
 	ts := httptest.NewServer(srv.Echo())
 

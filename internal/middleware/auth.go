@@ -7,14 +7,15 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"icekalt.dev/money-tracker/internal/auth"
+	"icekalt.dev/money-tracker/internal/devmode"
 	"icekalt.dev/money-tracker/internal/service"
 )
 
-func Auth(store sessions.Store, tokenSvc *service.APITokenService, devMode bool, devUserID int) echo.MiddlewareFunc {
+func Auth(store sessions.Store, tokenSvc *service.APITokenService, devUserID int) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Dev mode: auto-auth
-			if devMode {
+			if devmode.Enabled {
 				c.Set(UserIDContextKey, devUserID)
 				ctx := service.WithUserID(c.Request().Context(), devUserID)
 				c.SetRequest(c.Request().WithContext(ctx))

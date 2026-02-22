@@ -1,6 +1,10 @@
 package buildinfo
 
-import "fmt"
+import (
+	"fmt"
+
+	"icekalt.dev/money-tracker/internal/devmode"
+)
 
 var (
 	Version   = "dev"
@@ -10,5 +14,9 @@ var (
 )
 
 func String() string {
-	return fmt.Sprintf("money-tracker %s (commit: %s, built: %s, go: %s)", Version, Commit, BuildDate, GoVersion)
+	s := fmt.Sprintf("money-tracker %s (commit: %s, built: %s, go: %s)", Version, Commit, BuildDate, GoVersion)
+	if devmode.Enabled {
+		s += " [DEV BUILD]"
+	}
+	return s
 }

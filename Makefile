@@ -11,13 +11,19 @@ LDFLAGS := -X icekalt.dev/money-tracker/internal/buildinfo.Version=$(VERSION) \
            -X icekalt.dev/money-tracker/internal/buildinfo.BuildDate=$(BUILD_DATE) \
            -X icekalt.dev/money-tracker/internal/buildinfo.GoVersion=$(GO_VERSION)
 
-.PHONY: build run test lint clean generate migrate
+.PHONY: build build-dev run run-dev test lint clean generate migrate
 
 build:
 	go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(APP_NAME) ./cmd/money-tracker
 
+build-dev:
+	go build -tags=dev -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(APP_NAME)-dev ./cmd/money-tracker
+
 run: build
 	./$(BUILD_DIR)/$(APP_NAME) serve
+
+run-dev: build-dev
+	./$(BUILD_DIR)/$(APP_NAME)-dev serve
 
 test:
 	go test ./... -count=1

@@ -23,7 +23,6 @@ type Server struct {
 	services     *Services
 	sessionStore sessions.Store
 	authHandler  *AuthHandler
-	devMode      bool
 	devUserID    int
 }
 

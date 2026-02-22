@@ -3,8 +3,10 @@
 ## Quick Reference
 
 ```bash
-make build       # Build binary to bin/money-tracker
-make run         # Build and start server
+make build       # Build production binary to bin/money-tracker
+make build-dev   # Build dev binary to bin/money-tracker-dev (with auto-auth)
+make run         # Build and start production server
+make run-dev     # Build and start dev server (auto-auth, no OIDC needed)
 make test        # Run unit tests
 make test-integration  # Run integration tests (requires -tags=integration)
 make lint        # Run golangci-lint
@@ -31,6 +33,7 @@ internal/
   auth/                OIDC + session + token auth
   buildinfo/           Version info (set via ldflags)
   config/              Config structs + viper loader
+  devmode/             Build-tag-controlled dev mode (dev vs prod stubs)
   domain/              Pure domain types, validation, business rules
   logging/             Zap logger factory
   middleware/           Echo middleware (auth, logging, recovery, request ID)
@@ -46,11 +49,14 @@ tests/integration/     Integration tests
 - Domain types are in `internal/domain/` — no external deps except shopspring/decimal
 - Money amounts: use `decimal.Decimal`, stored as strings in DB
 - Frequencies: daily, weekday, weekly, biweekly, monthly, quarterly, yearly
-- Auth: OIDC in production, dev-mode auto-auth when `auth.oidc.issuer` is empty
+- Auth: OIDC in production builds; dev builds (`-tags=dev`) use auto-auth
 - Config: ENV prefix `MONEY_TRACKER_`, e.g. `MONEY_TRACKER_SERVER_PORT=9090`
 - After modifying ent schemas, run `make generate`
 
 ## Dev Mode
 
-Server auto-creates a dev user and skips auth when no OIDC issuer is configured.
-Just run `make run` and access http://localhost:8080.
+Dev mode is controlled via Go build tag `dev` — production binaries contain no dev code.
+
+- `make run-dev` builds with `-tags=dev` and starts with auto-auth (no OIDC needed)
+- `make run` builds a production binary that requires OIDC configuration
+- `./bin/money-tracker version` shows `[DEV BUILD]` only for dev builds

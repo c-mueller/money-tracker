@@ -8,6 +8,7 @@ import (
 
 	"icekalt.dev/money-tracker/internal/api"
 	authpkg "icekalt.dev/money-tracker/internal/auth"
+	"icekalt.dev/money-tracker/internal/devmode"
 	"icekalt.dev/money-tracker/internal/repository"
 	"icekalt.dev/money-tracker/internal/service"
 
@@ -58,10 +59,7 @@ var serveCmd = &cobra.Command{
 
 		srv := api.NewServer(logger, cfg.Server.Host, cfg.Server.Port, svcs)
 
-		// Setup auth
-		devMode := cfg.Auth.OIDC.Issuer == ""
-		var devUserID int
-
+		// Session store
 		sessionSecret := cfg.Auth.Session.Secret
 		if sessionSecret == "" {
 			b := make([]byte, 32)
@@ -72,15 +70,21 @@ var serveCmd = &cobra.Command{
 		}
 		store := authpkg.NewSessionStore(sessionSecret, cfg.Auth.Session.MaxAge)
 
-		if devMode {
-			logger.Warn("no OIDC issuer configured — running in dev mode with auto-auth")
-			// Create or get dev user
-			devUser, err := userSvc.GetOrCreate(context.Background(), "dev-user", "dev@localhost", "Dev User")
+		// Setup auth based on build tag
+		var devUserID int
+		if devmode.Enabled {
+			logger.Warn("DEV BUILD — running with auto-auth")
+			devUserID, err = devmode.SetupUser(func() (int, error) {
+				devUser, err := userSvc.GetOrCreate(context.Background(), "dev-user", "dev@localhost", "Dev User")
+				if err != nil {
+					return 0, err
+				}
+				return devUser.ID, nil
+			})
 			if err != nil {
 				return fmt.Errorf("creating dev user: %w", err)
 			}
-			devUserID = devUser.ID
-			srv.SetupAuth(nil, store, true, devUserID)
+			srv.SetupAuth(nil, store, devUserID)
 		} else {
 			oidcCfg, err := authpkg.NewOIDC(
 				context.Background(),
@@ -92,7 +96,7 @@ var serveCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("setting up OIDC: %w", err)
 			}
-			srv.SetupAuth(oidcCfg, store, false, 0)
+			srv.SetupAuth(oidcCfg, store, 0)
 		}
 
 		return srv.Start(context.Background())

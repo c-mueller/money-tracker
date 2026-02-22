@@ -25,7 +25,7 @@ func (s *Server) setupRoutes() {
 	}
 
 	// Auth middleware for all protected routes
-	authMW := mw.Auth(s.sessionStore, s.services.APIToken, s.devMode, s.devUserID)
+	authMW := mw.Auth(s.sessionStore, s.services.APIToken, s.devUserID)
 
 	// --- API Routes ---
 	apiGroup := s.echo.Group("/api/v1")
@@ -78,10 +78,9 @@ func (s *Server) setupRoutes() {
 	webGroup.POST("/tokens", s.handleWebTokenCreate)
 }
 
-// SetupAuth configures authentication for the server
-func (s *Server) SetupAuth(oidcCfg *auth.OIDCConfig, store sessions.Store, devMode bool, devUserID int) {
+// SetupAuth configures authentication for the server.
+func (s *Server) SetupAuth(oidcCfg *auth.OIDCConfig, store sessions.Store, devUserID int) {
 	s.sessionStore = store
-	s.devMode = devMode
 	s.devUserID = devUserID
 	if oidcCfg != nil {
 		s.authHandler = NewAuthHandler(oidcCfg, store, s.services)
