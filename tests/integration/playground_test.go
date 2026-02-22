@@ -1,4 +1,4 @@
-//go:build integration && dev
+//go:build integration
 
 package integration
 
@@ -7,12 +7,17 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"icekalt.dev/money-tracker/internal/devmode"
 )
 
 func TestPlaygroundAvailable(t *testing.T) {
+	if !devmode.Enabled {
+		t.Skip("playground only available in dev mode")
+	}
+
 	env := setupTestEnv(t)
 
-	// In dev mode, auth is auto — playground should be reachable
 	req, _ := http.NewRequest("GET", env.server.URL+"/playground", nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -31,9 +36,12 @@ func TestPlaygroundAvailable(t *testing.T) {
 }
 
 func TestSwaggerAvailableInDev(t *testing.T) {
+	if !devmode.Enabled {
+		t.Skip("dev-mode availability test")
+	}
+
 	env := setupTestEnv(t)
 
-	// In dev mode, auth is auto — swagger should be reachable
 	req, _ := http.NewRequest("GET", env.server.URL+"/swagger", nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

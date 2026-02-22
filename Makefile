@@ -11,7 +11,7 @@ LDFLAGS := -X icekalt.dev/money-tracker/internal/buildinfo.Version=$(VERSION) \
            -X icekalt.dev/money-tracker/internal/buildinfo.BuildDate=$(BUILD_DATE) \
            -X icekalt.dev/money-tracker/internal/buildinfo.GoVersion=$(GO_VERSION)
 
-.PHONY: build build-dev run run-dev test test-integration test-integration-dev lint clean generate migrate
+.PHONY: build build-dev run run-dev test test-integration lint clean generate migrate
 
 build:
 	go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(APP_NAME) ./cmd/money-tracker
@@ -29,10 +29,7 @@ test:
 	go test ./... -count=1
 
 test-integration:
-	go test ./tests/integration/... -count=1 -tags=integration
-
-test-integration-dev:
-	go test ./tests/integration/... -count=1 -tags=integration,dev -run "Playground|InDev"
+	go test ./tests/integration/... -count=1 -tags=integration,dev
 
 lint:
 	golangci-lint run ./...

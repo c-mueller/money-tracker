@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"icekalt.dev/money-tracker/internal/devmode"
 )
 
 func TestFullFlow(t *testing.T) {
@@ -624,6 +626,10 @@ func TestRecurringExpenseWithEndDate(t *testing.T) {
 }
 
 func TestUnauthorized(t *testing.T) {
+	if devmode.Enabled {
+		t.Skip("dev mode uses auto-auth")
+	}
+
 	env := setupTestEnv(t)
 
 	// Request without Bearer token

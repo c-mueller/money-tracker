@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"icekalt.dev/money-tracker/internal/auth"
+	"icekalt.dev/money-tracker/internal/devmode"
 )
 
 func TestOpenAPISpecNoAuth(t *testing.T) {
@@ -38,6 +39,10 @@ func TestOpenAPISpecNoAuth(t *testing.T) {
 }
 
 func TestSwaggerUINoAuth(t *testing.T) {
+	if devmode.Enabled {
+		t.Skip("dev mode uses auto-auth")
+	}
+
 	env := setupTestEnv(t)
 
 	req, _ := http.NewRequest("GET", env.server.URL+"/swagger", nil)

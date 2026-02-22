@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"icekalt.dev/money-tracker/internal/auth"
+	"icekalt.dev/money-tracker/internal/devmode"
 )
 
 // gqlRequest sends a GraphQL request with Bearer token auth.
@@ -335,6 +336,10 @@ func TestGraphQLAuth(t *testing.T) {
 	env := setupTestEnv(t)
 
 	t.Run("no auth returns 401", func(t *testing.T) {
+		if devmode.Enabled {
+			t.Skip("dev mode uses auto-auth")
+		}
+
 		body := `{"query":"{ households { id } }"}`
 		req, _ := http.NewRequest("POST", env.server.URL+"/graphql", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
