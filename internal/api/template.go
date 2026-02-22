@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -115,6 +116,7 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 			}
 			return m
 		},
+		"formatMoneyWithCurrency": formatMoneyWithCurrencyForLocale(defaultLocale, bundle, currencyByCode),
 	}
 
 	templatesFS, err := fs.Sub(web.Content, "templates")
@@ -214,8 +216,9 @@ func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 		"tf": func(freq string) string {
 			return r.bundle.FrequencyName(locale, freq)
 		},
-		"formatMoney": formatMoneyForLocale(locale, r.bundle),
-		"formatDate":  formatDateForLocale(locale, r.bundle),
+		"formatMoney":             formatMoneyForLocale(locale, r.bundle),
+		"formatMoneyWithCurrency": formatMoneyWithCurrencyForLocale(locale, r.bundle, r.currencyByCode),
+		"formatDate":              formatDateForLocale(locale, r.bundle),
 	})
 
 	var buf bytes.Buffer
@@ -256,6 +259,22 @@ func formatMoneyForLocale(locale i18n.Locale, bundle *i18n.Bundle) func(decimal.
 			return "-" + intPart + decimalSep + decPart
 		}
 		return intPart + decimalSep + decPart
+	}
+}
+
+func currencySuffix(code string, byCode map[string]Currency) string {
+	if c, ok := byCode[code]; ok {
+		if utf8.RuneCountInString(c.Symbol) == 1 {
+			return c.Symbol
+		}
+	}
+	return code
+}
+
+func formatMoneyWithCurrencyForLocale(locale i18n.Locale, bundle *i18n.Bundle, byCode map[string]Currency) func(decimal.Decimal, string) string {
+	fmtMoney := formatMoneyForLocale(locale, bundle)
+	return func(d decimal.Decimal, code string) string {
+		return fmtMoney(d) + " " + currencySuffix(code, byCode)
 	}
 }
 

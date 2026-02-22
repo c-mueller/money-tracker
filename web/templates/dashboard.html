@@ -21,15 +21,15 @@
                 <div class="row text-center mb-3">
                     <div class="col-4">
                         <div class="small text-muted">{{t "one_time"}}</div>
-                        <strong>{{formatMoney $summary.OneTimeTotal}}</strong>
+                        <strong>{{formatMoneyWithCurrency $summary.OneTimeTotal .Currency}}</strong>
                     </div>
                     <div class="col-4">
                         <div class="small text-muted">{{t "recurring"}}</div>
-                        <strong>{{formatMoney $summary.RecurringTotal}}</strong>
+                        <strong>{{formatMoneyWithCurrency $summary.RecurringTotal .Currency}}</strong>
                     </div>
                     <div class="col-4">
                         <div class="small text-muted">{{t "income"}}</div>
-                        <strong class="text-success">{{formatMoney $summary.TotalIncome}}</strong>
+                        <strong class="text-success">{{formatMoneyWithCurrency $summary.TotalIncome .Currency}}</strong>
                     </div>
                 </div>
                 {{end}}

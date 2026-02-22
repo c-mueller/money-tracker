@@ -19,7 +19,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-subtitle mb-2 text-muted">{{t "recurring"}}</h6>
-                <h4>{{formatMoney .Summary.RecurringTotal}}</h4>
+                <h4>{{formatMoneyWithCurrency .Summary.RecurringTotal .Household.Currency}}</h4>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-subtitle mb-2 text-muted">{{t "one_time"}}</h6>
-                <h4>{{formatMoney .Summary.OneTimeTotal}}</h4>
+                <h4>{{formatMoneyWithCurrency .Summary.OneTimeTotal .Household.Currency}}</h4>
             </div>
         </div>
     </div>
@@ -35,7 +35,7 @@
         <div class="card text-center">
             <div class="card-body">
                 <h6 class="card-subtitle mb-2 text-muted">{{t "income"}}</h6>
-                <h4 class="text-success">{{formatMoney .Summary.TotalIncome}}</h4>
+                <h4 class="text-success">{{formatMoneyWithCurrency .Summary.TotalIncome .Household.Currency}}</h4>
             </div>
         </div>
     </div>
@@ -65,7 +65,7 @@
             <td>{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
             <td>{{.CategoryID}}</td>
-            <td class="text-end">{{formatMoney .Amount}}</td>
+            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>

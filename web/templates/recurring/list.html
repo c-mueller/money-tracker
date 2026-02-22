@@ -22,7 +22,7 @@
         {{range .RecurringExpenses}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{formatMoney .Amount}}</td>
+            <td>{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td>{{tf (printf "%s" .Frequency)}}</td>
             <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-nowrap">
