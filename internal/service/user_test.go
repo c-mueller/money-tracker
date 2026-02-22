@@ -40,6 +40,38 @@ func TestUserGetByID(t *testing.T) {
 	})
 }
 
+func TestUpdateName(t *testing.T) {
+	svc := setupTestServices(t)
+	ctx, user := createTestUser(t, svc)
+
+	t.Run("valid name", func(t *testing.T) {
+		updated, err := svc.User.UpdateName(ctx, "New Name")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if updated.Name != "New Name" {
+			t.Errorf("Name = %q, want %q", updated.Name, "New Name")
+		}
+		if updated.ID != user.ID {
+			t.Errorf("ID = %d, want %d", updated.ID, user.ID)
+		}
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		_, err := svc.User.UpdateName(ctx, "")
+		if err == nil {
+			t.Fatal("expected error for empty name")
+		}
+	})
+
+	t.Run("no user in context", func(t *testing.T) {
+		_, err := svc.User.UpdateName(context.Background(), "Name")
+		if err == nil {
+			t.Fatal("expected error for missing user")
+		}
+	})
+}
+
 func TestUserGetOrCreate(t *testing.T) {
 	svc := setupTestServices(t)
 

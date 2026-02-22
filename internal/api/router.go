@@ -125,6 +125,8 @@ func (s *Server) setupRoutes() {
 	webGroup.POST("/households/:id/recurring", s.handleWebRecurringCreate)
 	webGroup.GET("/households/:id/recurring/:recurringId/edit", s.handleWebRecurringEdit)
 	webGroup.POST("/households/:id/recurring/:recurringId", s.handleWebRecurringUpdate)
+	webGroup.GET("/settings", s.handleWebUserSettings)
+	webGroup.POST("/settings", s.handleWebUserSettingsUpdate)
 	webGroup.GET("/tokens", s.handleWebTokenList)
 	webGroup.POST("/tokens", s.handleWebTokenCreate)
 }

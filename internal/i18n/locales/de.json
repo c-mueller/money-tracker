@@ -84,6 +84,9 @@
     "delete_recurring_confirm": "'%s' löschen?",
     "delete_token_confirm": "Token '%s' löschen?",
     "delete_household_confirm": "Diesen Haushalt und alle Daten löschen?",
-    "error_prefix": "Fehler: "
+    "error_prefix": "Fehler: ",
+    "user_settings": "Einstellungen",
+    "display_name": "Anzeigename",
+    "email_address": "E-Mail-Adresse"
   }
 }

@@ -684,6 +684,23 @@ func (s *Server) handleWebTokenCreate(c echo.Context) error {
 	})
 }
 
+func (s *Server) handleWebUserSettings(c echo.Context) error {
+	return c.Render(http.StatusOK, "user_settings", pageData{
+		Title: "user_settings",
+		User:  s.getUserFromContext(c),
+		Lang:  string(s.getLocale(c)),
+	})
+}
+
+func (s *Server) handleWebUserSettingsUpdate(c echo.Context) error {
+	name := c.FormValue("name")
+	_, err := s.services.User.UpdateName(c.Request().Context(), name)
+	if err != nil {
+		return err
+	}
+	return c.Redirect(http.StatusFound, "/settings")
+}
+
 func (s *Server) getUserFromContext(c echo.Context) *domain.User {
 	userID, ok := service.UserIDFromContext(c.Request().Context())
 	if !ok {

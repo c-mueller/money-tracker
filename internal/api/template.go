@@ -153,6 +153,7 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 		"recurring_form":     "recurring/form.html",
 		"transaction_form":   "transaction/form.html",
 		"token_list":         "token/list.html",
+		"user_settings":      "user/settings.html",
 	}
 
 	templates := make(map[string]*template.Template)
