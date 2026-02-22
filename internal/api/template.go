@@ -87,6 +87,19 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		return nil, fmt.Errorf("reading layout: %w", err)
 	}
 
+	// Load partials (shared template fragments)
+	partials := []string{
+		"household/tabs.html",
+	}
+	var partialBytes [][]byte
+	for _, p := range partials {
+		b, err := fs.ReadFile(templatesFS, p)
+		if err != nil {
+			return nil, fmt.Errorf("reading partial %s: %w", p, err)
+		}
+		partialBytes = append(partialBytes, b)
+	}
+
 	pages := map[string]string{
 		"dashboard":        "dashboard.html",
 		"login":            "auth/login.html",
@@ -94,6 +107,7 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		"household_form":   "household/form.html",
 		"category_list":    "category/list.html",
 		"recurring_list":   "recurring/list.html",
+		"recurring_form":   "recurring/form.html",
 		"transaction_form": "transaction/form.html",
 		"token_list":       "token/list.html",
 	}
@@ -107,6 +121,12 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		t, err := template.New("layout").Funcs(funcMap).Parse(string(layoutBytes))
 		if err != nil {
 			return nil, fmt.Errorf("parsing layout: %w", err)
+		}
+		for _, pb := range partialBytes {
+			t, err = t.Parse(string(pb))
+			if err != nil {
+				return nil, fmt.Errorf("parsing partial for %s: %w", file, err)
+			}
 		}
 		t, err = t.Parse(string(pageBytes))
 		if err != nil {

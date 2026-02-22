@@ -26,6 +26,8 @@ type pageData struct {
 	PrevMonth         string
 	NextMonth         string
 	Currencies        []Currency
+	ActiveTab         string
+	Frequencies       []domain.Frequency
 }
 
 func (s *Server) handleWebDashboard(c echo.Context) error {
@@ -83,6 +85,7 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 		Month:        monthStr,
 		PrevMonth:    fmt.Sprintf("%d-%02d", prev.Year(), prev.Month()),
 		NextMonth:    fmt.Sprintf("%d-%02d", next.Year(), next.Month()),
+		ActiveTab:    "transactions",
 	})
 }
 
@@ -153,9 +156,13 @@ func (s *Server) handleWebTransactionCreate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
 	}
 
-	categoryID, err := strconv.Atoi(c.FormValue("category_id"))
+	if c.FormValue("type") == "expense" {
+		amount = amount.Neg()
+	}
+
+	categoryID, err := s.resolveCategory(c, id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid category")
+		return err
 	}
 
 	date, err := time.Parse("2006-01-02", c.FormValue("date"))
@@ -191,11 +198,16 @@ func (s *Server) handleWebCategoryList(c echo.Context) error {
 		return err
 	}
 
+	now := time.Now()
+	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+
 	return c.Render(http.StatusOK, "category_list", pageData{
 		Title:      "Categories",
 		User:       s.getUserFromContext(c),
 		Household:  hh,
 		Categories: categories,
+		Month:      month,
+		ActiveTab:  "categories",
 	})
 }
 
@@ -231,12 +243,111 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 		return err
 	}
 
+	now := time.Now()
+	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+
 	return c.Render(http.StatusOK, "recurring_list", pageData{
 		Title:             "Recurring Expenses",
 		User:              s.getUserFromContext(c),
 		Household:         hh,
 		RecurringExpenses: expenses,
+		Month:             month,
+		ActiveTab:         "recurring",
 	})
+}
+
+func (s *Server) handleWebRecurringNew(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "recurring_form", pageData{
+		Title:       "New Recurring Expense",
+		User:        s.getUserFromContext(c),
+		Household:   hh,
+		Categories:  categories,
+		Frequencies: domain.AllFrequencies(),
+	})
+}
+
+func (s *Server) handleWebRecurringCreate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	// Handle new category creation
+	categoryID, err := s.resolveCategory(c, id)
+	if err != nil {
+		return err
+	}
+
+	amount, err := domain.NewMoney(c.FormValue("amount"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+	}
+
+	if c.FormValue("type") == "expense" {
+		amount = amount.Neg()
+	}
+
+	freq := domain.Frequency(c.FormValue("frequency"))
+
+	startDate, err := time.Parse("2006-01-02", c.FormValue("start_date"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid start date")
+	}
+
+	var endDate *time.Time
+	if ed := c.FormValue("end_date"); ed != "" {
+		t, err := time.Parse("2006-01-02", ed)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid end date")
+		}
+		endDate = &t
+	}
+
+	name := c.FormValue("name")
+
+	_, err = s.services.RecurringExpense.Create(c.Request().Context(), id, categoryID, name, amount, freq, startDate, endDate)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/recurring", id))
+}
+
+// resolveCategory returns the category ID from the form, creating a new category if "NEW" was selected.
+func (s *Server) resolveCategory(c echo.Context, householdID int) (int, error) {
+	catVal := c.FormValue("category_id")
+	if catVal == "NEW" {
+		name := c.FormValue("new_category_name")
+		if name == "" {
+			return 0, echo.NewHTTPError(http.StatusBadRequest, "category name required")
+		}
+		cat, err := s.services.Category.Create(c.Request().Context(), householdID, name)
+		if err != nil {
+			return 0, err
+		}
+		return cat.ID, nil
+	}
+	categoryID, err := strconv.Atoi(catVal)
+	if err != nil {
+		return 0, echo.NewHTTPError(http.StatusBadRequest, "invalid category")
+	}
+	return categoryID, nil
 }
 
 func (s *Server) handleWebTokenList(c echo.Context) error {

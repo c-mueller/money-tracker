@@ -1,8 +1,5 @@
 {{define "content"}}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Categories — {{.Household.Name}}</h1>
-    <a href="/households/{{.Household.ID}}" class="btn btn-outline-secondary btn-sm">Back</a>
-</div>
+{{template "household_header" .}}
 
 <form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
     <input type="text" class="form-control" name="name" placeholder="New category name" required maxlength="50">

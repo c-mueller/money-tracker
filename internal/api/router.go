@@ -77,6 +77,8 @@ func (s *Server) setupRoutes() {
 	webGroup.GET("/households/:id/categories", s.handleWebCategoryList)
 	webGroup.POST("/households/:id/categories", s.handleWebCategoryCreate)
 	webGroup.GET("/households/:id/recurring", s.handleWebRecurringList)
+	webGroup.GET("/households/:id/recurring/new", s.handleWebRecurringNew)
+	webGroup.POST("/households/:id/recurring", s.handleWebRecurringCreate)
 	webGroup.GET("/tokens", s.handleWebTokenList)
 	webGroup.POST("/tokens", s.handleWebTokenCreate)
 }
