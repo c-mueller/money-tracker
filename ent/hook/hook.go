@@ -57,6 +57,18 @@ func (f RecurringExpenseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RecurringExpenseMutation", m)
 }
 
+// The RecurringScheduleOverrideFunc type is an adapter to allow the use of ordinary
+// function as RecurringScheduleOverride mutator.
+type RecurringScheduleOverrideFunc func(context.Context, *ent.RecurringScheduleOverrideMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RecurringScheduleOverrideFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RecurringScheduleOverrideMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RecurringScheduleOverrideMutation", m)
+}
+
 // The TransactionFunc type is an adapter to allow the use of ordinary
 // function as Transaction mutator.
 type TransactionFunc func(context.Context, *ent.TransactionMutation) (ent.Value, error)

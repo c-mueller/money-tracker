@@ -36,6 +36,7 @@ var serveCmd = &cobra.Command{
 		categoryRepo := repository.NewCategoryRepository(client)
 		txRepo := repository.NewTransactionRepository(client)
 		recurringRepo := repository.NewRecurringExpenseRepository(client)
+		overrideRepo := repository.NewRecurringScheduleOverrideRepository(client)
 		tokenRepo := repository.NewAPITokenRepository(client)
 
 		// Services
@@ -43,8 +44,8 @@ var serveCmd = &cobra.Command{
 		householdSvc := service.NewHouseholdService(householdRepo, categoryRepo, txRepo, recurringRepo)
 		categorySvc := service.NewCategoryService(categoryRepo, householdSvc)
 		txSvc := service.NewTransactionService(txRepo, householdSvc)
-		recurringSvc := service.NewRecurringExpenseService(recurringRepo, householdSvc)
-		summarySvc := service.NewSummaryService(txRepo, recurringRepo, categoryRepo, householdSvc)
+		recurringSvc := service.NewRecurringExpenseService(recurringRepo, overrideRepo, householdSvc)
+		summarySvc := service.NewSummaryService(txRepo, recurringRepo, overrideRepo, categoryRepo, householdSvc)
 		tokenSvc := service.NewAPITokenService(tokenRepo)
 
 		svcs := &api.Services{

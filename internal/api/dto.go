@@ -111,6 +111,29 @@ type RecurringExpenseResponse struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// ScheduleOverride DTOs
+type CreateScheduleOverrideRequest struct {
+	EffectiveDate string `json:"effective_date"`
+	Amount        string `json:"amount"`
+	Frequency     string `json:"frequency"`
+}
+
+type UpdateScheduleOverrideRequest struct {
+	EffectiveDate string `json:"effective_date"`
+	Amount        string `json:"amount"`
+	Frequency     string `json:"frequency"`
+}
+
+type ScheduleOverrideResponse struct {
+	ID                 int       `json:"id"`
+	RecurringExpenseID int       `json:"recurring_expense_id"`
+	EffectiveDate      string    `json:"effective_date"`
+	Amount             string    `json:"amount"`
+	Frequency          string    `json:"frequency"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+}
+
 // Summary DTOs
 type SummaryResponse struct {
 	Month             string                    `json:"month"`

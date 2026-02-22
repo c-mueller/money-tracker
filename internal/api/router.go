@@ -66,6 +66,12 @@ func (s *Server) setupRoutes() {
 	apiGroup.PUT("/households/:id/recurring-expenses/:recurringId", s.handleUpdateRecurringExpense)
 	apiGroup.DELETE("/households/:id/recurring-expenses/:recurringId", s.handleDeleteRecurringExpense)
 
+	// Schedule Overrides
+	apiGroup.GET("/households/:id/recurring-expenses/:recurringId/overrides", s.handleListScheduleOverrides)
+	apiGroup.POST("/households/:id/recurring-expenses/:recurringId/overrides", s.handleCreateScheduleOverride)
+	apiGroup.PUT("/households/:id/recurring-expenses/:recurringId/overrides/:overrideId", s.handleUpdateScheduleOverride)
+	apiGroup.DELETE("/households/:id/recurring-expenses/:recurringId/overrides/:overrideId", s.handleDeleteScheduleOverride)
+
 	// Summary
 	apiGroup.GET("/households/:id/summary", s.handleGetSummary)
 
@@ -125,6 +131,8 @@ func (s *Server) setupRoutes() {
 	webGroup.POST("/households/:id/recurring", s.handleWebRecurringCreate)
 	webGroup.GET("/households/:id/recurring/:recurringId/edit", s.handleWebRecurringEdit)
 	webGroup.POST("/households/:id/recurring/:recurringId", s.handleWebRecurringUpdate)
+	webGroup.POST("/households/:id/recurring/:recurringId/overrides", s.handleWebOverrideCreate)
+	webGroup.POST("/households/:id/recurring/:recurringId/overrides/:overrideId/delete", s.handleWebOverrideDelete)
 	webGroup.GET("/settings", s.handleWebUserSettings)
 	webGroup.POST("/settings", s.handleWebUserSettingsUpdate)
 	webGroup.GET("/tokens", s.handleWebTokenList)

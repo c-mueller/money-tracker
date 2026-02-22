@@ -16,6 +16,7 @@ import (
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/predicate"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
 )
@@ -29,12 +30,13 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAPIToken         = "APIToken"
-	TypeCategory         = "Category"
-	TypeHousehold        = "Household"
-	TypeRecurringExpense = "RecurringExpense"
-	TypeTransaction      = "Transaction"
-	TypeUser             = "User"
+	TypeAPIToken                  = "APIToken"
+	TypeCategory                  = "Category"
+	TypeHousehold                 = "Household"
+	TypeRecurringExpense          = "RecurringExpense"
+	TypeRecurringScheduleOverride = "RecurringScheduleOverride"
+	TypeTransaction               = "Transaction"
+	TypeUser                      = "User"
 )
 
 // APITokenMutation represents an operation that mutates the APIToken nodes in the graph.
@@ -2390,26 +2392,29 @@ func (m *HouseholdMutation) ResetEdge(name string) error {
 // RecurringExpenseMutation represents an operation that mutates the RecurringExpense nodes in the graph.
 type RecurringExpenseMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	name             *string
-	description      *string
-	amount           *string
-	frequency        *string
-	active           *bool
-	start_date       *time.Time
-	end_date         *time.Time
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	household        *int
-	clearedhousehold bool
-	category         *int
-	clearedcategory  bool
-	done             bool
-	oldValue         func(context.Context) (*RecurringExpense, error)
-	predicates       []predicate.RecurringExpense
+	op                        Op
+	typ                       string
+	id                        *int
+	name                      *string
+	description               *string
+	amount                    *string
+	frequency                 *string
+	active                    *bool
+	start_date                *time.Time
+	end_date                  *time.Time
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	household                 *int
+	clearedhousehold          bool
+	category                  *int
+	clearedcategory           bool
+	schedule_overrides        map[int]struct{}
+	removedschedule_overrides map[int]struct{}
+	clearedschedule_overrides bool
+	done                      bool
+	oldValue                  func(context.Context) (*RecurringExpense, error)
+	predicates                []predicate.RecurringExpense
 }
 
 var _ ent.Mutation = (*RecurringExpenseMutation)(nil)
@@ -2938,6 +2943,60 @@ func (m *RecurringExpenseMutation) ResetCategory() {
 	m.clearedcategory = false
 }
 
+// AddScheduleOverrideIDs adds the "schedule_overrides" edge to the RecurringScheduleOverride entity by ids.
+func (m *RecurringExpenseMutation) AddScheduleOverrideIDs(ids ...int) {
+	if m.schedule_overrides == nil {
+		m.schedule_overrides = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.schedule_overrides[ids[i]] = struct{}{}
+	}
+}
+
+// ClearScheduleOverrides clears the "schedule_overrides" edge to the RecurringScheduleOverride entity.
+func (m *RecurringExpenseMutation) ClearScheduleOverrides() {
+	m.clearedschedule_overrides = true
+}
+
+// ScheduleOverridesCleared reports if the "schedule_overrides" edge to the RecurringScheduleOverride entity was cleared.
+func (m *RecurringExpenseMutation) ScheduleOverridesCleared() bool {
+	return m.clearedschedule_overrides
+}
+
+// RemoveScheduleOverrideIDs removes the "schedule_overrides" edge to the RecurringScheduleOverride entity by IDs.
+func (m *RecurringExpenseMutation) RemoveScheduleOverrideIDs(ids ...int) {
+	if m.removedschedule_overrides == nil {
+		m.removedschedule_overrides = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.schedule_overrides, ids[i])
+		m.removedschedule_overrides[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedScheduleOverrides returns the removed IDs of the "schedule_overrides" edge to the RecurringScheduleOverride entity.
+func (m *RecurringExpenseMutation) RemovedScheduleOverridesIDs() (ids []int) {
+	for id := range m.removedschedule_overrides {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ScheduleOverridesIDs returns the "schedule_overrides" edge IDs in the mutation.
+func (m *RecurringExpenseMutation) ScheduleOverridesIDs() (ids []int) {
+	for id := range m.schedule_overrides {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetScheduleOverrides resets all changes to the "schedule_overrides" edge.
+func (m *RecurringExpenseMutation) ResetScheduleOverrides() {
+	m.schedule_overrides = nil
+	m.clearedschedule_overrides = false
+	m.removedschedule_overrides = nil
+}
+
 // Where appends a list predicates to the RecurringExpenseMutation builder.
 func (m *RecurringExpenseMutation) Where(ps ...predicate.RecurringExpense) {
 	m.predicates = append(m.predicates, ps...)
@@ -3222,12 +3281,15 @@ func (m *RecurringExpenseMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RecurringExpenseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.household != nil {
 		edges = append(edges, recurringexpense.EdgeHousehold)
 	}
 	if m.category != nil {
 		edges = append(edges, recurringexpense.EdgeCategory)
+	}
+	if m.schedule_overrides != nil {
+		edges = append(edges, recurringexpense.EdgeScheduleOverrides)
 	}
 	return edges
 }
@@ -3244,30 +3306,50 @@ func (m *RecurringExpenseMutation) AddedIDs(name string) []ent.Value {
 		if id := m.category; id != nil {
 			return []ent.Value{*id}
 		}
+	case recurringexpense.EdgeScheduleOverrides:
+		ids := make([]ent.Value, 0, len(m.schedule_overrides))
+		for id := range m.schedule_overrides {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RecurringExpenseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.removedschedule_overrides != nil {
+		edges = append(edges, recurringexpense.EdgeScheduleOverrides)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *RecurringExpenseMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case recurringexpense.EdgeScheduleOverrides:
+		ids := make([]ent.Value, 0, len(m.removedschedule_overrides))
+		for id := range m.removedschedule_overrides {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RecurringExpenseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedhousehold {
 		edges = append(edges, recurringexpense.EdgeHousehold)
 	}
 	if m.clearedcategory {
 		edges = append(edges, recurringexpense.EdgeCategory)
+	}
+	if m.clearedschedule_overrides {
+		edges = append(edges, recurringexpense.EdgeScheduleOverrides)
 	}
 	return edges
 }
@@ -3280,6 +3362,8 @@ func (m *RecurringExpenseMutation) EdgeCleared(name string) bool {
 		return m.clearedhousehold
 	case recurringexpense.EdgeCategory:
 		return m.clearedcategory
+	case recurringexpense.EdgeScheduleOverrides:
+		return m.clearedschedule_overrides
 	}
 	return false
 }
@@ -3308,8 +3392,620 @@ func (m *RecurringExpenseMutation) ResetEdge(name string) error {
 	case recurringexpense.EdgeCategory:
 		m.ResetCategory()
 		return nil
+	case recurringexpense.EdgeScheduleOverrides:
+		m.ResetScheduleOverrides()
+		return nil
 	}
 	return fmt.Errorf("unknown RecurringExpense edge %s", name)
+}
+
+// RecurringScheduleOverrideMutation represents an operation that mutates the RecurringScheduleOverride nodes in the graph.
+type RecurringScheduleOverrideMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *int
+	effective_date           *time.Time
+	amount                   *string
+	frequency                *string
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	recurring_expense        *int
+	clearedrecurring_expense bool
+	done                     bool
+	oldValue                 func(context.Context) (*RecurringScheduleOverride, error)
+	predicates               []predicate.RecurringScheduleOverride
+}
+
+var _ ent.Mutation = (*RecurringScheduleOverrideMutation)(nil)
+
+// recurringscheduleoverrideOption allows management of the mutation configuration using functional options.
+type recurringscheduleoverrideOption func(*RecurringScheduleOverrideMutation)
+
+// newRecurringScheduleOverrideMutation creates new mutation for the RecurringScheduleOverride entity.
+func newRecurringScheduleOverrideMutation(c config, op Op, opts ...recurringscheduleoverrideOption) *RecurringScheduleOverrideMutation {
+	m := &RecurringScheduleOverrideMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRecurringScheduleOverride,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRecurringScheduleOverrideID sets the ID field of the mutation.
+func withRecurringScheduleOverrideID(id int) recurringscheduleoverrideOption {
+	return func(m *RecurringScheduleOverrideMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RecurringScheduleOverride
+		)
+		m.oldValue = func(ctx context.Context) (*RecurringScheduleOverride, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RecurringScheduleOverride.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRecurringScheduleOverride sets the old RecurringScheduleOverride of the mutation.
+func withRecurringScheduleOverride(node *RecurringScheduleOverride) recurringscheduleoverrideOption {
+	return func(m *RecurringScheduleOverrideMutation) {
+		m.oldValue = func(context.Context) (*RecurringScheduleOverride, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RecurringScheduleOverrideMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RecurringScheduleOverrideMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RecurringScheduleOverrideMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RecurringScheduleOverrideMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RecurringScheduleOverride.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetEffectiveDate sets the "effective_date" field.
+func (m *RecurringScheduleOverrideMutation) SetEffectiveDate(t time.Time) {
+	m.effective_date = &t
+}
+
+// EffectiveDate returns the value of the "effective_date" field in the mutation.
+func (m *RecurringScheduleOverrideMutation) EffectiveDate() (r time.Time, exists bool) {
+	v := m.effective_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEffectiveDate returns the old "effective_date" field's value of the RecurringScheduleOverride entity.
+// If the RecurringScheduleOverride object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringScheduleOverrideMutation) OldEffectiveDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEffectiveDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEffectiveDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEffectiveDate: %w", err)
+	}
+	return oldValue.EffectiveDate, nil
+}
+
+// ResetEffectiveDate resets all changes to the "effective_date" field.
+func (m *RecurringScheduleOverrideMutation) ResetEffectiveDate() {
+	m.effective_date = nil
+}
+
+// SetAmount sets the "amount" field.
+func (m *RecurringScheduleOverrideMutation) SetAmount(s string) {
+	m.amount = &s
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *RecurringScheduleOverrideMutation) Amount() (r string, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the RecurringScheduleOverride entity.
+// If the RecurringScheduleOverride object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringScheduleOverrideMutation) OldAmount(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *RecurringScheduleOverrideMutation) ResetAmount() {
+	m.amount = nil
+}
+
+// SetFrequency sets the "frequency" field.
+func (m *RecurringScheduleOverrideMutation) SetFrequency(s string) {
+	m.frequency = &s
+}
+
+// Frequency returns the value of the "frequency" field in the mutation.
+func (m *RecurringScheduleOverrideMutation) Frequency() (r string, exists bool) {
+	v := m.frequency
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFrequency returns the old "frequency" field's value of the RecurringScheduleOverride entity.
+// If the RecurringScheduleOverride object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringScheduleOverrideMutation) OldFrequency(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFrequency is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFrequency requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFrequency: %w", err)
+	}
+	return oldValue.Frequency, nil
+}
+
+// ResetFrequency resets all changes to the "frequency" field.
+func (m *RecurringScheduleOverrideMutation) ResetFrequency() {
+	m.frequency = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RecurringScheduleOverrideMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RecurringScheduleOverrideMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the RecurringScheduleOverride entity.
+// If the RecurringScheduleOverride object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringScheduleOverrideMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RecurringScheduleOverrideMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RecurringScheduleOverrideMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RecurringScheduleOverrideMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the RecurringScheduleOverride entity.
+// If the RecurringScheduleOverride object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringScheduleOverrideMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RecurringScheduleOverrideMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetRecurringExpenseID sets the "recurring_expense" edge to the RecurringExpense entity by id.
+func (m *RecurringScheduleOverrideMutation) SetRecurringExpenseID(id int) {
+	m.recurring_expense = &id
+}
+
+// ClearRecurringExpense clears the "recurring_expense" edge to the RecurringExpense entity.
+func (m *RecurringScheduleOverrideMutation) ClearRecurringExpense() {
+	m.clearedrecurring_expense = true
+}
+
+// RecurringExpenseCleared reports if the "recurring_expense" edge to the RecurringExpense entity was cleared.
+func (m *RecurringScheduleOverrideMutation) RecurringExpenseCleared() bool {
+	return m.clearedrecurring_expense
+}
+
+// RecurringExpenseID returns the "recurring_expense" edge ID in the mutation.
+func (m *RecurringScheduleOverrideMutation) RecurringExpenseID() (id int, exists bool) {
+	if m.recurring_expense != nil {
+		return *m.recurring_expense, true
+	}
+	return
+}
+
+// RecurringExpenseIDs returns the "recurring_expense" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RecurringExpenseID instead. It exists only for internal usage by the builders.
+func (m *RecurringScheduleOverrideMutation) RecurringExpenseIDs() (ids []int) {
+	if id := m.recurring_expense; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRecurringExpense resets all changes to the "recurring_expense" edge.
+func (m *RecurringScheduleOverrideMutation) ResetRecurringExpense() {
+	m.recurring_expense = nil
+	m.clearedrecurring_expense = false
+}
+
+// Where appends a list predicates to the RecurringScheduleOverrideMutation builder.
+func (m *RecurringScheduleOverrideMutation) Where(ps ...predicate.RecurringScheduleOverride) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RecurringScheduleOverrideMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RecurringScheduleOverrideMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RecurringScheduleOverride, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RecurringScheduleOverrideMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RecurringScheduleOverrideMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RecurringScheduleOverride).
+func (m *RecurringScheduleOverrideMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RecurringScheduleOverrideMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.effective_date != nil {
+		fields = append(fields, recurringscheduleoverride.FieldEffectiveDate)
+	}
+	if m.amount != nil {
+		fields = append(fields, recurringscheduleoverride.FieldAmount)
+	}
+	if m.frequency != nil {
+		fields = append(fields, recurringscheduleoverride.FieldFrequency)
+	}
+	if m.created_at != nil {
+		fields = append(fields, recurringscheduleoverride.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, recurringscheduleoverride.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RecurringScheduleOverrideMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case recurringscheduleoverride.FieldEffectiveDate:
+		return m.EffectiveDate()
+	case recurringscheduleoverride.FieldAmount:
+		return m.Amount()
+	case recurringscheduleoverride.FieldFrequency:
+		return m.Frequency()
+	case recurringscheduleoverride.FieldCreatedAt:
+		return m.CreatedAt()
+	case recurringscheduleoverride.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RecurringScheduleOverrideMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case recurringscheduleoverride.FieldEffectiveDate:
+		return m.OldEffectiveDate(ctx)
+	case recurringscheduleoverride.FieldAmount:
+		return m.OldAmount(ctx)
+	case recurringscheduleoverride.FieldFrequency:
+		return m.OldFrequency(ctx)
+	case recurringscheduleoverride.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case recurringscheduleoverride.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown RecurringScheduleOverride field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RecurringScheduleOverrideMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case recurringscheduleoverride.FieldEffectiveDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEffectiveDate(v)
+		return nil
+	case recurringscheduleoverride.FieldAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case recurringscheduleoverride.FieldFrequency:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFrequency(v)
+		return nil
+	case recurringscheduleoverride.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case recurringscheduleoverride.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RecurringScheduleOverride field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RecurringScheduleOverrideMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RecurringScheduleOverrideMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RecurringScheduleOverrideMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown RecurringScheduleOverride numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RecurringScheduleOverrideMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RecurringScheduleOverrideMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RecurringScheduleOverrideMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown RecurringScheduleOverride nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RecurringScheduleOverrideMutation) ResetField(name string) error {
+	switch name {
+	case recurringscheduleoverride.FieldEffectiveDate:
+		m.ResetEffectiveDate()
+		return nil
+	case recurringscheduleoverride.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case recurringscheduleoverride.FieldFrequency:
+		m.ResetFrequency()
+		return nil
+	case recurringscheduleoverride.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case recurringscheduleoverride.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown RecurringScheduleOverride field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RecurringScheduleOverrideMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.recurring_expense != nil {
+		edges = append(edges, recurringscheduleoverride.EdgeRecurringExpense)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RecurringScheduleOverrideMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case recurringscheduleoverride.EdgeRecurringExpense:
+		if id := m.recurring_expense; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RecurringScheduleOverrideMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RecurringScheduleOverrideMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RecurringScheduleOverrideMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedrecurring_expense {
+		edges = append(edges, recurringscheduleoverride.EdgeRecurringExpense)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RecurringScheduleOverrideMutation) EdgeCleared(name string) bool {
+	switch name {
+	case recurringscheduleoverride.EdgeRecurringExpense:
+		return m.clearedrecurring_expense
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RecurringScheduleOverrideMutation) ClearEdge(name string) error {
+	switch name {
+	case recurringscheduleoverride.EdgeRecurringExpense:
+		m.ClearRecurringExpense()
+		return nil
+	}
+	return fmt.Errorf("unknown RecurringScheduleOverride unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RecurringScheduleOverrideMutation) ResetEdge(name string) error {
+	switch name {
+	case recurringscheduleoverride.EdgeRecurringExpense:
+		m.ResetRecurringExpense()
+		return nil
+	}
+	return fmt.Errorf("unknown RecurringScheduleOverride edge %s", name)
 }
 
 // TransactionMutation represents an operation that mutates the Transaction nodes in the graph.

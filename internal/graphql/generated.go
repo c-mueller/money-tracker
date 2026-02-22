@@ -68,7 +68,12 @@ type ComplexityRoot struct {
 		CategoryBreakdown func(childComplexity int) int
 		HouseholdID       func(childComplexity int) int
 		Month             func(childComplexity int) int
+		MonthlyTotal      func(childComplexity int) int
+		OneTimeExpenses   func(childComplexity int) int
+		OneTimeIncome     func(childComplexity int) int
 		OneTimeTotal      func(childComplexity int) int
+		RecurringExpenses func(childComplexity int) int
+		RecurringIncome   func(childComplexity int) int
 		RecurringTotal    func(childComplexity int) int
 		TotalExpenses     func(childComplexity int) int
 		TotalIncome       func(childComplexity int) int
@@ -78,10 +83,13 @@ type ComplexityRoot struct {
 		CreateCategory         func(childComplexity int, input model.CreateCategoryInput) int
 		CreateHousehold        func(childComplexity int, input model.CreateHouseholdInput) int
 		CreateRecurringExpense func(childComplexity int, input model.CreateRecurringExpenseInput) int
+		CreateScheduleOverride func(childComplexity int, input model.CreateScheduleOverrideInput) int
 		CreateTransaction      func(childComplexity int, input model.CreateTransactionInput) int
+		DeleteScheduleOverride func(childComplexity int, id int) int
 		UpdateCategory         func(childComplexity int, input model.UpdateCategoryInput) int
 		UpdateHousehold        func(childComplexity int, input model.UpdateHouseholdInput) int
 		UpdateRecurringExpense func(childComplexity int, input model.UpdateRecurringExpenseInput) int
+		UpdateScheduleOverride func(childComplexity int, input model.UpdateScheduleOverrideInput) int
 		UpdateTransaction      func(childComplexity int, input model.UpdateTransactionInput) int
 	}
 
@@ -91,6 +99,7 @@ type ComplexityRoot struct {
 		Households        func(childComplexity int) int
 		MonthlySummary    func(childComplexity int, householdID int, month string) int
 		RecurringExpenses func(childComplexity int, householdID int) int
+		ScheduleOverrides func(childComplexity int, recurringExpenseID int) int
 		Transactions      func(childComplexity int, householdID int, month string) int
 	}
 
@@ -107,6 +116,16 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 		StartDate   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
+	}
+
+	ScheduleOverride struct {
+		Amount             func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		EffectiveDate      func(childComplexity int) int
+		Frequency          func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		RecurringExpenseID func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
 	}
 
 	Transaction struct {
@@ -130,6 +149,9 @@ type MutationResolver interface {
 	UpdateTransaction(ctx context.Context, input model.UpdateTransactionInput) (*model.Transaction, error)
 	CreateRecurringExpense(ctx context.Context, input model.CreateRecurringExpenseInput) (*model.RecurringExpense, error)
 	UpdateRecurringExpense(ctx context.Context, input model.UpdateRecurringExpenseInput) (*model.RecurringExpense, error)
+	CreateScheduleOverride(ctx context.Context, input model.CreateScheduleOverrideInput) (*model.ScheduleOverride, error)
+	UpdateScheduleOverride(ctx context.Context, input model.UpdateScheduleOverrideInput) (*model.ScheduleOverride, error)
+	DeleteScheduleOverride(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
 	Households(ctx context.Context) ([]model.Household, error)
@@ -138,6 +160,7 @@ type QueryResolver interface {
 	Transactions(ctx context.Context, householdID int, month string) ([]model.Transaction, error)
 	RecurringExpenses(ctx context.Context, householdID int) ([]model.RecurringExpense, error)
 	MonthlySummary(ctx context.Context, householdID int, month string) (*model.MonthlySummary, error)
+	ScheduleOverrides(ctx context.Context, recurringExpenseID int) ([]model.ScheduleOverride, error)
 }
 
 type executableSchema graphql.ExecutableSchemaState[ResolverRoot, DirectiveRoot, ComplexityRoot]
@@ -289,12 +312,42 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.MonthlySummary.Month(childComplexity), true
+	case "MonthlySummary.monthlyTotal":
+		if e.ComplexityRoot.MonthlySummary.MonthlyTotal == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MonthlySummary.MonthlyTotal(childComplexity), true
+	case "MonthlySummary.oneTimeExpenses":
+		if e.ComplexityRoot.MonthlySummary.OneTimeExpenses == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MonthlySummary.OneTimeExpenses(childComplexity), true
+	case "MonthlySummary.oneTimeIncome":
+		if e.ComplexityRoot.MonthlySummary.OneTimeIncome == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MonthlySummary.OneTimeIncome(childComplexity), true
 	case "MonthlySummary.oneTimeTotal":
 		if e.ComplexityRoot.MonthlySummary.OneTimeTotal == nil {
 			break
 		}
 
 		return e.ComplexityRoot.MonthlySummary.OneTimeTotal(childComplexity), true
+	case "MonthlySummary.recurringExpenses":
+		if e.ComplexityRoot.MonthlySummary.RecurringExpenses == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MonthlySummary.RecurringExpenses(childComplexity), true
+	case "MonthlySummary.recurringIncome":
+		if e.ComplexityRoot.MonthlySummary.RecurringIncome == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MonthlySummary.RecurringIncome(childComplexity), true
 	case "MonthlySummary.recurringTotal":
 		if e.ComplexityRoot.MonthlySummary.RecurringTotal == nil {
 			break
@@ -347,6 +400,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateRecurringExpense(childComplexity, args["input"].(model.CreateRecurringExpenseInput)), true
+	case "Mutation.createScheduleOverride":
+		if e.ComplexityRoot.Mutation.CreateScheduleOverride == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createScheduleOverride_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateScheduleOverride(childComplexity, args["input"].(model.CreateScheduleOverrideInput)), true
 	case "Mutation.createTransaction":
 		if e.ComplexityRoot.Mutation.CreateTransaction == nil {
 			break
@@ -358,6 +422,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CreateTransaction(childComplexity, args["input"].(model.CreateTransactionInput)), true
+	case "Mutation.deleteScheduleOverride":
+		if e.ComplexityRoot.Mutation.DeleteScheduleOverride == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteScheduleOverride_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteScheduleOverride(childComplexity, args["id"].(int)), true
 	case "Mutation.updateCategory":
 		if e.ComplexityRoot.Mutation.UpdateCategory == nil {
 			break
@@ -391,6 +466,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.UpdateRecurringExpense(childComplexity, args["input"].(model.UpdateRecurringExpenseInput)), true
+	case "Mutation.updateScheduleOverride":
+		if e.ComplexityRoot.Mutation.UpdateScheduleOverride == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateScheduleOverride_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.UpdateScheduleOverride(childComplexity, args["input"].(model.UpdateScheduleOverrideInput)), true
 	case "Mutation.updateTransaction":
 		if e.ComplexityRoot.Mutation.UpdateTransaction == nil {
 			break
@@ -454,6 +540,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.RecurringExpenses(childComplexity, args["householdID"].(int)), true
+	case "Query.scheduleOverrides":
+		if e.ComplexityRoot.Query.ScheduleOverrides == nil {
+			break
+		}
+
+		args, err := ec.field_Query_scheduleOverrides_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.ScheduleOverrides(childComplexity, args["recurringExpenseID"].(int)), true
 	case "Query.transactions":
 		if e.ComplexityRoot.Query.Transactions == nil {
 			break
@@ -539,6 +636,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.RecurringExpense.UpdatedAt(childComplexity), true
 
+	case "ScheduleOverride.amount":
+		if e.ComplexityRoot.ScheduleOverride.Amount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.Amount(childComplexity), true
+	case "ScheduleOverride.createdAt":
+		if e.ComplexityRoot.ScheduleOverride.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.CreatedAt(childComplexity), true
+	case "ScheduleOverride.effectiveDate":
+		if e.ComplexityRoot.ScheduleOverride.EffectiveDate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.EffectiveDate(childComplexity), true
+	case "ScheduleOverride.frequency":
+		if e.ComplexityRoot.ScheduleOverride.Frequency == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.Frequency(childComplexity), true
+	case "ScheduleOverride.id":
+		if e.ComplexityRoot.ScheduleOverride.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.ID(childComplexity), true
+	case "ScheduleOverride.recurringExpenseID":
+		if e.ComplexityRoot.ScheduleOverride.RecurringExpenseID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.RecurringExpenseID(childComplexity), true
+	case "ScheduleOverride.updatedAt":
+		if e.ComplexityRoot.ScheduleOverride.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ScheduleOverride.UpdatedAt(childComplexity), true
+
 	case "Transaction.amount":
 		if e.ComplexityRoot.Transaction.Amount == nil {
 			break
@@ -599,10 +739,12 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateCategoryInput,
 		ec.unmarshalInputCreateHouseholdInput,
 		ec.unmarshalInputCreateRecurringExpenseInput,
+		ec.unmarshalInputCreateScheduleOverrideInput,
 		ec.unmarshalInputCreateTransactionInput,
 		ec.unmarshalInputUpdateCategoryInput,
 		ec.unmarshalInputUpdateHouseholdInput,
 		ec.unmarshalInputUpdateRecurringExpenseInput,
+		ec.unmarshalInputUpdateScheduleOverrideInput,
 		ec.unmarshalInputUpdateTransactionInput,
 	)
 	first := true
@@ -731,6 +873,17 @@ func (ec *executionContext) field_Mutation_createRecurringExpense_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createScheduleOverride_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateScheduleOverrideInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐCreateScheduleOverrideInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createTransaction_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -739,6 +892,17 @@ func (ec *executionContext) field_Mutation_createTransaction_args(ctx context.Co
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteScheduleOverride_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -768,6 +932,17 @@ func (ec *executionContext) field_Mutation_updateRecurringExpense_args(ctx conte
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateRecurringExpenseInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐUpdateRecurringExpenseInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateScheduleOverride_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateScheduleOverrideInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐUpdateScheduleOverrideInput)
 	if err != nil {
 		return nil, err
 	}
@@ -843,6 +1018,17 @@ func (ec *executionContext) field_Query_recurringExpenses_args(ctx context.Conte
 		return nil, err
 	}
 	args["householdID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_scheduleOverrides_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "recurringExpenseID", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["recurringExpenseID"] = arg0
 	return args, nil
 }
 
@@ -1610,6 +1796,64 @@ func (ec *executionContext) fieldContext_MonthlySummary_recurringTotal(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _MonthlySummary_recurringIncome(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MonthlySummary_recurringIncome,
+		func(ctx context.Context) (any, error) {
+			return obj.RecurringIncome, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MonthlySummary_recurringIncome(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MonthlySummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MonthlySummary_recurringExpenses(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MonthlySummary_recurringExpenses,
+		func(ctx context.Context) (any, error) {
+			return obj.RecurringExpenses, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MonthlySummary_recurringExpenses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MonthlySummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MonthlySummary_oneTimeTotal(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1627,6 +1871,93 @@ func (ec *executionContext) _MonthlySummary_oneTimeTotal(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_MonthlySummary_oneTimeTotal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MonthlySummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MonthlySummary_oneTimeIncome(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MonthlySummary_oneTimeIncome,
+		func(ctx context.Context) (any, error) {
+			return obj.OneTimeIncome, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MonthlySummary_oneTimeIncome(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MonthlySummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MonthlySummary_oneTimeExpenses(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MonthlySummary_oneTimeExpenses,
+		func(ctx context.Context) (any, error) {
+			return obj.OneTimeExpenses, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MonthlySummary_oneTimeExpenses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MonthlySummary",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MonthlySummary_monthlyTotal(ctx context.Context, field graphql.CollectedField, obj *model.MonthlySummary) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MonthlySummary_monthlyTotal,
+		func(ctx context.Context) (any, error) {
+			return obj.MonthlyTotal, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MonthlySummary_monthlyTotal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "MonthlySummary",
 		Field:      field,
@@ -2160,6 +2491,161 @@ func (ec *executionContext) fieldContext_Mutation_updateRecurringExpense(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createScheduleOverride(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createScheduleOverride,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateScheduleOverride(ctx, fc.Args["input"].(model.CreateScheduleOverrideInput))
+		},
+		nil,
+		ec.marshalNScheduleOverride2ᚖicekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverride,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createScheduleOverride(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ScheduleOverride_id(ctx, field)
+			case "recurringExpenseID":
+				return ec.fieldContext_ScheduleOverride_recurringExpenseID(ctx, field)
+			case "effectiveDate":
+				return ec.fieldContext_ScheduleOverride_effectiveDate(ctx, field)
+			case "amount":
+				return ec.fieldContext_ScheduleOverride_amount(ctx, field)
+			case "frequency":
+				return ec.fieldContext_ScheduleOverride_frequency(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ScheduleOverride_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ScheduleOverride_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ScheduleOverride", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createScheduleOverride_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateScheduleOverride(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateScheduleOverride,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().UpdateScheduleOverride(ctx, fc.Args["input"].(model.UpdateScheduleOverrideInput))
+		},
+		nil,
+		ec.marshalNScheduleOverride2ᚖicekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverride,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateScheduleOverride(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ScheduleOverride_id(ctx, field)
+			case "recurringExpenseID":
+				return ec.fieldContext_ScheduleOverride_recurringExpenseID(ctx, field)
+			case "effectiveDate":
+				return ec.fieldContext_ScheduleOverride_effectiveDate(ctx, field)
+			case "amount":
+				return ec.fieldContext_ScheduleOverride_amount(ctx, field)
+			case "frequency":
+				return ec.fieldContext_ScheduleOverride_frequency(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ScheduleOverride_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ScheduleOverride_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ScheduleOverride", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateScheduleOverride_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteScheduleOverride(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteScheduleOverride,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteScheduleOverride(ctx, fc.Args["id"].(int))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteScheduleOverride(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteScheduleOverride_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_households(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2482,8 +2968,18 @@ func (ec *executionContext) fieldContext_Query_monthlySummary(ctx context.Contex
 				return ec.fieldContext_MonthlySummary_totalExpenses(ctx, field)
 			case "recurringTotal":
 				return ec.fieldContext_MonthlySummary_recurringTotal(ctx, field)
+			case "recurringIncome":
+				return ec.fieldContext_MonthlySummary_recurringIncome(ctx, field)
+			case "recurringExpenses":
+				return ec.fieldContext_MonthlySummary_recurringExpenses(ctx, field)
 			case "oneTimeTotal":
 				return ec.fieldContext_MonthlySummary_oneTimeTotal(ctx, field)
+			case "oneTimeIncome":
+				return ec.fieldContext_MonthlySummary_oneTimeIncome(ctx, field)
+			case "oneTimeExpenses":
+				return ec.fieldContext_MonthlySummary_oneTimeExpenses(ctx, field)
+			case "monthlyTotal":
+				return ec.fieldContext_MonthlySummary_monthlyTotal(ctx, field)
 			case "categoryBreakdown":
 				return ec.fieldContext_MonthlySummary_categoryBreakdown(ctx, field)
 			}
@@ -2498,6 +2994,63 @@ func (ec *executionContext) fieldContext_Query_monthlySummary(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_monthlySummary_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_scheduleOverrides(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_scheduleOverrides,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().ScheduleOverrides(ctx, fc.Args["recurringExpenseID"].(int))
+		},
+		nil,
+		ec.marshalNScheduleOverride2ᚕicekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverrideᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_scheduleOverrides(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ScheduleOverride_id(ctx, field)
+			case "recurringExpenseID":
+				return ec.fieldContext_ScheduleOverride_recurringExpenseID(ctx, field)
+			case "effectiveDate":
+				return ec.fieldContext_ScheduleOverride_effectiveDate(ctx, field)
+			case "amount":
+				return ec.fieldContext_ScheduleOverride_amount(ctx, field)
+			case "frequency":
+				return ec.fieldContext_ScheduleOverride_frequency(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ScheduleOverride_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ScheduleOverride_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ScheduleOverride", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_scheduleOverrides_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2950,6 +3503,209 @@ func (ec *executionContext) _RecurringExpense_updatedAt(ctx context.Context, fie
 func (ec *executionContext) fieldContext_RecurringExpense_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RecurringExpense",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_id(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_recurringExpenseID(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_recurringExpenseID,
+		func(ctx context.Context) (any, error) {
+			return obj.RecurringExpenseID, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_recurringExpenseID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_effectiveDate(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_effectiveDate,
+		func(ctx context.Context) (any, error) {
+			return obj.EffectiveDate, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_effectiveDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_amount(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_amount,
+		func(ctx context.Context) (any, error) {
+			return obj.Amount, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_amount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_frequency(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_frequency,
+		func(ctx context.Context) (any, error) {
+			return obj.Frequency, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_frequency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ScheduleOverride_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.ScheduleOverride) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ScheduleOverride_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ScheduleOverride_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ScheduleOverride",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -4800,6 +5556,53 @@ func (ec *executionContext) unmarshalInputCreateRecurringExpenseInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateScheduleOverrideInput(ctx context.Context, obj any) (model.CreateScheduleOverrideInput, error) {
+	var it model.CreateScheduleOverrideInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"recurringExpenseID", "effectiveDate", "amount", "frequency"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "recurringExpenseID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recurringExpenseID"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RecurringExpenseID = data
+		case "effectiveDate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("effectiveDate"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EffectiveDate = data
+		case "amount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Amount = data
+		case "frequency":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Frequency = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateTransactionInput(ctx context.Context, obj any) (model.CreateTransactionInput, error) {
 	var it model.CreateTransactionInput
 	asMap := map[string]any{}
@@ -5025,6 +5828,53 @@ func (ec *executionContext) unmarshalInputUpdateRecurringExpenseInput(ctx contex
 				return it, err
 			}
 			it.EndDate = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateScheduleOverrideInput(ctx context.Context, obj any) (model.UpdateScheduleOverrideInput, error) {
+	var it model.UpdateScheduleOverrideInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "effectiveDate", "amount", "frequency"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "effectiveDate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("effectiveDate"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EffectiveDate = data
+		case "amount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Amount = data
+		case "frequency":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("frequency"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Frequency = data
 		}
 	}
 	return it, nil
@@ -5332,8 +6182,33 @@ func (ec *executionContext) _MonthlySummary(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "recurringIncome":
+			out.Values[i] = ec._MonthlySummary_recurringIncome(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recurringExpenses":
+			out.Values[i] = ec._MonthlySummary_recurringExpenses(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "oneTimeTotal":
 			out.Values[i] = ec._MonthlySummary_oneTimeTotal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "oneTimeIncome":
+			out.Values[i] = ec._MonthlySummary_oneTimeIncome(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "oneTimeExpenses":
+			out.Values[i] = ec._MonthlySummary_oneTimeExpenses(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "monthlyTotal":
+			out.Values[i] = ec._MonthlySummary_monthlyTotal(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -5436,6 +6311,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateRecurringExpense":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateRecurringExpense(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createScheduleOverride":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createScheduleOverride(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateScheduleOverride":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateScheduleOverride(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteScheduleOverride":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteScheduleOverride(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -5614,6 +6510,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "scheduleOverrides":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_scheduleOverrides(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -5710,6 +6628,75 @@ func (ec *executionContext) _RecurringExpense(ctx context.Context, sel ast.Selec
 			}
 		case "updatedAt":
 			out.Values[i] = ec._RecurringExpense_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var scheduleOverrideImplementors = []string{"ScheduleOverride"}
+
+func (ec *executionContext) _ScheduleOverride(ctx context.Context, sel ast.SelectionSet, obj *model.ScheduleOverride) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, scheduleOverrideImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ScheduleOverride")
+		case "id":
+			out.Values[i] = ec._ScheduleOverride_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "recurringExpenseID":
+			out.Values[i] = ec._ScheduleOverride_recurringExpenseID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "effectiveDate":
+			out.Values[i] = ec._ScheduleOverride_effectiveDate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "amount":
+			out.Values[i] = ec._ScheduleOverride_amount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "frequency":
+			out.Values[i] = ec._ScheduleOverride_frequency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ScheduleOverride_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._ScheduleOverride_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -6226,6 +7213,11 @@ func (ec *executionContext) unmarshalNCreateRecurringExpenseInput2icekaltᚗdev�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateScheduleOverrideInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐCreateScheduleOverrideInput(ctx context.Context, v any) (model.CreateScheduleOverrideInput, error) {
+	res, err := ec.unmarshalInputCreateScheduleOverrideInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateTransactionInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐCreateTransactionInput(ctx context.Context, v any) (model.CreateTransactionInput, error) {
 	res, err := ec.unmarshalInputCreateTransactionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6321,6 +7313,36 @@ func (ec *executionContext) marshalNRecurringExpense2ᚖicekaltᚗdevᚋmoneyᚑ
 	return ec._RecurringExpense(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNScheduleOverride2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverride(ctx context.Context, sel ast.SelectionSet, v model.ScheduleOverride) graphql.Marshaler {
+	return ec._ScheduleOverride(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNScheduleOverride2ᚕicekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverrideᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ScheduleOverride) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNScheduleOverride2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverride(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNScheduleOverride2ᚖicekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐScheduleOverride(ctx context.Context, sel ast.SelectionSet, v *model.ScheduleOverride) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ScheduleOverride(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6379,6 +7401,11 @@ func (ec *executionContext) unmarshalNUpdateHouseholdInput2icekaltᚗdevᚋmoney
 
 func (ec *executionContext) unmarshalNUpdateRecurringExpenseInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐUpdateRecurringExpenseInput(ctx context.Context, v any) (model.UpdateRecurringExpenseInput, error) {
 	res, err := ec.unmarshalInputUpdateRecurringExpenseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateScheduleOverrideInput2icekaltᚗdevᚋmoneyᚑtrackerᚋinternalᚋgraphqlᚋmodelᚐUpdateScheduleOverrideInput(ctx context.Context, v any) (model.UpdateScheduleOverrideInput, error) {
+	res, err := ec.unmarshalInputUpdateScheduleOverrideInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

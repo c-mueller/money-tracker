@@ -18,6 +18,9 @@ type Household func(*sql.Selector)
 // RecurringExpense is the predicate function for recurringexpense builders.
 type RecurringExpense func(*sql.Selector)
 
+// RecurringScheduleOverride is the predicate function for recurringscheduleoverride builders.
+type RecurringScheduleOverride func(*sql.Selector)
+
 // Transaction is the predicate function for transaction builders.
 type Transaction func(*sql.Selector)
 

@@ -198,6 +198,90 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 	})
 }
 
+func TestScheduleOverrideCRUD(t *testing.T) {
+	svc := setupTestServices(t)
+	ctx, _ := createTestUser(t, svc)
+	hh := createTestHousehold(t, svc, ctx)
+	cat := createTestCategory(t, svc, ctx, hh.ID)
+
+	amount, _ := domain.NewMoney("-800.00")
+	re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+
+	t.Run("create override", func(t *testing.T) {
+		overrideAmount, _ := domain.NewMoney("-900.00")
+		override, err := svc.RecurringExpense.CreateOverride(ctx, re.ID, time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC), overrideAmount, domain.FrequencyMonthly)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if override.RecurringExpenseID != re.ID {
+			t.Errorf("RecurringExpenseID = %d, want %d", override.RecurringExpenseID, re.ID)
+		}
+		if !override.Amount.Equal(overrideAmount) {
+			t.Errorf("Amount = %s, want %s", override.Amount.String(), overrideAmount.String())
+		}
+	})
+
+	t.Run("list overrides", func(t *testing.T) {
+		overrides, err := svc.RecurringExpense.ListOverrides(ctx, re.ID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(overrides) != 1 {
+			t.Errorf("expected 1 override, got %d", len(overrides))
+		}
+	})
+
+	t.Run("update override", func(t *testing.T) {
+		overrides, _ := svc.RecurringExpense.ListOverrides(ctx, re.ID)
+		newAmount, _ := domain.NewMoney("-950.00")
+		updated, err := svc.RecurringExpense.UpdateOverride(ctx, overrides[0].ID, time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC), newAmount, domain.FrequencyMonthly)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !updated.Amount.Equal(newAmount) {
+			t.Errorf("Amount = %s, want %s", updated.Amount.String(), newAmount.String())
+		}
+	})
+
+	t.Run("create override with zero amount fails", func(t *testing.T) {
+		_, err := svc.RecurringExpense.CreateOverride(ctx, re.ID, time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC), domain.ZeroMoney(), domain.FrequencyMonthly)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("create override with invalid frequency fails", func(t *testing.T) {
+		overrideAmount, _ := domain.NewMoney("-100.00")
+		_, err := svc.RecurringExpense.CreateOverride(ctx, re.ID, time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC), overrideAmount, domain.Frequency("invalid"))
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("create override for nonexistent recurring expense fails", func(t *testing.T) {
+		overrideAmount, _ := domain.NewMoney("-100.00")
+		_, err := svc.RecurringExpense.CreateOverride(ctx, 99999, time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC), overrideAmount, domain.FrequencyMonthly)
+		if !errors.Is(err, domain.ErrNotFound) {
+			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+
+	t.Run("delete override", func(t *testing.T) {
+		overrides, _ := svc.RecurringExpense.ListOverrides(ctx, re.ID)
+		if len(overrides) == 0 {
+			t.Fatal("expected at least 1 override")
+		}
+		err := svc.RecurringExpense.DeleteOverride(ctx, overrides[0].ID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		remaining, _ := svc.RecurringExpense.ListOverrides(ctx, re.ID)
+		if len(remaining) != 0 {
+			t.Errorf("expected 0 overrides after delete, got %d", len(remaining))
+		}
+	})
+}
+
 func TestRecurringExpenseDelete(t *testing.T) {
 	svc := setupTestServices(t)
 	ctx, _ := createTestUser(t, svc)

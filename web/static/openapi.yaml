@@ -333,6 +333,58 @@ components:
           format: date-time
           nullable: true
 
+    ScheduleOverride:
+      type: object
+      properties:
+        id:
+          type: integer
+        recurring_expense_id:
+          type: integer
+        effective_date:
+          type: string
+          format: date
+          example: "2026-04-01"
+        amount:
+          type: string
+          example: "-900.00"
+        frequency:
+          type: string
+          enum: [daily, weekday, weekly, biweekly, monthly, quarterly, yearly]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateScheduleOverride:
+      type: object
+      required: [effective_date, amount, frequency]
+      properties:
+        effective_date:
+          type: string
+          format: date
+          example: "2026-04-01"
+        amount:
+          type: string
+          example: "-900.00"
+        frequency:
+          type: string
+          enum: [daily, weekday, weekly, biweekly, monthly, quarterly, yearly]
+
+    UpdateScheduleOverride:
+      type: object
+      required: [effective_date, amount, frequency]
+      properties:
+        effective_date:
+          type: string
+          format: date
+        amount:
+          type: string
+        frequency:
+          type: string
+          enum: [daily, weekday, weekly, biweekly, monthly, quarterly, yearly]
+
     CreateToken:
       type: object
       required: [name]
@@ -367,6 +419,12 @@ components:
         type: integer
     tokenId:
       name: tokenId
+      in: path
+      required: true
+      schema:
+        type: integer
+    overrideId:
+      name: overrideId
       in: path
       required: true
       schema:
@@ -767,6 +825,104 @@ paths:
       parameters:
         - $ref: '#/components/parameters/householdId'
         - $ref: '#/components/parameters/recurringId'
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          description: Invalid ID
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+
+  /households/{id}/recurring-expenses/{recurringId}/overrides:
+    get:
+      summary: List schedule overrides
+      operationId: listScheduleOverrides
+      tags: [Schedule Overrides]
+      parameters:
+        - $ref: '#/components/parameters/householdId'
+        - $ref: '#/components/parameters/recurringId'
+      responses:
+        '200':
+          description: List of schedule overrides
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleOverride'
+        '400':
+          description: Invalid ID
+        '401':
+          description: Unauthorized
+    post:
+      summary: Create schedule override
+      operationId: createScheduleOverride
+      tags: [Schedule Overrides]
+      parameters:
+        - $ref: '#/components/parameters/householdId'
+        - $ref: '#/components/parameters/recurringId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleOverride'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleOverride'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /households/{id}/recurring-expenses/{recurringId}/overrides/{overrideId}:
+    put:
+      summary: Update schedule override
+      operationId: updateScheduleOverride
+      tags: [Schedule Overrides]
+      parameters:
+        - $ref: '#/components/parameters/householdId'
+        - $ref: '#/components/parameters/recurringId'
+        - $ref: '#/components/parameters/overrideId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScheduleOverride'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleOverride'
+        '400':
+          description: Invalid ID or request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found
+    delete:
+      summary: Delete schedule override
+      operationId: deleteScheduleOverride
+      tags: [Schedule Overrides]
+      parameters:
+        - $ref: '#/components/parameters/householdId'
+        - $ref: '#/components/parameters/recurringId'
+        - $ref: '#/components/parameters/overrideId'
       responses:
         '204':
           description: Deleted

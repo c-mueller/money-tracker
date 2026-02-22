@@ -786,6 +786,93 @@ func TestCategoryWithIcon(t *testing.T) {
 	}
 }
 
+func TestScheduleOverrideCRUD(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"Override Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Housing"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create recurring expense
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"Rent","amount":"-800","frequency":"monthly","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var re map[string]interface{}
+	decodeJSON(t, resp, &re)
+	reID := itoa(int(re["id"].(float64)))
+
+	// Create override
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID+"/overrides",
+		`{"effective_date":"2026-04-01","amount":"-900","frequency":"monthly"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var override map[string]interface{}
+	decodeJSON(t, resp, &override)
+	overrideID := itoa(int(override["id"].(float64)))
+
+	if override["effective_date"] != "2026-04-01" {
+		t.Errorf("expected effective_date '2026-04-01', got %v", override["effective_date"])
+	}
+	if override["amount"] != "-900" {
+		t.Errorf("expected amount '-900', got %v", override["amount"])
+	}
+
+	// List overrides
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID+"/overrides", "")
+	assertStatus(t, resp, http.StatusOK)
+	var overrides []map[string]interface{}
+	decodeJSON(t, resp, &overrides)
+	if len(overrides) != 1 {
+		t.Errorf("expected 1 override, got %d", len(overrides))
+	}
+
+	// Update override
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID+"/overrides/"+overrideID,
+		`{"effective_date":"2026-05-01","amount":"-950","frequency":"monthly"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &override)
+	if override["amount"] != "-950" {
+		t.Errorf("expected amount '-950', got %v", override["amount"])
+	}
+
+	// Verify summary with override
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/summary?month=2026-01", "")
+	assertStatus(t, resp, http.StatusOK)
+	var summaryJan map[string]interface{}
+	decodeJSON(t, resp, &summaryJan)
+	if summaryJan["recurring_total"] != "-800" {
+		t.Errorf("Jan recurring_total = %v, want '-800'", summaryJan["recurring_total"])
+	}
+
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/summary?month=2026-06", "")
+	assertStatus(t, resp, http.StatusOK)
+	var summaryJun map[string]interface{}
+	decodeJSON(t, resp, &summaryJun)
+	if summaryJun["recurring_total"] != "-950" {
+		t.Errorf("Jun recurring_total = %v, want '-950'", summaryJun["recurring_total"])
+	}
+
+	// Delete override
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID+"/overrides/"+overrideID, "")
+	assertStatus(t, resp, http.StatusNoContent)
+
+	// Verify overrides empty
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID+"/overrides", "")
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &overrides)
+	if len(overrides) != 0 {
+		t.Errorf("expected 0 overrides after delete, got %d", len(overrides))
+	}
+}
+
 func TestRecurringExpenseDescription(t *testing.T) {
 	env := setupTestEnv(t)
 

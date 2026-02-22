@@ -19,6 +19,7 @@ import (
 	"icekalt.dev/money-tracker/ent/category"
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
 )
@@ -36,6 +37,8 @@ type Client struct {
 	Household *HouseholdClient
 	// RecurringExpense is the client for interacting with the RecurringExpense builders.
 	RecurringExpense *RecurringExpenseClient
+	// RecurringScheduleOverride is the client for interacting with the RecurringScheduleOverride builders.
+	RecurringScheduleOverride *RecurringScheduleOverrideClient
 	// Transaction is the client for interacting with the Transaction builders.
 	Transaction *TransactionClient
 	// User is the client for interacting with the User builders.
@@ -55,6 +58,7 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.Household = NewHouseholdClient(c.config)
 	c.RecurringExpense = NewRecurringExpenseClient(c.config)
+	c.RecurringScheduleOverride = NewRecurringScheduleOverrideClient(c.config)
 	c.Transaction = NewTransactionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -147,14 +151,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		APIToken:         NewAPITokenClient(cfg),
-		Category:         NewCategoryClient(cfg),
-		Household:        NewHouseholdClient(cfg),
-		RecurringExpense: NewRecurringExpenseClient(cfg),
-		Transaction:      NewTransactionClient(cfg),
-		User:             NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		APIToken:                  NewAPITokenClient(cfg),
+		Category:                  NewCategoryClient(cfg),
+		Household:                 NewHouseholdClient(cfg),
+		RecurringExpense:          NewRecurringExpenseClient(cfg),
+		RecurringScheduleOverride: NewRecurringScheduleOverrideClient(cfg),
+		Transaction:               NewTransactionClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
@@ -172,14 +177,15 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:              ctx,
-		config:           cfg,
-		APIToken:         NewAPITokenClient(cfg),
-		Category:         NewCategoryClient(cfg),
-		Household:        NewHouseholdClient(cfg),
-		RecurringExpense: NewRecurringExpenseClient(cfg),
-		Transaction:      NewTransactionClient(cfg),
-		User:             NewUserClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		APIToken:                  NewAPITokenClient(cfg),
+		Category:                  NewCategoryClient(cfg),
+		Household:                 NewHouseholdClient(cfg),
+		RecurringExpense:          NewRecurringExpenseClient(cfg),
+		RecurringScheduleOverride: NewRecurringScheduleOverrideClient(cfg),
+		Transaction:               NewTransactionClient(cfg),
+		User:                      NewUserClient(cfg),
 	}, nil
 }
 
@@ -209,7 +215,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.APIToken, c.Category, c.Household, c.RecurringExpense, c.Transaction, c.User,
+		c.APIToken, c.Category, c.Household, c.RecurringExpense,
+		c.RecurringScheduleOverride, c.Transaction, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -219,7 +226,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.APIToken, c.Category, c.Household, c.RecurringExpense, c.Transaction, c.User,
+		c.APIToken, c.Category, c.Household, c.RecurringExpense,
+		c.RecurringScheduleOverride, c.Transaction, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -236,6 +244,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Household.mutate(ctx, m)
 	case *RecurringExpenseMutation:
 		return c.RecurringExpense.mutate(ctx, m)
+	case *RecurringScheduleOverrideMutation:
+		return c.RecurringScheduleOverride.mutate(ctx, m)
 	case *TransactionMutation:
 		return c.Transaction.mutate(ctx, m)
 	case *UserMutation:
@@ -912,6 +922,22 @@ func (c *RecurringExpenseClient) QueryCategory(_m *RecurringExpense) *CategoryQu
 	return query
 }
 
+// QueryScheduleOverrides queries the schedule_overrides edge of a RecurringExpense.
+func (c *RecurringExpenseClient) QueryScheduleOverrides(_m *RecurringExpense) *RecurringScheduleOverrideQuery {
+	query := (&RecurringScheduleOverrideClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recurringexpense.Table, recurringexpense.FieldID, id),
+			sqlgraph.To(recurringscheduleoverride.Table, recurringscheduleoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, recurringexpense.ScheduleOverridesTable, recurringexpense.ScheduleOverridesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RecurringExpenseClient) Hooks() []Hook {
 	return c.hooks.RecurringExpense
@@ -934,6 +960,155 @@ func (c *RecurringExpenseClient) mutate(ctx context.Context, m *RecurringExpense
 		return (&RecurringExpenseDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown RecurringExpense mutation op: %q", m.Op())
+	}
+}
+
+// RecurringScheduleOverrideClient is a client for the RecurringScheduleOverride schema.
+type RecurringScheduleOverrideClient struct {
+	config
+}
+
+// NewRecurringScheduleOverrideClient returns a client for the RecurringScheduleOverride from the given config.
+func NewRecurringScheduleOverrideClient(c config) *RecurringScheduleOverrideClient {
+	return &RecurringScheduleOverrideClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `recurringscheduleoverride.Hooks(f(g(h())))`.
+func (c *RecurringScheduleOverrideClient) Use(hooks ...Hook) {
+	c.hooks.RecurringScheduleOverride = append(c.hooks.RecurringScheduleOverride, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `recurringscheduleoverride.Intercept(f(g(h())))`.
+func (c *RecurringScheduleOverrideClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RecurringScheduleOverride = append(c.inters.RecurringScheduleOverride, interceptors...)
+}
+
+// Create returns a builder for creating a RecurringScheduleOverride entity.
+func (c *RecurringScheduleOverrideClient) Create() *RecurringScheduleOverrideCreate {
+	mutation := newRecurringScheduleOverrideMutation(c.config, OpCreate)
+	return &RecurringScheduleOverrideCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RecurringScheduleOverride entities.
+func (c *RecurringScheduleOverrideClient) CreateBulk(builders ...*RecurringScheduleOverrideCreate) *RecurringScheduleOverrideCreateBulk {
+	return &RecurringScheduleOverrideCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RecurringScheduleOverrideClient) MapCreateBulk(slice any, setFunc func(*RecurringScheduleOverrideCreate, int)) *RecurringScheduleOverrideCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RecurringScheduleOverrideCreateBulk{err: fmt.Errorf("calling to RecurringScheduleOverrideClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RecurringScheduleOverrideCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RecurringScheduleOverrideCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RecurringScheduleOverride.
+func (c *RecurringScheduleOverrideClient) Update() *RecurringScheduleOverrideUpdate {
+	mutation := newRecurringScheduleOverrideMutation(c.config, OpUpdate)
+	return &RecurringScheduleOverrideUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RecurringScheduleOverrideClient) UpdateOne(_m *RecurringScheduleOverride) *RecurringScheduleOverrideUpdateOne {
+	mutation := newRecurringScheduleOverrideMutation(c.config, OpUpdateOne, withRecurringScheduleOverride(_m))
+	return &RecurringScheduleOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RecurringScheduleOverrideClient) UpdateOneID(id int) *RecurringScheduleOverrideUpdateOne {
+	mutation := newRecurringScheduleOverrideMutation(c.config, OpUpdateOne, withRecurringScheduleOverrideID(id))
+	return &RecurringScheduleOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RecurringScheduleOverride.
+func (c *RecurringScheduleOverrideClient) Delete() *RecurringScheduleOverrideDelete {
+	mutation := newRecurringScheduleOverrideMutation(c.config, OpDelete)
+	return &RecurringScheduleOverrideDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RecurringScheduleOverrideClient) DeleteOne(_m *RecurringScheduleOverride) *RecurringScheduleOverrideDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RecurringScheduleOverrideClient) DeleteOneID(id int) *RecurringScheduleOverrideDeleteOne {
+	builder := c.Delete().Where(recurringscheduleoverride.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RecurringScheduleOverrideDeleteOne{builder}
+}
+
+// Query returns a query builder for RecurringScheduleOverride.
+func (c *RecurringScheduleOverrideClient) Query() *RecurringScheduleOverrideQuery {
+	return &RecurringScheduleOverrideQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRecurringScheduleOverride},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RecurringScheduleOverride entity by its id.
+func (c *RecurringScheduleOverrideClient) Get(ctx context.Context, id int) (*RecurringScheduleOverride, error) {
+	return c.Query().Where(recurringscheduleoverride.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RecurringScheduleOverrideClient) GetX(ctx context.Context, id int) *RecurringScheduleOverride {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRecurringExpense queries the recurring_expense edge of a RecurringScheduleOverride.
+func (c *RecurringScheduleOverrideClient) QueryRecurringExpense(_m *RecurringScheduleOverride) *RecurringExpenseQuery {
+	query := (&RecurringExpenseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recurringscheduleoverride.Table, recurringscheduleoverride.FieldID, id),
+			sqlgraph.To(recurringexpense.Table, recurringexpense.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, recurringscheduleoverride.RecurringExpenseTable, recurringscheduleoverride.RecurringExpenseColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RecurringScheduleOverrideClient) Hooks() []Hook {
+	return c.hooks.RecurringScheduleOverride
+}
+
+// Interceptors returns the client interceptors.
+func (c *RecurringScheduleOverrideClient) Interceptors() []Interceptor {
+	return c.inters.RecurringScheduleOverride
+}
+
+func (c *RecurringScheduleOverrideClient) mutate(ctx context.Context, m *RecurringScheduleOverrideMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RecurringScheduleOverrideCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RecurringScheduleOverrideUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RecurringScheduleOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RecurringScheduleOverrideDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RecurringScheduleOverride mutation op: %q", m.Op())
 	}
 }
 
@@ -1270,10 +1445,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APIToken, Category, Household, RecurringExpense, Transaction, User []ent.Hook
+		APIToken, Category, Household, RecurringExpense, RecurringScheduleOverride,
+		Transaction, User []ent.Hook
 	}
 	inters struct {
-		APIToken, Category, Household, RecurringExpense, Transaction,
-		User []ent.Interceptor
+		APIToken, Category, Household, RecurringExpense, RecurringScheduleOverride,
+		Transaction, User []ent.Interceptor
 	}
 )

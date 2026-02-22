@@ -44,6 +44,16 @@ type RecurringExpense {
   updatedAt: String!
 }
 
+type ScheduleOverride {
+  id: Int!
+  recurringExpenseID: Int!
+  effectiveDate: String!
+  amount: String!
+  frequency: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type CategorySummary {
   categoryID: Int!
   categoryName: String!
@@ -136,6 +146,20 @@ input UpdateRecurringExpenseInput {
   endDate: String
 }
 
+input CreateScheduleOverrideInput {
+  recurringExpenseID: Int!
+  effectiveDate: String!
+  amount: String!
+  frequency: String!
+}
+
+input UpdateScheduleOverrideInput {
+  id: Int!
+  effectiveDate: String!
+  amount: String!
+  frequency: String!
+}
+
 type Query {
   households: [Household!]!
   household(id: Int!): Household!
@@ -143,6 +167,7 @@ type Query {
   transactions(householdID: Int!, month: String!): [Transaction!]!
   recurringExpenses(householdID: Int!): [RecurringExpense!]!
   monthlySummary(householdID: Int!, month: String!): MonthlySummary!
+  scheduleOverrides(recurringExpenseID: Int!): [ScheduleOverride!]!
 }
 
 type Mutation {
@@ -154,4 +179,7 @@ type Mutation {
   updateTransaction(input: UpdateTransactionInput!): Transaction!
   createRecurringExpense(input: CreateRecurringExpenseInput!): RecurringExpense!
   updateRecurringExpense(input: UpdateRecurringExpenseInput!): RecurringExpense!
+  createScheduleOverride(input: CreateScheduleOverrideInput!): ScheduleOverride!
+  updateScheduleOverride(input: UpdateScheduleOverrideInput!): ScheduleOverride!
+  deleteScheduleOverride(id: Int!): Boolean!
 }

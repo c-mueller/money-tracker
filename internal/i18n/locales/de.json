@@ -92,6 +92,9 @@
     "recurring_expenses": "Wiederkehrende Ausgaben",
     "one_time_income": "Einmalige Einnahmen",
     "one_time_expenses": "Einmalige Ausgaben",
-    "monthly_total": "Monatliches Gesamtergebnis"
+    "monthly_total": "Monatliches Gesamtergebnis",
+    "schedule_overrides": "Zeitplan-Anpassungen",
+    "schedule_overrides_help": "Betrag und Frequenz für bestimmte Zeiträume überschreiben.",
+    "effective_date": "Gültig ab"
   }
 }

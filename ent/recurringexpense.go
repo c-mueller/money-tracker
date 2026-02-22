@@ -51,9 +51,11 @@ type RecurringExpenseEdges struct {
 	Household *Household `json:"household,omitempty"`
 	// Category holds the value of the category edge.
 	Category *Category `json:"category,omitempty"`
+	// ScheduleOverrides holds the value of the schedule_overrides edge.
+	ScheduleOverrides []*RecurringScheduleOverride `json:"schedule_overrides,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // HouseholdOrErr returns the Household value or an error if the edge
@@ -76,6 +78,15 @@ func (e RecurringExpenseEdges) CategoryOrErr() (*Category, error) {
 		return nil, &NotFoundError{label: category.Label}
 	}
 	return nil, &NotLoadedError{edge: "category"}
+}
+
+// ScheduleOverridesOrErr returns the ScheduleOverrides value or an error if the edge
+// was not loaded in eager-loading.
+func (e RecurringExpenseEdges) ScheduleOverridesOrErr() ([]*RecurringScheduleOverride, error) {
+	if e.loadedTypes[2] {
+		return e.ScheduleOverrides, nil
+	}
+	return nil, &NotLoadedError{edge: "schedule_overrides"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -206,6 +217,11 @@ func (_m *RecurringExpense) QueryHousehold() *HouseholdQuery {
 // QueryCategory queries the "category" edge of the RecurringExpense entity.
 func (_m *RecurringExpense) QueryCategory() *CategoryQuery {
 	return NewRecurringExpenseClient(_m.config).QueryCategory(_m)
+}
+
+// QueryScheduleOverrides queries the "schedule_overrides" edge of the RecurringExpense entity.
+func (_m *RecurringExpense) QueryScheduleOverrides() *RecurringScheduleOverrideQuery {
+	return NewRecurringExpenseClient(_m.config).QueryScheduleOverrides(_m)
 }
 
 // Update returns a builder for updating this RecurringExpense.

@@ -146,6 +146,38 @@ func TestGetMonthlySummary(t *testing.T) {
 		}
 	})
 
+	t.Run("recurring with schedule override", func(t *testing.T) {
+		hh6, _ := svc.Household.Create(ctx, "Summary Test 6", "", "EUR", "")
+		cat6, _ := svc.Category.Create(ctx, hh6.ID, "Override", "")
+
+		recurAmount, _ := domain.NewMoney("-800.00")
+		re, _ := svc.RecurringExpense.Create(ctx, hh6.ID, cat6.ID, "Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+
+		// Add override: from April, rent increases to -900
+		overrideAmount, _ := domain.NewMoney("-900.00")
+		svc.RecurringExpense.CreateOverride(ctx, re.ID, time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC), overrideAmount, domain.FrequencyMonthly)
+
+		// January: base amount applies
+		summaryJan, err := svc.Summary.GetMonthlySummary(ctx, hh6.ID, 2026, time.January)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		wantJan, _ := domain.NewMoney("-800")
+		if !summaryJan.RecurringTotal.Equal(wantJan) {
+			t.Errorf("Jan RecurringTotal = %s, want %s", summaryJan.RecurringTotal.String(), wantJan.String())
+		}
+
+		// May: override amount applies
+		summaryMay, err := svc.Summary.GetMonthlySummary(ctx, hh6.ID, 2026, time.May)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		wantMay, _ := domain.NewMoney("-900")
+		if !summaryMay.RecurringTotal.Equal(wantMay) {
+			t.Errorf("May RecurringTotal = %s, want %s", summaryMay.RecurringTotal.String(), wantMay.String())
+		}
+	})
+
 	t.Run("category breakdown", func(t *testing.T) {
 		hh4, _ := svc.Household.Create(ctx, "Summary Test 4", "", "EUR", "")
 		catA, _ := svc.Category.Create(ctx, hh4.ID, "Food", "")

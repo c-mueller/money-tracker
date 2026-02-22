@@ -43,6 +43,13 @@ type CreateRecurringExpenseInput struct {
 	EndDate     *string `json:"endDate,omitempty"`
 }
 
+type CreateScheduleOverrideInput struct {
+	RecurringExpenseID int    `json:"recurringExpenseID"`
+	EffectiveDate      string `json:"effectiveDate"`
+	Amount             string `json:"amount"`
+	Frequency          string `json:"frequency"`
+}
+
 type CreateTransactionInput struct {
 	HouseholdID int     `json:"householdID"`
 	CategoryID  int     `json:"categoryID"`
@@ -98,6 +105,16 @@ type RecurringExpense struct {
 	UpdatedAt   string  `json:"updatedAt"`
 }
 
+type ScheduleOverride struct {
+	ID                 int    `json:"id"`
+	RecurringExpenseID int    `json:"recurringExpenseID"`
+	EffectiveDate      string `json:"effectiveDate"`
+	Amount             string `json:"amount"`
+	Frequency          string `json:"frequency"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
+}
+
 type Transaction struct {
 	ID          int    `json:"id"`
 	HouseholdID int    `json:"householdID"`
@@ -133,6 +150,13 @@ type UpdateRecurringExpenseInput struct {
 	Active      bool    `json:"active"`
 	StartDate   string  `json:"startDate"`
 	EndDate     *string `json:"endDate,omitempty"`
+}
+
+type UpdateScheduleOverrideInput struct {
+	ID            int    `json:"id"`
+	EffectiveDate string `json:"effectiveDate"`
+	Amount        string `json:"amount"`
+	Frequency     string `json:"frequency"`
 }
 
 type UpdateTransactionInput struct {

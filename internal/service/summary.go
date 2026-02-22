@@ -11,6 +11,7 @@ import (
 type SummaryService struct {
 	txRepo        domain.TransactionRepo
 	recurringRepo domain.RecurringExpenseRepo
+	overrideRepo  domain.RecurringScheduleOverrideRepo
 	categoryRepo  domain.CategoryRepo
 	household     *HouseholdService
 }
@@ -18,12 +19,14 @@ type SummaryService struct {
 func NewSummaryService(
 	txRepo domain.TransactionRepo,
 	recurringRepo domain.RecurringExpenseRepo,
+	overrideRepo domain.RecurringScheduleOverrideRepo,
 	categoryRepo domain.CategoryRepo,
 	household *HouseholdService,
 ) *SummaryService {
 	return &SummaryService{
 		txRepo:        txRepo,
 		recurringRepo: recurringRepo,
+		overrideRepo:  overrideRepo,
 		categoryRepo:  categoryRepo,
 		household:     household,
 	}
@@ -67,7 +70,17 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 	recurringIncome := decimal.Zero
 	recurringExpenses := decimal.Zero
 	for _, re := range recurring {
-		monthly, err := domain.NormalizeToMonthly(re.Amount, re.Frequency, refMonth)
+		// Check for schedule overrides
+		amount := re.Amount
+		freq := re.Frequency
+		if s.overrideRepo != nil {
+			overrides, err := s.overrideRepo.ListByRecurringExpense(ctx, re.ID)
+			if err == nil && len(overrides) > 0 {
+				amount, freq = domain.EffectiveSchedule(re.Amount, re.Frequency, overrides, year, month)
+			}
+		}
+
+		monthly, err := domain.NormalizeToMonthly(amount, freq, refMonth)
 		if err != nil {
 			continue
 		}

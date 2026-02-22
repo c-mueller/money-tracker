@@ -24,6 +24,7 @@ type pageData struct {
 	Transaction        *domain.Transaction
 	RecurringExpenses  []*domain.RecurringExpense
 	RecurringExpense   *domain.RecurringExpense
+	ScheduleOverrides  []*domain.RecurringScheduleOverride
 	Summary            *domain.MonthlySummary
 	Summaries          map[int]*domain.MonthlySummary
 	Tokens             []*domain.APIToken
@@ -454,14 +455,20 @@ func (s *Server) handleWebRecurringEdit(c echo.Context) error {
 		return err
 	}
 
+	overrides, err := s.services.RecurringExpense.ListOverrides(ctx, recurringID)
+	if err != nil {
+		return err
+	}
+
 	return c.Render(http.StatusOK, "recurring_form", pageData{
-		Title:            "edit_recurring",
-		User:             s.getUserFromContext(c),
-		Household:        hh,
-		RecurringExpense: re,
-		Categories:       categories,
-		Frequencies:      domain.AllFrequencies(),
-		Lang:             string(s.getLocale(c)),
+		Title:             "edit_recurring",
+		User:              s.getUserFromContext(c),
+		Household:         hh,
+		RecurringExpense:  re,
+		Categories:        categories,
+		ScheduleOverrides: overrides,
+		Frequencies:       domain.AllFrequencies(),
+		Lang:              string(s.getLocale(c)),
 	})
 }
 
@@ -689,6 +696,64 @@ func (s *Server) handleWebTokenCreate(c echo.Context) error {
 		NewToken: plaintext,
 		Lang:     string(s.getLocale(c)),
 	})
+}
+
+func (s *Server) handleWebOverrideCreate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	recurringID, err := parseID(c, "recurringId")
+	if err != nil {
+		return err
+	}
+
+	amount, err := domain.NewMoney(c.FormValue("amount"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+	}
+
+	if c.FormValue("type") == "expense" {
+		amount = amount.Neg()
+	}
+
+	freq := domain.Frequency(c.FormValue("frequency"))
+
+	effectiveDate, err := time.Parse("2006-01-02", c.FormValue("effective_date"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid effective date")
+	}
+
+	_, err = s.services.RecurringExpense.CreateOverride(c.Request().Context(), recurringID, effectiveDate, amount, freq)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/recurring/%d/edit", id, recurringID))
+}
+
+func (s *Server) handleWebOverrideDelete(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	recurringID, err := parseID(c, "recurringId")
+	if err != nil {
+		return err
+	}
+
+	overrideID, err := parseID(c, "overrideId")
+	if err != nil {
+		return err
+	}
+
+	if err := s.services.RecurringExpense.DeleteOverride(c.Request().Context(), overrideID); err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/recurring/%d/edit", id, recurringID))
 }
 
 func (s *Server) handleWebUserSettings(c echo.Context) error {

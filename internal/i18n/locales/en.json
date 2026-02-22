@@ -92,6 +92,9 @@
     "recurring_expenses": "Recurring Expenses",
     "one_time_income": "One-time Income",
     "one_time_expenses": "One-time Expenses",
-    "monthly_total": "Monthly Total"
+    "monthly_total": "Monthly Total",
+    "schedule_overrides": "Schedule Overrides",
+    "schedule_overrides_help": "Override the amount and frequency for specific time periods.",
+    "effective_date": "Effective Date"
   }
 }

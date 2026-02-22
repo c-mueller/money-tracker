@@ -9,12 +9,13 @@ import (
 )
 
 type RecurringExpenseService struct {
-	repo      domain.RecurringExpenseRepo
-	household *HouseholdService
+	repo         domain.RecurringExpenseRepo
+	overrideRepo domain.RecurringScheduleOverrideRepo
+	household    *HouseholdService
 }
 
-func NewRecurringExpenseService(repo domain.RecurringExpenseRepo, household *HouseholdService) *RecurringExpenseService {
-	return &RecurringExpenseService{repo: repo, household: household}
+func NewRecurringExpenseService(repo domain.RecurringExpenseRepo, overrideRepo domain.RecurringScheduleOverrideRepo, household *HouseholdService) *RecurringExpenseService {
+	return &RecurringExpenseService{repo: repo, overrideRepo: overrideRepo, household: household}
 }
 
 func (s *RecurringExpenseService) Create(ctx context.Context, householdID, categoryID int, name, description string, amount domain.Money, freq domain.Frequency, startDate time.Time, endDate *time.Time) (*domain.RecurringExpense, error) {
@@ -119,4 +120,54 @@ func (s *RecurringExpenseService) Delete(ctx context.Context, householdID, id in
 	}
 
 	return s.repo.Delete(ctx, id)
+}
+
+// Override CRUD
+
+func (s *RecurringExpenseService) ListOverrides(ctx context.Context, recurringExpenseID int) ([]*domain.RecurringScheduleOverride, error) {
+	return s.overrideRepo.ListByRecurringExpense(ctx, recurringExpenseID)
+}
+
+func (s *RecurringExpenseService) CreateOverride(ctx context.Context, recurringExpenseID int, effectiveDate time.Time, amount domain.Money, freq domain.Frequency) (*domain.RecurringScheduleOverride, error) {
+	if err := domain.ValidateAmount(amount); err != nil {
+		return nil, err
+	}
+	if err := freq.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Verify the recurring expense exists
+	if _, err := s.repo.GetByID(ctx, recurringExpenseID); err != nil {
+		return nil, err
+	}
+
+	return s.overrideRepo.Create(ctx, &domain.RecurringScheduleOverride{
+		RecurringExpenseID: recurringExpenseID,
+		EffectiveDate:      effectiveDate,
+		Amount:             amount,
+		Frequency:          freq,
+	})
+}
+
+func (s *RecurringExpenseService) UpdateOverride(ctx context.Context, overrideID int, effectiveDate time.Time, amount domain.Money, freq domain.Frequency) (*domain.RecurringScheduleOverride, error) {
+	if err := domain.ValidateAmount(amount); err != nil {
+		return nil, err
+	}
+	if err := freq.Validate(); err != nil {
+		return nil, err
+	}
+
+	existing, err := s.overrideRepo.GetByID(ctx, overrideID)
+	if err != nil {
+		return nil, err
+	}
+
+	existing.EffectiveDate = effectiveDate
+	existing.Amount = amount
+	existing.Frequency = freq
+	return s.overrideRepo.Update(ctx, existing)
+}
+
+func (s *RecurringExpenseService) DeleteOverride(ctx context.Context, overrideID int) error {
+	return s.overrideRepo.Delete(ctx, overrideID)
 }

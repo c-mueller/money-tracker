@@ -89,6 +89,22 @@ func recurringExpenseToDomain(r *ent.RecurringExpense) *domain.RecurringExpense 
 	return re
 }
 
+func overrideToDomain(o *ent.RecurringScheduleOverride) *domain.RecurringScheduleOverride {
+	amount, _ := decimal.NewFromString(o.Amount)
+	override := &domain.RecurringScheduleOverride{
+		ID:            o.ID,
+		EffectiveDate: o.EffectiveDate,
+		Amount:        amount,
+		Frequency:     domain.Frequency(o.Frequency),
+		CreatedAt:     o.CreatedAt,
+		UpdatedAt:     o.UpdatedAt,
+	}
+	if re := o.Edges.RecurringExpense; re != nil {
+		override.RecurringExpenseID = re.ID
+	}
+	return override
+}
+
 func apiTokenToDomain(t *ent.APIToken) *domain.APIToken {
 	tok := &domain.APIToken{
 		ID:        t.ID,

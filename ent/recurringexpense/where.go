@@ -596,6 +596,29 @@ func HasCategoryWith(preds ...predicate.Category) predicate.RecurringExpense {
 	})
 }
 
+// HasScheduleOverrides applies the HasEdge predicate on the "schedule_overrides" edge.
+func HasScheduleOverrides() predicate.RecurringExpense {
+	return predicate.RecurringExpense(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ScheduleOverridesTable, ScheduleOverridesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasScheduleOverridesWith applies the HasEdge predicate on the "schedule_overrides" edge with a given conditions (other predicates).
+func HasScheduleOverridesWith(preds ...predicate.RecurringScheduleOverride) predicate.RecurringExpense {
+	return predicate.RecurringExpense(func(s *sql.Selector) {
+		step := newScheduleOverridesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.RecurringExpense) predicate.RecurringExpense {
 	return predicate.RecurringExpense(sql.AndPredicates(predicates...))

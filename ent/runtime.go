@@ -9,6 +9,7 @@ import (
 	"icekalt.dev/money-tracker/ent/category"
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/schema"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
@@ -192,6 +193,26 @@ func init() {
 	recurringexpense.DefaultUpdatedAt = recurringexpenseDescUpdatedAt.Default.(func() time.Time)
 	// recurringexpense.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	recurringexpense.UpdateDefaultUpdatedAt = recurringexpenseDescUpdatedAt.UpdateDefault.(func() time.Time)
+	recurringscheduleoverrideFields := schema.RecurringScheduleOverride{}.Fields()
+	_ = recurringscheduleoverrideFields
+	// recurringscheduleoverrideDescAmount is the schema descriptor for amount field.
+	recurringscheduleoverrideDescAmount := recurringscheduleoverrideFields[1].Descriptor()
+	// recurringscheduleoverride.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
+	recurringscheduleoverride.AmountValidator = recurringscheduleoverrideDescAmount.Validators[0].(func(string) error)
+	// recurringscheduleoverrideDescFrequency is the schema descriptor for frequency field.
+	recurringscheduleoverrideDescFrequency := recurringscheduleoverrideFields[2].Descriptor()
+	// recurringscheduleoverride.FrequencyValidator is a validator for the "frequency" field. It is called by the builders before save.
+	recurringscheduleoverride.FrequencyValidator = recurringscheduleoverrideDescFrequency.Validators[0].(func(string) error)
+	// recurringscheduleoverrideDescCreatedAt is the schema descriptor for created_at field.
+	recurringscheduleoverrideDescCreatedAt := recurringscheduleoverrideFields[3].Descriptor()
+	// recurringscheduleoverride.DefaultCreatedAt holds the default value on creation for the created_at field.
+	recurringscheduleoverride.DefaultCreatedAt = recurringscheduleoverrideDescCreatedAt.Default.(func() time.Time)
+	// recurringscheduleoverrideDescUpdatedAt is the schema descriptor for updated_at field.
+	recurringscheduleoverrideDescUpdatedAt := recurringscheduleoverrideFields[4].Descriptor()
+	// recurringscheduleoverride.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	recurringscheduleoverride.DefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.Default.(func() time.Time)
+	// recurringscheduleoverride.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	recurringscheduleoverride.UpdateDefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.UpdateDefault.(func() time.Time)
 	transactionFields := schema.Transaction{}.Fields()
 	_ = transactionFields
 	// transactionDescAmount is the schema descriptor for amount field.

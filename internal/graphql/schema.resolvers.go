@@ -154,6 +154,62 @@ func (r *mutationResolver) UpdateRecurringExpense(ctx context.Context, input mod
 	return toGQLRecurringExpense(re), nil
 }
 
+// CreateScheduleOverride is the resolver for the createScheduleOverride field.
+func (r *mutationResolver) CreateScheduleOverride(ctx context.Context, input model.CreateScheduleOverrideInput) (*model.ScheduleOverride, error) {
+	amount, err := domain.NewMoney(input.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid amount", domain.ErrValidation)
+	}
+
+	freq := domain.Frequency(input.Frequency)
+	if err := freq.Validate(); err != nil {
+		return nil, err
+	}
+
+	effectiveDate, err := time.Parse("2006-01-02", input.EffectiveDate)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid effective_date format, expected YYYY-MM-DD", domain.ErrValidation)
+	}
+
+	override, err := r.RecurringExpenseSvc.CreateOverride(ctx, input.RecurringExpenseID, effectiveDate, amount, freq)
+	if err != nil {
+		return nil, err
+	}
+	return toGQLScheduleOverride(override), nil
+}
+
+// UpdateScheduleOverride is the resolver for the updateScheduleOverride field.
+func (r *mutationResolver) UpdateScheduleOverride(ctx context.Context, input model.UpdateScheduleOverrideInput) (*model.ScheduleOverride, error) {
+	amount, err := domain.NewMoney(input.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid amount", domain.ErrValidation)
+	}
+
+	freq := domain.Frequency(input.Frequency)
+	if err := freq.Validate(); err != nil {
+		return nil, err
+	}
+
+	effectiveDate, err := time.Parse("2006-01-02", input.EffectiveDate)
+	if err != nil {
+		return nil, fmt.Errorf("%w: invalid effective_date format, expected YYYY-MM-DD", domain.ErrValidation)
+	}
+
+	override, err := r.RecurringExpenseSvc.UpdateOverride(ctx, input.ID, effectiveDate, amount, freq)
+	if err != nil {
+		return nil, err
+	}
+	return toGQLScheduleOverride(override), nil
+}
+
+// DeleteScheduleOverride is the resolver for the deleteScheduleOverride field.
+func (r *mutationResolver) DeleteScheduleOverride(ctx context.Context, id int) (bool, error) {
+	if err := r.RecurringExpenseSvc.DeleteOverride(ctx, id); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Households is the resolver for the households field.
 func (r *queryResolver) Households(ctx context.Context) ([]model.Household, error) {
 	households, err := r.HouseholdSvc.List(ctx)
@@ -236,6 +292,20 @@ func (r *queryResolver) MonthlySummary(ctx context.Context, householdID int, mon
 		return nil, err
 	}
 	return toGQLMonthlySummary(summary), nil
+}
+
+// ScheduleOverrides is the resolver for the scheduleOverrides field.
+func (r *queryResolver) ScheduleOverrides(ctx context.Context, recurringExpenseID int) ([]model.ScheduleOverride, error) {
+	overrides, err := r.RecurringExpenseSvc.ListOverrides(ctx, recurringExpenseID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.ScheduleOverride, len(overrides))
+	for i, o := range overrides {
+		result[i] = *toGQLScheduleOverride(o)
+	}
+	return result, nil
 }
 
 // Mutation returns MutationResolver implementation.

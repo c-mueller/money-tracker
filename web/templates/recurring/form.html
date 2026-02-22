@@ -70,6 +70,68 @@
     <a href="/households/{{.Household.ID}}/recurring" class="btn btn-secondary">{{t "cancel"}}</a>
 </form>
 
+{{if .RecurringExpense}}
+<hr class="mt-4">
+<h3>{{t "schedule_overrides"}}</h3>
+<p class="text-muted small">{{t "schedule_overrides_help"}}</p>
+
+{{if .ScheduleOverrides}}
+<table class="table" style="max-width: 600px;">
+    <thead>
+        <tr>
+            <th>{{t "effective_date"}}</th>
+            <th>{{t "amount"}}</th>
+            <th>{{t "frequency"}}</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .ScheduleOverrides}}
+        <tr>
+            <td>{{formatDate .EffectiveDate}}</td>
+            <td>{{formatMoney .Amount}}</td>
+            <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td class="text-end">
+                <form method="POST" action="/households/{{$.Household.ID}}/recurring/{{$.RecurringExpense.ID}}/overrides/{{.ID}}/delete" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}
+
+<form method="POST" action="/households/{{.Household.ID}}/recurring/{{.RecurringExpense.ID}}/overrides" class="d-flex gap-2 align-items-end flex-wrap" style="max-width: 600px;">
+    <div>
+        <label class="form-label small">{{t "effective_date"}}</label>
+        <input type="date" class="form-control form-control-sm" name="effective_date" required>
+    </div>
+    <div>
+        <label class="form-label small">{{t "type"}}</label>
+        <select class="form-select form-select-sm" name="type">
+            <option value="expense">{{t "expense"}}</option>
+            <option value="income">{{t "income"}}</option>
+        </select>
+    </div>
+    <div>
+        <label class="form-label small">{{t "amount"}}</label>
+        <input type="text" class="form-control form-control-sm" name="amount" required placeholder="e.g. 42.50" style="width: 120px;">
+    </div>
+    <div>
+        <label class="form-label small">{{t "frequency"}}</label>
+        <select class="form-select form-select-sm" name="frequency" required>
+            {{range .Frequencies}}
+            <option value="{{.}}" {{if eq . "monthly"}}selected{{end}}>{{tf (printf "%s" .)}}</option>
+            {{end}}
+        </select>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-sm btn-primary">{{t "add"}}</button>
+    </div>
+</form>
+{{end}}
+
 <script>
 (function() {
     var catSel = document.getElementById('category');

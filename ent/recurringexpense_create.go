@@ -13,6 +13,7 @@ import (
 	"icekalt.dev/money-tracker/ent/category"
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 )
 
 // RecurringExpenseCreate is the builder for creating a RecurringExpense entity.
@@ -136,6 +137,21 @@ func (_c *RecurringExpenseCreate) SetCategoryID(id int) *RecurringExpenseCreate 
 // SetCategory sets the "category" edge to the Category entity.
 func (_c *RecurringExpenseCreate) SetCategory(v *Category) *RecurringExpenseCreate {
 	return _c.SetCategoryID(v.ID)
+}
+
+// AddScheduleOverrideIDs adds the "schedule_overrides" edge to the RecurringScheduleOverride entity by IDs.
+func (_c *RecurringExpenseCreate) AddScheduleOverrideIDs(ids ...int) *RecurringExpenseCreate {
+	_c.mutation.AddScheduleOverrideIDs(ids...)
+	return _c
+}
+
+// AddScheduleOverrides adds the "schedule_overrides" edges to the RecurringScheduleOverride entity.
+func (_c *RecurringExpenseCreate) AddScheduleOverrides(v ...*RecurringScheduleOverride) *RecurringExpenseCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddScheduleOverrideIDs(ids...)
 }
 
 // Mutation returns the RecurringExpenseMutation object of the builder.
@@ -334,6 +350,22 @@ func (_c *RecurringExpenseCreate) createSpec() (*RecurringExpense, *sqlgraph.Cre
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.category_recurring_expenses = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ScheduleOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

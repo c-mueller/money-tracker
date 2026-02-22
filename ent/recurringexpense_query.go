@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,18 +16,20 @@ import (
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/predicate"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 )
 
 // RecurringExpenseQuery is the builder for querying RecurringExpense entities.
 type RecurringExpenseQuery struct {
 	config
-	ctx           *QueryContext
-	order         []recurringexpense.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.RecurringExpense
-	withHousehold *HouseholdQuery
-	withCategory  *CategoryQuery
-	withFKs       bool
+	ctx                   *QueryContext
+	order                 []recurringexpense.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.RecurringExpense
+	withHousehold         *HouseholdQuery
+	withCategory          *CategoryQuery
+	withScheduleOverrides *RecurringScheduleOverrideQuery
+	withFKs               bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +103,28 @@ func (_q *RecurringExpenseQuery) QueryCategory() *CategoryQuery {
 			sqlgraph.From(recurringexpense.Table, recurringexpense.FieldID, selector),
 			sqlgraph.To(category.Table, category.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, recurringexpense.CategoryTable, recurringexpense.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryScheduleOverrides chains the current query on the "schedule_overrides" edge.
+func (_q *RecurringExpenseQuery) QueryScheduleOverrides() *RecurringScheduleOverrideQuery {
+	query := (&RecurringScheduleOverrideClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(recurringexpense.Table, recurringexpense.FieldID, selector),
+			sqlgraph.To(recurringscheduleoverride.Table, recurringscheduleoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, recurringexpense.ScheduleOverridesTable, recurringexpense.ScheduleOverridesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +319,14 @@ func (_q *RecurringExpenseQuery) Clone() *RecurringExpenseQuery {
 		return nil
 	}
 	return &RecurringExpenseQuery{
-		config:        _q.config,
-		ctx:           _q.ctx.Clone(),
-		order:         append([]recurringexpense.OrderOption{}, _q.order...),
-		inters:        append([]Interceptor{}, _q.inters...),
-		predicates:    append([]predicate.RecurringExpense{}, _q.predicates...),
-		withHousehold: _q.withHousehold.Clone(),
-		withCategory:  _q.withCategory.Clone(),
+		config:                _q.config,
+		ctx:                   _q.ctx.Clone(),
+		order:                 append([]recurringexpense.OrderOption{}, _q.order...),
+		inters:                append([]Interceptor{}, _q.inters...),
+		predicates:            append([]predicate.RecurringExpense{}, _q.predicates...),
+		withHousehold:         _q.withHousehold.Clone(),
+		withCategory:          _q.withCategory.Clone(),
+		withScheduleOverrides: _q.withScheduleOverrides.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +352,17 @@ func (_q *RecurringExpenseQuery) WithCategory(opts ...func(*CategoryQuery)) *Rec
 		opt(query)
 	}
 	_q.withCategory = query
+	return _q
+}
+
+// WithScheduleOverrides tells the query-builder to eager-load the nodes that are connected to
+// the "schedule_overrides" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RecurringExpenseQuery) WithScheduleOverrides(opts ...func(*RecurringScheduleOverrideQuery)) *RecurringExpenseQuery {
+	query := (&RecurringScheduleOverrideClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withScheduleOverrides = query
 	return _q
 }
 
@@ -408,9 +445,10 @@ func (_q *RecurringExpenseQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 		nodes       = []*RecurringExpense{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withHousehold != nil,
 			_q.withCategory != nil,
+			_q.withScheduleOverrides != nil,
 		}
 	)
 	if _q.withHousehold != nil || _q.withCategory != nil {
@@ -446,6 +484,15 @@ func (_q *RecurringExpenseQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if query := _q.withCategory; query != nil {
 		if err := _q.loadCategory(ctx, query, nodes, nil,
 			func(n *RecurringExpense, e *Category) { n.Edges.Category = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withScheduleOverrides; query != nil {
+		if err := _q.loadScheduleOverrides(ctx, query, nodes,
+			func(n *RecurringExpense) { n.Edges.ScheduleOverrides = []*RecurringScheduleOverride{} },
+			func(n *RecurringExpense, e *RecurringScheduleOverride) {
+				n.Edges.ScheduleOverrides = append(n.Edges.ScheduleOverrides, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -513,6 +560,37 @@ func (_q *RecurringExpenseQuery) loadCategory(ctx context.Context, query *Catego
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *RecurringExpenseQuery) loadScheduleOverrides(ctx context.Context, query *RecurringScheduleOverrideQuery, nodes []*RecurringExpense, init func(*RecurringExpense), assign func(*RecurringExpense, *RecurringScheduleOverride)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*RecurringExpense)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.RecurringScheduleOverride(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(recurringexpense.ScheduleOverridesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.recurring_expense_schedule_overrides
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "recurring_expense_schedule_overrides" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "recurring_expense_schedule_overrides" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

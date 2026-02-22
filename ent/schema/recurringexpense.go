@@ -28,5 +28,6 @@ func (RecurringExpense) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("household", Household.Type).Ref("recurring_expenses").Unique().Required(),
 		edge.From("category", Category.Type).Ref("recurring_expenses").Unique().Required(),
+		edge.To("schedule_overrides", RecurringScheduleOverride.Type),
 	}
 }

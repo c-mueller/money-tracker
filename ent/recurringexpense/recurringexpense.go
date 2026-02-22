@@ -36,6 +36,8 @@ const (
 	EdgeHousehold = "household"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
+	// EdgeScheduleOverrides holds the string denoting the schedule_overrides edge name in mutations.
+	EdgeScheduleOverrides = "schedule_overrides"
 	// Table holds the table name of the recurringexpense in the database.
 	Table = "recurring_expenses"
 	// HouseholdTable is the table that holds the household relation/edge.
@@ -52,6 +54,13 @@ const (
 	CategoryInverseTable = "categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
 	CategoryColumn = "category_recurring_expenses"
+	// ScheduleOverridesTable is the table that holds the schedule_overrides relation/edge.
+	ScheduleOverridesTable = "recurring_schedule_overrides"
+	// ScheduleOverridesInverseTable is the table name for the RecurringScheduleOverride entity.
+	// It exists in this package in order to avoid circular dependency with the "recurringscheduleoverride" package.
+	ScheduleOverridesInverseTable = "recurring_schedule_overrides"
+	// ScheduleOverridesColumn is the table column denoting the schedule_overrides relation/edge.
+	ScheduleOverridesColumn = "recurring_expense_schedule_overrides"
 )
 
 // Columns holds all SQL columns for recurringexpense fields.
@@ -177,6 +186,20 @@ func ByCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByScheduleOverridesCount orders the results by schedule_overrides count.
+func ByScheduleOverridesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newScheduleOverridesStep(), opts...)
+	}
+}
+
+// ByScheduleOverrides orders the results by schedule_overrides terms.
+func ByScheduleOverrides(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newScheduleOverridesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newHouseholdStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -189,5 +212,12 @@ func newCategoryStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CategoryInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+	)
+}
+func newScheduleOverridesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ScheduleOverridesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ScheduleOverridesTable, ScheduleOverridesColumn),
 	)
 }

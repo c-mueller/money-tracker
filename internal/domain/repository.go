@@ -45,6 +45,14 @@ type RecurringExpenseRepo interface {
 	Delete(ctx context.Context, id int) error
 }
 
+type RecurringScheduleOverrideRepo interface {
+	Create(ctx context.Context, override *RecurringScheduleOverride) (*RecurringScheduleOverride, error)
+	GetByID(ctx context.Context, id int) (*RecurringScheduleOverride, error)
+	ListByRecurringExpense(ctx context.Context, recurringExpenseID int) ([]*RecurringScheduleOverride, error)
+	Update(ctx context.Context, override *RecurringScheduleOverride) (*RecurringScheduleOverride, error)
+	Delete(ctx context.Context, id int) error
+}
+
 type APITokenRepo interface {
 	Create(ctx context.Context, token *APIToken) (*APIToken, error)
 	GetByHash(ctx context.Context, hash string) (*APIToken, error)

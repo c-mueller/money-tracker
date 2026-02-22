@@ -15,6 +15,7 @@ import (
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/predicate"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 )
 
 // RecurringExpenseUpdate is the builder for updating RecurringExpense entities.
@@ -168,6 +169,21 @@ func (_u *RecurringExpenseUpdate) SetCategory(v *Category) *RecurringExpenseUpda
 	return _u.SetCategoryID(v.ID)
 }
 
+// AddScheduleOverrideIDs adds the "schedule_overrides" edge to the RecurringScheduleOverride entity by IDs.
+func (_u *RecurringExpenseUpdate) AddScheduleOverrideIDs(ids ...int) *RecurringExpenseUpdate {
+	_u.mutation.AddScheduleOverrideIDs(ids...)
+	return _u
+}
+
+// AddScheduleOverrides adds the "schedule_overrides" edges to the RecurringScheduleOverride entity.
+func (_u *RecurringExpenseUpdate) AddScheduleOverrides(v ...*RecurringScheduleOverride) *RecurringExpenseUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddScheduleOverrideIDs(ids...)
+}
+
 // Mutation returns the RecurringExpenseMutation object of the builder.
 func (_u *RecurringExpenseUpdate) Mutation() *RecurringExpenseMutation {
 	return _u.mutation
@@ -183,6 +199,27 @@ func (_u *RecurringExpenseUpdate) ClearHousehold() *RecurringExpenseUpdate {
 func (_u *RecurringExpenseUpdate) ClearCategory() *RecurringExpenseUpdate {
 	_u.mutation.ClearCategory()
 	return _u
+}
+
+// ClearScheduleOverrides clears all "schedule_overrides" edges to the RecurringScheduleOverride entity.
+func (_u *RecurringExpenseUpdate) ClearScheduleOverrides() *RecurringExpenseUpdate {
+	_u.mutation.ClearScheduleOverrides()
+	return _u
+}
+
+// RemoveScheduleOverrideIDs removes the "schedule_overrides" edge to RecurringScheduleOverride entities by IDs.
+func (_u *RecurringExpenseUpdate) RemoveScheduleOverrideIDs(ids ...int) *RecurringExpenseUpdate {
+	_u.mutation.RemoveScheduleOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveScheduleOverrides removes "schedule_overrides" edges to RecurringScheduleOverride entities.
+func (_u *RecurringExpenseUpdate) RemoveScheduleOverrides(v ...*RecurringScheduleOverride) *RecurringExpenseUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveScheduleOverrideIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -352,6 +389,51 @@ func (_u *RecurringExpenseUpdate) sqlSave(ctx context.Context) (_node int, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ScheduleOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedScheduleOverridesIDs(); len(nodes) > 0 && !_u.mutation.ScheduleOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ScheduleOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{recurringexpense.Label}
@@ -510,6 +592,21 @@ func (_u *RecurringExpenseUpdateOne) SetCategory(v *Category) *RecurringExpenseU
 	return _u.SetCategoryID(v.ID)
 }
 
+// AddScheduleOverrideIDs adds the "schedule_overrides" edge to the RecurringScheduleOverride entity by IDs.
+func (_u *RecurringExpenseUpdateOne) AddScheduleOverrideIDs(ids ...int) *RecurringExpenseUpdateOne {
+	_u.mutation.AddScheduleOverrideIDs(ids...)
+	return _u
+}
+
+// AddScheduleOverrides adds the "schedule_overrides" edges to the RecurringScheduleOverride entity.
+func (_u *RecurringExpenseUpdateOne) AddScheduleOverrides(v ...*RecurringScheduleOverride) *RecurringExpenseUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddScheduleOverrideIDs(ids...)
+}
+
 // Mutation returns the RecurringExpenseMutation object of the builder.
 func (_u *RecurringExpenseUpdateOne) Mutation() *RecurringExpenseMutation {
 	return _u.mutation
@@ -525,6 +622,27 @@ func (_u *RecurringExpenseUpdateOne) ClearHousehold() *RecurringExpenseUpdateOne
 func (_u *RecurringExpenseUpdateOne) ClearCategory() *RecurringExpenseUpdateOne {
 	_u.mutation.ClearCategory()
 	return _u
+}
+
+// ClearScheduleOverrides clears all "schedule_overrides" edges to the RecurringScheduleOverride entity.
+func (_u *RecurringExpenseUpdateOne) ClearScheduleOverrides() *RecurringExpenseUpdateOne {
+	_u.mutation.ClearScheduleOverrides()
+	return _u
+}
+
+// RemoveScheduleOverrideIDs removes the "schedule_overrides" edge to RecurringScheduleOverride entities by IDs.
+func (_u *RecurringExpenseUpdateOne) RemoveScheduleOverrideIDs(ids ...int) *RecurringExpenseUpdateOne {
+	_u.mutation.RemoveScheduleOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveScheduleOverrides removes "schedule_overrides" edges to RecurringScheduleOverride entities.
+func (_u *RecurringExpenseUpdateOne) RemoveScheduleOverrides(v ...*RecurringScheduleOverride) *RecurringExpenseUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveScheduleOverrideIDs(ids...)
 }
 
 // Where appends a list predicates to the RecurringExpenseUpdate builder.
@@ -717,6 +835,51 @@ func (_u *RecurringExpenseUpdateOne) sqlSave(ctx context.Context) (_node *Recurr
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ScheduleOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedScheduleOverridesIDs(); len(nodes) > 0 && !_u.mutation.ScheduleOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ScheduleOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   recurringexpense.ScheduleOverridesTable,
+			Columns: []string{recurringexpense.ScheduleOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(recurringscheduleoverride.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

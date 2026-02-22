@@ -16,6 +16,7 @@ import (
 	"icekalt.dev/money-tracker/ent/category"
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
+	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
 )
@@ -78,12 +79,13 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			apitoken.Table:         apitoken.ValidColumn,
-			category.Table:         category.ValidColumn,
-			household.Table:        household.ValidColumn,
-			recurringexpense.Table: recurringexpense.ValidColumn,
-			transaction.Table:      transaction.ValidColumn,
-			user.Table:             user.ValidColumn,
+			apitoken.Table:                  apitoken.ValidColumn,
+			category.Table:                  category.ValidColumn,
+			household.Table:                 household.ValidColumn,
+			recurringexpense.Table:          recurringexpense.ValidColumn,
+			recurringscheduleoverride.Table: recurringscheduleoverride.ValidColumn,
+			transaction.Table:               transaction.ValidColumn,
+			user.Table:                      user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

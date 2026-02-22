@@ -122,6 +122,30 @@ var (
 			},
 		},
 	}
+	// RecurringScheduleOverridesColumns holds the columns for the "recurring_schedule_overrides" table.
+	RecurringScheduleOverridesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "effective_date", Type: field.TypeTime},
+		{Name: "amount", Type: field.TypeString},
+		{Name: "frequency", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "recurring_expense_schedule_overrides", Type: field.TypeInt},
+	}
+	// RecurringScheduleOverridesTable holds the schema information for the "recurring_schedule_overrides" table.
+	RecurringScheduleOverridesTable = &schema.Table{
+		Name:       "recurring_schedule_overrides",
+		Columns:    RecurringScheduleOverridesColumns,
+		PrimaryKey: []*schema.Column{RecurringScheduleOverridesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "recurring_schedule_overrides_recurring_expenses_schedule_overrides",
+				Columns:    []*schema.Column{RecurringScheduleOverridesColumns[6]},
+				RefColumns: []*schema.Column{RecurringExpensesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// TransactionsColumns holds the columns for the "transactions" table.
 	TransactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -181,6 +205,7 @@ var (
 		CategoriesTable,
 		HouseholdsTable,
 		RecurringExpensesTable,
+		RecurringScheduleOverridesTable,
 		TransactionsTable,
 		UsersTable,
 	}
@@ -192,6 +217,7 @@ func init() {
 	HouseholdsTable.ForeignKeys[0].RefTable = UsersTable
 	RecurringExpensesTable.ForeignKeys[0].RefTable = CategoriesTable
 	RecurringExpensesTable.ForeignKeys[1].RefTable = HouseholdsTable
+	RecurringScheduleOverridesTable.ForeignKeys[0].RefTable = RecurringExpensesTable
 	TransactionsTable.ForeignKeys[0].RefTable = CategoriesTable
 	TransactionsTable.ForeignKeys[1].RefTable = HouseholdsTable
 }

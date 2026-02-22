@@ -90,6 +90,18 @@ func toGQLMonthlySummary(s *domain.MonthlySummary) *model.MonthlySummary {
 	}
 }
 
+func toGQLScheduleOverride(o *domain.RecurringScheduleOverride) *model.ScheduleOverride {
+	return &model.ScheduleOverride{
+		ID:                 o.ID,
+		RecurringExpenseID: o.RecurringExpenseID,
+		EffectiveDate:      o.EffectiveDate.Format("2006-01-02"),
+		Amount:             o.Amount.String(),
+		Frequency:          string(o.Frequency),
+		CreatedAt:          o.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:          o.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+}
+
 func derefString(s *string) string {
 	if s == nil {
 		return ""
