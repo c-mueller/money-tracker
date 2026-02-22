@@ -62,12 +62,13 @@
     <tbody>
         {{range .Transactions}}
         <tr>
-            <td><a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit">{{formatDate .Date}}</a></td>
-            <td><a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="text-decoration-none text-body">{{.Description}}</a></td>
+            <td>{{formatDate .Date}}</td>
+            <td>{{.Description}}</td>
             <td>{{.CategoryID}}</td>
             <td class="text-end">{{formatMoney .Amount}}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete this transaction?" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE">X</button>
+            <td class="text-end text-nowrap">
+                <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete this transaction?" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="Delete"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
             </td>
         </tr>
         {{end}}

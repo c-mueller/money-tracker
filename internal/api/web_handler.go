@@ -268,33 +268,11 @@ func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
 }
 
 func (s *Server) handleWebCategoryList(c echo.Context) error {
-	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
 	if err != nil {
 		return err
 	}
-
-	hh, err := s.services.Household.GetByID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	categories, err := s.services.Category.List(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	now := time.Now()
-	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
-
-	return c.Render(http.StatusOK, "category_list", pageData{
-		Title:      "Categories",
-		User:       s.getUserFromContext(c),
-		Household:  hh,
-		Categories: categories,
-		Month:      month,
-		ActiveTab:  "categories",
-	})
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/settings", id))
 }
 
 func (s *Server) handleWebCategoryCreate(c echo.Context) error {
@@ -310,7 +288,7 @@ func (s *Server) handleWebCategoryCreate(c echo.Context) error {
 		return err
 	}
 
-	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/categories", id))
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/settings", id))
 }
 
 func (s *Server) handleWebRecurringList(c echo.Context) error {
@@ -519,6 +497,11 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 		return err
 	}
 
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
@@ -526,6 +509,7 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 		Title:      "Settings",
 		User:       s.getUserFromContext(c),
 		Household:  hh,
+		Categories: categories,
 		Currencies: s.renderer.Currencies,
 		Icons:      s.renderer.Icons,
 		Month:      month,
@@ -583,7 +567,7 @@ func (s *Server) handleWebCategoryEdit(c echo.Context) error {
 		Category:  cat,
 		Icons:     s.renderer.Icons,
 		Month:     month,
-		ActiveTab: "categories",
+		ActiveTab: "settings",
 	})
 }
 
@@ -606,7 +590,7 @@ func (s *Server) handleWebCategoryUpdate(c echo.Context) error {
 		return err
 	}
 
-	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/categories", id))
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/settings", id))
 }
 
 // resolveCategory returns the category ID from the form, creating a new category if "NEW" was selected.

@@ -11,9 +11,6 @@
         <a class="nav-link {{if eq .ActiveTab "transactions"}}active{{end}}" href="/households/{{.Household.ID}}?month={{.Month}}">Transactions</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{if eq .ActiveTab "categories"}}active{{end}}" href="/households/{{.Household.ID}}/categories">Categories</a>
-    </li>
-    <li class="nav-item">
         <a class="nav-link {{if eq .ActiveTab "recurring"}}active{{end}}" href="/households/{{.Household.ID}}/recurring">Recurring</a>
     </li>
     <li class="nav-item">

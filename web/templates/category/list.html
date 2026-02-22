@@ -1,6 +1,8 @@
 {{define "content"}}
 {{template "household_header" .}}
 
+<h2>Categories</h2>
+
 <form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
     <input type="text" class="form-control" name="name" placeholder="New category name" required maxlength="50">
     <button type="submit" class="btn btn-primary">Add</button>
@@ -20,12 +22,11 @@
         {{range .Categories}}
         <tr>
             <td>
-                <a href="/households/{{$.Household.ID}}/categories/{{.ID}}/edit" class="text-decoration-none text-body">
-                    <span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}
-                </a>
+                <span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}
             </td>
-            <td>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete category '{{.Name}}'?" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE">Delete</button>
+            <td class="text-end text-nowrap">
+                <a href="/households/{{$.Household.ID}}/categories/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete category '{{.Name}}'?" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE" title="Delete"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
             </td>
         </tr>
         {{end}}
