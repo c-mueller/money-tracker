@@ -5,7 +5,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Month</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "month"}}</h6>
                 <div class="d-flex justify-content-center align-items-center gap-2">
                     <a href="?month={{.PrevMonth}}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
                     <strong>{{.Month}}</strong>
@@ -18,7 +18,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Recurring</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring"}}</h6>
                 <h4>{{formatMoney .Summary.RecurringTotal}}</h4>
             </div>
         </div>
@@ -26,7 +26,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">One-time</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time"}}</h6>
                 <h4>{{formatMoney .Summary.OneTimeTotal}}</h4>
             </div>
         </div>
@@ -34,7 +34,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">Income</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "income"}}</h6>
                 <h4 class="text-success">{{formatMoney .Summary.TotalIncome}}</h4>
             </div>
         </div>
@@ -43,19 +43,19 @@
 </div>
 
 <div class="mb-3">
-    <a href="/households/{{.Household.ID}}/transactions/new?month={{.Month}}" class="btn btn-sm btn-primary">Add Transaction</a>
+    <a href="/households/{{.Household.ID}}/transactions/new?month={{.Month}}" class="btn btn-sm btn-primary">{{t "add_transaction"}}</a>
 </div>
 
 {{if not .Transactions}}
-<p class="text-muted">No transactions for this month.</p>
+<p class="text-muted">{{t "no_transactions_month"}}</p>
 {{else}}
 <table class="table table-hover">
     <thead>
         <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Category</th>
-            <th class="text-end">Amount</th>
+            <th>{{t "date"}}</th>
+            <th>{{t "description"}}</th>
+            <th>{{t "category"}}</th>
+            <th class="text-end">{{t "amount"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -67,8 +67,8 @@
             <td>{{.CategoryID}}</td>
             <td class="text-end">{{formatMoney .Amount}}</td>
             <td class="text-end text-nowrap">
-                <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete this transaction?" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="Delete"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+                <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
             </td>
         </tr>
         {{end}}

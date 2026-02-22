@@ -5,6 +5,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Auth     AuthConfig     `mapstructure:"auth"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
+	Language string         `mapstructure:"language"`
 }
 
 type ServerConfig struct {
@@ -56,5 +57,6 @@ func Defaults() Config {
 		Logging: LoggingConfig{
 			Level: "info",
 		},
+		Language: "de",
 	}
 }

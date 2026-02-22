@@ -18,11 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.location.reload();
                         }
                     } else {
-                        alert('Error: ' + resp.statusText);
+                        alert((window.i18n && window.i18n.error_prefix || 'Error: ') + resp.statusText);
                     }
                 })
                 .catch(function(err) {
-                    alert('Error: ' + err.message);
+                    alert((window.i18n && window.i18n.error_prefix || 'Error: ') + err.message);
                 });
         });
     });
@@ -32,9 +32,11 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             var target = document.querySelector(this.dataset.copy);
             if (target) {
+                var copyLabel = window.i18n && window.i18n.copy || 'Copy';
+                var copiedLabel = window.i18n && window.i18n.copied || 'Copied!';
                 navigator.clipboard.writeText(target.textContent.trim()).then(function() {
-                    btn.textContent = 'Copied!';
-                    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+                    btn.textContent = copiedLabel;
+                    setTimeout(function() { btn.textContent = copyLabel; }, 2000);
                 });
             }
         });

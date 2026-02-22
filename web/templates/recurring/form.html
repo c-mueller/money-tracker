@@ -1,73 +1,73 @@
 {{define "content"}}
-<h1>{{if .RecurringExpense}}Edit{{else}}New{{end}} Recurring Transaction</h1>
+<h1>{{if .RecurringExpense}}{{t "edit_recurring"}}{{else}}{{t "new_recurring"}}{{end}}</h1>
 <p class="text-muted">{{.Household.Name}} — {{.Household.Currency}}</p>
 
 <form method="POST" action="{{if .RecurringExpense}}/households/{{.Household.ID}}/recurring/{{.RecurringExpense.ID}}{{else}}/households/{{.Household.ID}}/recurring{{end}}" class="mt-3" style="max-width: 500px;">
     <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
+        <label for="name" class="form-label">{{t "name"}}</label>
         <input type="text" class="form-control" id="name" name="name" required maxlength="100" value="{{if .RecurringExpense}}{{.RecurringExpense.Name}}{{end}}">
     </div>
     <div class="mb-3">
-        <label class="form-label">Type</label>
+        <label class="form-label">{{t "type"}}</label>
         <div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="type" id="type-expense" value="expense" {{if not .RecurringExpense}}checked{{else}}{{if isNegative .RecurringExpense.Amount}}checked{{end}}{{end}}>
-                <label class="form-check-label" for="type-expense">Expense</label>
+                <label class="form-check-label" for="type-expense">{{t "expense"}}</label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="type" id="type-income" value="income" {{if .RecurringExpense}}{{if not (isNegative .RecurringExpense.Amount)}}checked{{end}}{{end}}>
-                <label class="form-check-label" for="type-income">Income</label>
+                <label class="form-check-label" for="type-income">{{t "income"}}</label>
             </div>
         </div>
     </div>
     <div class="mb-3">
-        <label for="amount" class="form-label">Amount</label>
+        <label for="amount" class="form-label">{{t "amount"}}</label>
         <input type="text" class="form-control" id="amount" name="amount" required placeholder="e.g. 42.50" value="{{if .RecurringExpense}}{{absAmount .RecurringExpense.Amount}}{{end}}">
     </div>
     <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
+        <label for="description" class="form-label">{{t "description"}}</label>
         <textarea class="form-control" id="description" name="description" maxlength="500" rows="3">{{if .RecurringExpense}}{{.RecurringExpense.Description}}{{end}}</textarea>
     </div>
     <div class="mb-3">
-        <label for="category" class="form-label">Category</label>
+        <label for="category" class="form-label">{{t "category"}}</label>
         <select class="form-select" id="category" name="category_id" required>
-            <option value="">Select…</option>
+            <option value="">{{t "select"}}</option>
             {{$catID := 0}}{{if .RecurringExpense}}{{$catID = .RecurringExpense.CategoryID}}{{end}}
             {{range .Categories}}
             <option value="{{.ID}}" {{if eq .ID $catID}}selected{{end}}>{{.Name}}</option>
             {{end}}
-            <option value="NEW">+ New category…</option>
+            <option value="NEW">{{t "new_category"}}</option>
         </select>
-        <input type="text" class="form-control mt-2 d-none" id="new-category-name" name="new_category_name" placeholder="Category name" maxlength="50">
+        <input type="text" class="form-control mt-2 d-none" id="new-category-name" name="new_category_name" placeholder="{{t "category_name"}}" maxlength="50">
     </div>
     <div class="mb-3">
-        <label for="frequency" class="form-label">Frequency</label>
+        <label for="frequency" class="form-label">{{t "frequency"}}</label>
         <select class="form-select" id="frequency" name="frequency" required>
             {{$freq := ""}}{{if .RecurringExpense}}{{$freq = .RecurringExpense.Frequency}}{{end}}
             {{range .Frequencies}}
-            <option value="{{.}}" {{if eq . $freq}}selected{{else}}{{if and (eq $freq "") (eq . "monthly")}}selected{{end}}{{end}}>{{.}}</option>
+            <option value="{{.}}" {{if eq . $freq}}selected{{else}}{{if and (eq $freq "") (eq . "monthly")}}selected{{end}}{{end}}>{{tf (printf "%s" .)}}</option>
             {{end}}
         </select>
     </div>
     <div class="mb-3">
-        <label for="start_date" class="form-label">Start Date</label>
+        <label for="start_date" class="form-label">{{t "start_date"}}</label>
         <div class="input-group">
-            <input type="date" class="form-control" id="start_date" name="start_date" required value="{{if .RecurringExpense}}{{formatDate .RecurringExpense.StartDate}}{{end}}">
-            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('start_date').valueAsDate = new Date()">Today</button>
+            <input type="date" class="form-control" id="start_date" name="start_date" required value="{{if .RecurringExpense}}{{formatDateISO .RecurringExpense.StartDate}}{{end}}">
+            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('start_date').valueAsDate = new Date()">{{t "today"}}</button>
         </div>
     </div>
     <div class="mb-3">
-        <label for="end_date" class="form-label">End Date <small class="text-muted">(optional)</small></label>
-        <input type="date" class="form-control" id="end_date" name="end_date" value="{{if .RecurringExpense}}{{if .RecurringExpense.EndDate}}{{formatDate (derefTime .RecurringExpense.EndDate)}}{{end}}{{end}}">
+        <label for="end_date" class="form-label">{{t "end_date"}} <small class="text-muted">({{t "end_date_optional"}})</small></label>
+        <input type="date" class="form-control" id="end_date" name="end_date" value="{{if .RecurringExpense}}{{if .RecurringExpense.EndDate}}{{formatDateISO (derefTime .RecurringExpense.EndDate)}}{{end}}{{end}}">
     </div>
     {{if .RecurringExpense}}
     <div class="mb-3 form-check">
         <input type="checkbox" class="form-check-input" id="active" name="active" {{if .RecurringExpense.Active}}checked{{end}}>
-        <label class="form-check-label" for="active">Active</label>
+        <label class="form-check-label" for="active">{{t "active"}}</label>
     </div>
     {{end}}
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="/households/{{.Household.ID}}/recurring" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{t "save"}}</button>
+    <a href="/households/{{.Household.ID}}/recurring" class="btn btn-secondary">{{t "cancel"}}</a>
 </form>
 
 <script>

@@ -1,0 +1,101 @@
+package i18n
+
+var enTranslations = map[string]string{
+	// Navigation & Layout
+	"dashboard":   "Dashboard",
+	"login":       "Login",
+	"logout":      "Logout",
+	"api_tokens":  "API Tokens",
+	"money_tracker": "Money Tracker",
+
+	// Common actions
+	"save":   "Save",
+	"cancel": "Cancel",
+	"delete": "Delete",
+	"edit":   "Edit",
+	"add":    "Add",
+	"create": "Create",
+	"open":   "Open",
+	"copy":   "Copy",
+	"copied": "Copied!",
+	"today":  "Today",
+
+	// Common labels
+	"name":        "Name",
+	"amount":      "Amount",
+	"description": "Description",
+	"category":    "Category",
+	"date":        "Date",
+	"frequency":   "Frequency",
+	"type":        "Type",
+	"currency":    "Currency",
+	"icon":        "Icon",
+	"active":      "Active",
+	"inactive":    "Inactive",
+	"select":      "Select…",
+
+	// Household
+	"new_household":        "New Household",
+	"edit_household":       "Edit Household",
+	"household":            "Household",
+	"no_households_empty":  "No households yet. Create your first household to get started.",
+	"custom_currency":      "Custom…",
+	"delete_household":     "Delete Household",
+
+	// Transactions
+	"transactions":          "Transactions",
+	"new_transaction":       "New Transaction",
+	"edit_transaction":      "Edit Transaction",
+	"add_transaction":       "Add Transaction",
+	"no_transactions_month": "No transactions for this month.",
+	"expense":               "Expense",
+	"income":                "Income",
+
+	// Recurring
+	"recurring":                "Recurring",
+	"new_recurring":            "New Recurring Transaction",
+	"edit_recurring":           "Edit Recurring Transaction",
+	"add_recurring":            "Add Recurring Transaction",
+	"no_recurring_empty":       "No recurring transactions yet.",
+	"start_date":               "Start Date",
+	"end_date":                 "End Date",
+	"end_date_optional":        "optional",
+
+	// Categories
+	"categories":              "Categories",
+	"edit_category":            "Edit Category",
+	"new_category_placeholder": "New category name",
+	"new_category":             "+ New category…",
+	"category_name":            "Category name",
+	"no_categories_empty":      "No categories yet.",
+
+	// Settings
+	"settings":     "Settings",
+	"danger_zone":  "Danger Zone",
+
+	// Summary
+	"one_time":  "One-time",
+	"month":     "Month",
+
+	// Tokens
+	"token_name_placeholder": "Token name",
+	"new_token_created":      "New token created! Copy it now — it won't be shown again.",
+	"no_tokens_empty":        "No API tokens yet.",
+	"created":                "Created",
+	"last_used":              "Last Used",
+	"never":                  "Never",
+
+	// Login
+	"sign_in_message": "Sign in to manage your household budgets.",
+	"sign_in_oidc":    "Sign in with OIDC",
+
+	// Confirmations
+	"delete_transaction_confirm": "Delete this transaction?",
+	"delete_category_confirm":    "Delete category '%s'?",
+	"delete_recurring_confirm":   "Delete '%s'?",
+	"delete_token_confirm":       "Delete token '%s'?",
+	"delete_household_confirm":   "Delete this household and all its data?",
+
+	// Errors (JS)
+	"error_prefix": "Error: ",
+}

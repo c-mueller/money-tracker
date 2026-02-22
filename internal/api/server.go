@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"icekalt.dev/money-tracker/internal/i18n"
 	"icekalt.dev/money-tracker/internal/service"
 
 	"github.com/gorilla/sessions"
@@ -16,15 +17,17 @@ import (
 )
 
 type Server struct {
-	echo         *echo.Echo
-	logger       *zap.Logger
-	port         int
-	host         string
-	services     *Services
-	sessionStore sessions.Store
-	authHandler  *AuthHandler
-	devUserID    int
-	renderer     *TemplateRenderer
+	echo          *echo.Echo
+	logger        *zap.Logger
+	port          int
+	host          string
+	services      *Services
+	sessionStore  sessions.Store
+	authHandler   *AuthHandler
+	devUserID     int
+	renderer      *TemplateRenderer
+	i18nBundle    *i18n.Bundle
+	defaultLocale i18n.Locale
 }
 
 type Services struct {
@@ -37,17 +40,22 @@ type Services struct {
 	APIToken         *service.APITokenService
 }
 
-func NewServer(logger *zap.Logger, host string, port int, svc *Services) *Server {
+func NewServer(logger *zap.Logger, host string, port int, svc *Services, language string) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
+	locale := i18n.ParseLocale(language)
+	bundle := i18n.NewBundle(locale)
+
 	s := &Server{
-		echo:     e,
-		logger:   logger,
-		port:     port,
-		host:     host,
-		services: svc,
+		echo:          e,
+		logger:        logger,
+		port:          port,
+		host:          host,
+		services:      svc,
+		i18nBundle:    bundle,
+		defaultLocale: locale,
 	}
 
 	s.setupMiddleware()

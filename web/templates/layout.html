@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{.Lang}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{if .Title}}{{.Title}} - {{end}}Money Tracker</title>
+    <title>{{if .Title}}{{t .Title}} - {{end}}Money Tracker</title>
     <link href="/static/vendor/bootstrap.min.css" rel="stylesheet">
     <link href="/static/vendor/material-icons/material-symbols-outlined.css" rel="stylesheet">
     <link href="/static/app.css" rel="stylesheet">
@@ -18,7 +18,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
+                        <a class="nav-link" href="/">{{t "dashboard"}}</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -28,14 +28,14 @@
                             {{.User.Name}}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/tokens">API Tokens</a></li>
+                            <li><a class="dropdown-item" href="/tokens">{{t "api_tokens"}}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
+                            <li><a class="dropdown-item" href="/auth/logout">{{t "logout"}}</a></li>
                         </ul>
                     </li>
                     {{else}}
                     <li class="nav-item">
-                        <a class="nav-link" href="/auth/login">Login</a>
+                        <a class="nav-link" href="/auth/login">{{t "login"}}</a>
                     </li>
                     {{end}}
                 </ul>
@@ -47,6 +47,13 @@
         {{template "content" .}}
     </div>
 
+    <script>
+    window.i18n = {
+        copied: "{{t "copied"}}",
+        copy: "{{t "copy"}}",
+        error_prefix: "{{t "error_prefix"}}"
+    };
+    </script>
     <script src="/static/vendor/bootstrap.bundle.min.js"></script>
     <script src="/static/app.js"></script>
 </body>

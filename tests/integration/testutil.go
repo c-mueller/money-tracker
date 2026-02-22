@@ -68,7 +68,7 @@ func setupTestEnv(t *testing.T) *testEnv {
 	}
 
 	logger, _ := logging.New("error")
-	srv := api.NewServer(logger, "127.0.0.1", 0, svcs)
+	srv := api.NewServer(logger, "127.0.0.1", 0, svcs, "en")
 
 	devUser, err := userSvc.GetOrCreate(context.Background(), "test-user", "test@example.com", "Test User")
 	if err != nil {

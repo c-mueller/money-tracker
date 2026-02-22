@@ -8,6 +8,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"icekalt.dev/money-tracker/internal/domain"
+	"icekalt.dev/money-tracker/internal/i18n"
+	mw "icekalt.dev/money-tracker/internal/middleware"
 	"icekalt.dev/money-tracker/internal/service"
 )
 
@@ -33,6 +35,14 @@ type pageData struct {
 	Icons              []string
 	ActiveTab          string
 	Frequencies        []domain.Frequency
+	Lang               string
+}
+
+func (s *Server) getLocale(c echo.Context) i18n.Locale {
+	if l, ok := c.Get(mw.LocaleContextKey).(i18n.Locale); ok {
+		return l
+	}
+	return s.defaultLocale
 }
 
 func (s *Server) handleWebDashboard(c echo.Context) error {
@@ -53,11 +63,12 @@ func (s *Server) handleWebDashboard(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "dashboard", pageData{
-		Title:      "Dashboard",
+		Title:      "dashboard",
 		User:       s.getUserFromContext(c),
 		Households: households,
 		Summaries:  summaries,
 		Month:      fmt.Sprintf("%d-%02d", year, month),
+		Lang:       string(s.getLocale(c)),
 	})
 }
 
@@ -103,16 +114,18 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 		PrevMonth:    fmt.Sprintf("%d-%02d", prev.Year(), prev.Month()),
 		NextMonth:    fmt.Sprintf("%d-%02d", next.Year(), next.Month()),
 		ActiveTab:    "transactions",
+		Lang:         string(s.getLocale(c)),
 	})
 }
 
 func (s *Server) handleWebHouseholdNew(c echo.Context) error {
 	return c.Render(http.StatusOK, "household_form", pageData{
-		Title:      "New Household",
+		Title:      "new_household",
 		User:       s.getUserFromContext(c),
 		Household:  &domain.Household{Currency: "EUR"},
 		Currencies: s.renderer.Currencies,
 		Icons:      s.renderer.Icons,
+		Lang:       string(s.getLocale(c)),
 	})
 }
 
@@ -157,11 +170,12 @@ func (s *Server) handleWebTransactionNew(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "transaction_form", pageData{
-		Title:      "New Transaction",
+		Title:      "new_transaction",
 		User:       s.getUserFromContext(c),
 		Household:  hh,
 		Categories: categories,
 		Month:      month,
+		Lang:       string(s.getLocale(c)),
 	})
 }
 
@@ -231,12 +245,13 @@ func (s *Server) handleWebTransactionEdit(c echo.Context) error {
 	month := fmt.Sprintf("%d-%02d", tx.Date.Year(), tx.Date.Month())
 
 	return c.Render(http.StatusOK, "transaction_form", pageData{
-		Title:       "Edit Transaction",
+		Title:       "edit_transaction",
 		User:        s.getUserFromContext(c),
 		Household:   hh,
 		Transaction: tx,
 		Categories:  categories,
 		Month:       month,
+		Lang:        string(s.getLocale(c)),
 	})
 }
 
@@ -326,12 +341,13 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
 	return c.Render(http.StatusOK, "recurring_list", pageData{
-		Title:             "Recurring Transactions",
+		Title:             "recurring",
 		User:              s.getUserFromContext(c),
 		Household:         hh,
 		RecurringExpenses: expenses,
 		Month:             month,
 		ActiveTab:         "recurring",
+		Lang:              string(s.getLocale(c)),
 	})
 }
 
@@ -353,11 +369,12 @@ func (s *Server) handleWebRecurringNew(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "recurring_form", pageData{
-		Title:       "New Recurring Transaction",
+		Title:       "new_recurring",
 		User:        s.getUserFromContext(c),
 		Household:   hh,
 		Categories:  categories,
 		Frequencies: domain.AllFrequencies(),
+		Lang:        string(s.getLocale(c)),
 	})
 }
 
@@ -437,12 +454,13 @@ func (s *Server) handleWebRecurringEdit(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "recurring_form", pageData{
-		Title:            "Edit Recurring Transaction",
+		Title:            "edit_recurring",
 		User:             s.getUserFromContext(c),
 		Household:        hh,
 		RecurringExpense: re,
 		Categories:       categories,
 		Frequencies:      domain.AllFrequencies(),
+		Lang:             string(s.getLocale(c)),
 	})
 }
 
@@ -520,7 +538,7 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
 	return c.Render(http.StatusOK, "household_settings", pageData{
-		Title:      "Settings",
+		Title:      "settings",
 		User:       s.getUserFromContext(c),
 		Household:  hh,
 		Categories: categories,
@@ -528,6 +546,7 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 		Icons:      s.renderer.Icons,
 		Month:      month,
 		ActiveTab:  "settings",
+		Lang:       string(s.getLocale(c)),
 	})
 }
 
@@ -576,13 +595,14 @@ func (s *Server) handleWebCategoryEdit(c echo.Context) error {
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
 	return c.Render(http.StatusOK, "category_form", pageData{
-		Title:     "Edit Category",
+		Title:     "edit_category",
 		User:      s.getUserFromContext(c),
 		Household: hh,
 		Category:  cat,
 		Icons:     s.renderer.Icons,
 		Month:     month,
 		ActiveTab: "settings",
+		Lang:      string(s.getLocale(c)),
 	})
 }
 
@@ -636,9 +656,10 @@ func (s *Server) handleWebTokenList(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "token_list", pageData{
-		Title:  "API Tokens",
+		Title:  "api_tokens",
 		User:   s.getUserFromContext(c),
 		Tokens: tokens,
+		Lang:   string(s.getLocale(c)),
 	})
 }
 
@@ -655,10 +676,11 @@ func (s *Server) handleWebTokenCreate(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "token_list", pageData{
-		Title:    "API Tokens",
+		Title:    "api_tokens",
 		User:     s.getUserFromContext(c),
 		Tokens:   tokens,
 		NewToken: plaintext,
+		Lang:     string(s.getLocale(c)),
 	})
 }
 

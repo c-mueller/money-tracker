@@ -1,12 +1,12 @@
 {{define "content"}}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Dashboard</h1>
-    <a href="/households/new" class="btn btn-primary">New Household</a>
+    <h1>{{t "dashboard"}}</h1>
+    <a href="/households/new" class="btn btn-primary">{{t "new_household"}}</a>
 </div>
 
 {{if not .Households}}
 <div class="alert alert-info">
-    No households yet. Create your first household to get started.
+    {{t "no_households_empty"}}
 </div>
 {{else}}
 <div class="row">
@@ -20,20 +20,20 @@
                 {{if $summary}}
                 <div class="row text-center mb-3">
                     <div class="col-4">
-                        <div class="small text-muted">One-time</div>
+                        <div class="small text-muted">{{t "one_time"}}</div>
                         <strong>{{formatMoney $summary.OneTimeTotal}}</strong>
                     </div>
                     <div class="col-4">
-                        <div class="small text-muted">Recurring</div>
+                        <div class="small text-muted">{{t "recurring"}}</div>
                         <strong>{{formatMoney $summary.RecurringTotal}}</strong>
                     </div>
                     <div class="col-4">
-                        <div class="small text-muted">Income</div>
+                        <div class="small text-muted">{{t "income"}}</div>
                         <strong class="text-success">{{formatMoney $summary.TotalIncome}}</strong>
                     </div>
                 </div>
                 {{end}}
-                <a href="/households/{{.ID}}?month={{$.Month}}" class="btn btn-outline-primary btn-sm">Open</a>
+                <a href="/households/{{.ID}}?month={{$.Month}}" class="btn btn-outline-primary btn-sm">{{t "open"}}</a>
             </div>
             <div class="card-footer text-muted small">
                 {{.Currency}} &middot; {{$.Month}}

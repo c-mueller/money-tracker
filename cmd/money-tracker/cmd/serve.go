@@ -57,7 +57,7 @@ var serveCmd = &cobra.Command{
 			APIToken:         tokenSvc,
 		}
 
-		srv := api.NewServer(logger, cfg.Server.Host, cfg.Server.Port, svcs)
+		srv := api.NewServer(logger, cfg.Server.Host, cfg.Server.Port, svcs, cfg.Language)
 
 		// Session store
 		sessionSecret := cfg.Auth.Session.Secret

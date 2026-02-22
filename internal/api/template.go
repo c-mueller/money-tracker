@@ -1,15 +1,19 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
+	"icekalt.dev/money-tracker/internal/i18n"
+	mw "icekalt.dev/money-tracker/internal/middleware"
 	"icekalt.dev/money-tracker/web"
 )
 
@@ -24,9 +28,11 @@ type TemplateRenderer struct {
 	Currencies     []Currency
 	Icons          []string
 	currencyByCode map[string]Currency
+	bundle         *i18n.Bundle
+	defaultLocale  i18n.Locale
 }
 
-func NewTemplateRenderer() (*TemplateRenderer, error) {
+func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*TemplateRenderer, error) {
 	// Load currencies from embedded JSON
 	currencyData, err := fs.ReadFile(web.Content, "static/currencies.json")
 	if err != nil {
@@ -54,13 +60,16 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		return nil, fmt.Errorf("parsing icons.json: %w", err)
 	}
 
+	// Base funcMap with placeholder t/tf — overridden per-request in Render()
 	funcMap := template.FuncMap{
-		"formatMoney": func(d decimal.Decimal) string {
-			return d.StringFixed(2)
+		"t": func(key string, args ...interface{}) string {
+			return bundle.T(defaultLocale, key, args...)
 		},
-		"formatDate": func(t time.Time) string {
-			return t.Format("2006-01-02")
+		"tf": func(freq string) string {
+			return bundle.FrequencyName(defaultLocale, freq)
 		},
+		"formatMoney": formatMoneyForLocale(defaultLocale),
+		"formatDate":  formatDateForLocale(defaultLocale),
 		"derefTime": func(t *time.Time) time.Time {
 			if t == nil {
 				return time.Time{}
@@ -92,6 +101,12 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		},
 		"isNegative": func(d decimal.Decimal) bool {
 			return d.IsNegative()
+		},
+		"formatDateISO": func(t time.Time) string {
+			if t.IsZero() {
+				return ""
+			}
+			return t.Format("2006-01-02")
 		},
 		"dict": func(pairs ...interface{}) map[string]interface{} {
 			m := make(map[string]interface{}, len(pairs)/2)
@@ -127,17 +142,17 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 	}
 
 	pages := map[string]string{
-		"dashboard":        "dashboard.html",
-		"login":            "auth/login.html",
-		"household_detail": "household/detail.html",
-		"household_form":   "household/form.html",
-		"category_list":    "category/list.html",
-		"category_form":    "category/form.html",
+		"dashboard":          "dashboard.html",
+		"login":              "auth/login.html",
+		"household_detail":   "household/detail.html",
+		"household_form":     "household/form.html",
+		"category_list":      "category/list.html",
+		"category_form":      "category/form.html",
 		"household_settings": "household/settings.html",
-		"recurring_list":   "recurring/list.html",
-		"recurring_form":   "recurring/form.html",
-		"transaction_form": "transaction/form.html",
-		"token_list":       "token/list.html",
+		"recurring_list":     "recurring/list.html",
+		"recurring_form":     "recurring/form.html",
+		"transaction_form":   "transaction/form.html",
+		"token_list":         "token/list.html",
 	}
 
 	templates := make(map[string]*template.Template)
@@ -168,6 +183,8 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		Currencies:     currencies,
 		Icons:          icons,
 		currencyByCode: currencyByCode,
+		bundle:         bundle,
+		defaultLocale:  defaultLocale,
 	}, nil
 }
 
@@ -176,5 +193,107 @@ func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	if !ok {
 		return fmt.Errorf("template %s not found", name)
 	}
-	return t.ExecuteTemplate(w, "layout", data)
+
+	// Determine locale from context
+	locale := r.defaultLocale
+	if l, ok := c.Get(mw.LocaleContextKey).(i18n.Locale); ok {
+		locale = l
+	}
+
+	// Clone template and override locale-sensitive functions
+	tc, err := t.Clone()
+	if err != nil {
+		return fmt.Errorf("cloning template %s: %w", name, err)
+	}
+
+	tc.Funcs(template.FuncMap{
+		"t": func(key string, args ...interface{}) string {
+			return r.bundle.T(locale, key, args...)
+		},
+		"tf": func(freq string) string {
+			return r.bundle.FrequencyName(locale, freq)
+		},
+		"formatMoney": formatMoneyForLocale(locale),
+		"formatDate":  formatDateForLocale(locale),
+	})
+
+	var buf bytes.Buffer
+	if err := tc.ExecuteTemplate(&buf, "layout", data); err != nil {
+		return err
+	}
+	_, err = buf.WriteTo(w)
+	return err
+}
+
+func formatMoneyForLocale(locale i18n.Locale) func(decimal.Decimal) string {
+	return func(d decimal.Decimal) string {
+		s := d.StringFixed(2)
+		if locale == i18n.DE {
+			// 1234.50 → 1.234,50
+			s = strings.ReplaceAll(s, ".", "POINT")
+			// We need to handle the grouping for DE locale
+			parts := strings.SplitN(s, "POINT", 2)
+			intPart := parts[0]
+			decPart := parts[1]
+
+			// Add thousands separator
+			negative := false
+			if len(intPart) > 0 && intPart[0] == '-' {
+				negative = true
+				intPart = intPart[1:]
+			}
+
+			if len(intPart) > 3 {
+				var groups []string
+				for len(intPart) > 3 {
+					groups = append([]string{intPart[len(intPart)-3:]}, groups...)
+					intPart = intPart[:len(intPart)-3]
+				}
+				groups = append([]string{intPart}, groups...)
+				intPart = strings.Join(groups, ".")
+			}
+
+			if negative {
+				return "-" + intPart + "," + decPart
+			}
+			return intPart + "," + decPart
+		}
+		// EN: 1234.50 → 1,234.50
+		parts := strings.SplitN(s, ".", 2)
+		intPart := parts[0]
+		decPart := parts[1]
+
+		negative := false
+		if len(intPart) > 0 && intPart[0] == '-' {
+			negative = true
+			intPart = intPart[1:]
+		}
+
+		if len(intPart) > 3 {
+			var groups []string
+			for len(intPart) > 3 {
+				groups = append([]string{intPart[len(intPart)-3:]}, groups...)
+				intPart = intPart[:len(intPart)-3]
+			}
+			groups = append([]string{intPart}, groups...)
+			intPart = strings.Join(groups, ",")
+		}
+
+		if negative {
+			return "-" + intPart + "." + decPart
+		}
+		return intPart + "." + decPart
+	}
+}
+
+func formatDateForLocale(locale i18n.Locale) func(time.Time) string {
+	return func(t time.Time) string {
+		if t.IsZero() {
+			return ""
+		}
+		if locale == i18n.DE {
+			return t.Format("02.01.2006")
+		}
+		return t.Format("01/02/2006")
+	}
 }

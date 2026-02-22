@@ -1,30 +1,30 @@
 {{define "content"}}
-<h1>API Tokens</h1>
+<h1>{{t "api_tokens"}}</h1>
 
 <form method="POST" action="/tokens" class="mb-4 d-flex gap-2" style="max-width: 400px;">
-    <input type="text" class="form-control" name="name" placeholder="Token name" required maxlength="100">
-    <button type="submit" class="btn btn-primary">Create</button>
+    <input type="text" class="form-control" name="name" placeholder="{{t "token_name_placeholder"}}" required maxlength="100">
+    <button type="submit" class="btn btn-primary">{{t "create"}}</button>
 </form>
 
 {{if .NewToken}}
 <div class="alert alert-success">
-    <strong>New token created!</strong> Copy it now — it won't be shown again.
+    <strong>{{t "new_token_created"}}</strong>
     <div class="mt-2">
         <code id="newToken">{{.NewToken}}</code>
-        <button class="btn btn-sm btn-outline-secondary ms-2" data-copy="#newToken">Copy</button>
+        <button class="btn btn-sm btn-outline-secondary ms-2" data-copy="#newToken">{{t "copy"}}</button>
     </div>
 </div>
 {{end}}
 
 {{if not .Tokens}}
-<p class="text-muted">No API tokens yet.</p>
+<p class="text-muted">{{t "no_tokens_empty"}}</p>
 {{else}}
 <table class="table">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Created</th>
-            <th>Last Used</th>
+            <th>{{t "name"}}</th>
+            <th>{{t "created"}}</th>
+            <th>{{t "last_used"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -33,9 +33,9 @@
         <tr>
             <td>{{.Name}}</td>
             <td>{{formatDate .CreatedAt}}</td>
-            <td>{{if .LastUsed}}{{formatDate (derefTime .LastUsed)}}{{else}}Never{{end}}</td>
+            <td>{{if .LastUsed}}{{formatDate (derefTime .LastUsed)}}{{else}}{{t "never"}}{{end}}</td>
             <td>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete token '{{.Name}}'?" data-action="/api/v1/tokens/{{.ID}}" data-method="DELETE">Delete</button>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_token_confirm" .Name}}" data-action="/api/v1/tokens/{{.ID}}" data-method="DELETE">{{t "delete"}}</button>
             </td>
         </tr>
         {{end}}

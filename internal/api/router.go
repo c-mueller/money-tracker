@@ -8,7 +8,7 @@ import (
 
 func (s *Server) setupRoutes() {
 	// Template renderer
-	renderer, err := NewTemplateRenderer()
+	renderer, err := NewTemplateRenderer(s.i18nBundle, s.defaultLocale)
 	if err != nil {
 		s.logger.Fatal("failed to setup templates: " + err.Error())
 	}
@@ -27,6 +27,9 @@ func (s *Server) setupRoutes() {
 
 	// Auth middleware for all protected routes
 	authMW := mw.Auth(s.sessionStore, s.services.APIToken, s.devUserID)
+
+	// Locale middleware
+	localeMW := mw.Locale(s.defaultLocale)
 
 	// --- API Routes ---
 	apiGroup := s.echo.Group("/api/v1")
@@ -66,6 +69,7 @@ func (s *Server) setupRoutes() {
 
 	// --- Web Routes ---
 	webGroup := s.echo.Group("")
+	webGroup.Use(localeMW)
 	webGroup.Use(authMW)
 
 	webGroup.GET("/", s.handleWebDashboard)

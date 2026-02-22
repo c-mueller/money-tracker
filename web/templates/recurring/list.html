@@ -2,19 +2,19 @@
 {{template "household_header" .}}
 
 <div class="mb-3">
-    <a href="/households/{{.Household.ID}}/recurring/new" class="btn btn-primary btn-sm">Add Recurring Transaction</a>
+    <a href="/households/{{.Household.ID}}/recurring/new" class="btn btn-primary btn-sm">{{t "add_recurring"}}</a>
 </div>
 
 {{if not .RecurringExpenses}}
-<p class="text-muted">No recurring transactions yet.</p>
+<p class="text-muted">{{t "no_recurring_empty"}}</p>
 {{else}}
 <table class="table table-hover">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Amount</th>
-            <th>Frequency</th>
-            <th>Active</th>
+            <th>{{t "name"}}</th>
+            <th>{{t "amount"}}</th>
+            <th>{{t "frequency"}}</th>
+            <th>{{t "active"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -23,11 +23,11 @@
         <tr>
             <td>{{.Name}}</td>
             <td>{{formatMoney .Amount}}</td>
-            <td>{{.Frequency}}</td>
-            <td>{{if .Active}}<span class="badge bg-success">Active</span>{{else}}<span class="badge bg-secondary">Inactive</span>{{end}}</td>
+            <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-nowrap">
-                <a href="/households/{{$.Household.ID}}/recurring/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="Edit"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete '{{.Name}}'?" data-action="/api/v1/households/{{$.Household.ID}}/recurring-expenses/{{.ID}}" data-method="DELETE" title="Delete"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+                <a href="/households/{{$.Household.ID}}/recurring/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_recurring_confirm" .Name}}" data-action="/api/v1/households/{{$.Household.ID}}/recurring-expenses/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
             </td>
         </tr>
         {{end}}

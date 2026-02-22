@@ -8,13 +8,13 @@
 
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-        <a class="nav-link {{if eq .ActiveTab "transactions"}}active{{end}}" href="/households/{{.Household.ID}}?month={{.Month}}">Transactions</a>
+        <a class="nav-link {{if eq .ActiveTab "transactions"}}active{{end}}" href="/households/{{.Household.ID}}?month={{.Month}}">{{t "transactions"}}</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{if eq .ActiveTab "recurring"}}active{{end}}" href="/households/{{.Household.ID}}/recurring">Recurring</a>
+        <a class="nav-link {{if eq .ActiveTab "recurring"}}active{{end}}" href="/households/{{.Household.ID}}/recurring">{{t "recurring"}}</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{if eq .ActiveTab "settings"}}active{{end}}" href="/households/{{.Household.ID}}/settings">Settings</a>
+        <a class="nav-link {{if eq .ActiveTab "settings"}}active{{end}}" href="/households/{{.Household.ID}}/settings">{{t "settings"}}</a>
     </li>
 </ul>
 {{end}}
