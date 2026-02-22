@@ -24,6 +24,7 @@ type pageData struct {
 	Month             string
 	PrevMonth         string
 	NextMonth         string
+	Currencies        []Currency
 }
 
 func (s *Server) handleWebDashboard(c echo.Context) error {
@@ -86,9 +87,10 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 
 func (s *Server) handleWebHouseholdNew(c echo.Context) error {
 	return c.Render(http.StatusOK, "household_form", pageData{
-		Title:     "New Household",
-		User:      s.getUserFromContext(c),
-		Household: &domain.Household{Currency: "EUR"},
+		Title:      "New Household",
+		User:       s.getUserFromContext(c),
+		Household:  &domain.Household{Currency: "EUR"},
+		Currencies: s.renderer.Currencies,
 	})
 }
 

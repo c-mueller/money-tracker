@@ -7,10 +7,42 @@
         <input type="text" class="form-control" id="name" name="name" value="{{.Household.Name}}" required maxlength="100">
     </div>
     <div class="mb-3">
-        <label for="currency" class="form-label">Currency</label>
-        <input type="text" class="form-control" id="currency" name="currency" value="{{or .Household.Currency "EUR"}}" required maxlength="3">
+        <label for="currency-select" class="form-label">Currency</label>
+        <select class="form-select" id="currency-select" name="currency">
+            {{$current := .Household.Currency}}
+            {{$currencies := .Currencies}}
+            {{range .Currencies}}
+            <option value="{{.Code}}" {{if eq .Code $current}}selected{{end}}>{{.Code}} ({{.Symbol}}) — {{.Label}}</option>
+            {{end}}
+            <option value="CUSTOM" {{if not (isCurrencyCode $current $currencies)}}selected{{end}}>Custom…</option>
+        </select>
+        <input type="text" class="form-control mt-2 {{if isCurrencyCode $current $currencies}}d-none{{end}}" id="currency-custom" maxlength="3" pattern="[A-Z]{3}" placeholder="e.g. TRY" value="{{if not (isCurrencyCode $current $currencies)}}{{$current}}{{end}}">
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="/" class="btn btn-secondary">Cancel</a>
 </form>
+
+<script>
+(function() {
+    var sel = document.getElementById('currency-select');
+    var custom = document.getElementById('currency-custom');
+
+    function toggle() {
+        if (sel.value === 'CUSTOM') {
+            custom.classList.remove('d-none');
+            custom.setAttribute('name', 'currency');
+            custom.required = true;
+            sel.removeAttribute('name');
+        } else {
+            custom.classList.add('d-none');
+            custom.removeAttribute('name');
+            custom.required = false;
+            sel.setAttribute('name', 'currency');
+        }
+    }
+
+    sel.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 {{end}}

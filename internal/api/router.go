@@ -13,6 +13,7 @@ func (s *Server) setupRoutes() {
 		s.logger.Fatal("failed to setup templates: " + err.Error())
 	}
 	s.echo.Renderer = renderer
+	s.renderer = renderer
 
 	// Static files
 	s.setupStatic()

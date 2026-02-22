@@ -24,6 +24,7 @@ type Server struct {
 	sessionStore sessions.Store
 	authHandler  *AuthHandler
 	devUserID    int
+	renderer     *TemplateRenderer
 }
 
 type Services struct {

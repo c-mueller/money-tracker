@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -12,11 +13,35 @@ import (
 	"icekalt.dev/money-tracker/web"
 )
 
+type Currency struct {
+	Code   string `json:"code"`
+	Symbol string `json:"symbol"`
+	Label  string `json:"label"`
+}
+
 type TemplateRenderer struct {
-	templates map[string]*template.Template
+	templates      map[string]*template.Template
+	Currencies     []Currency
+	currencyByCode map[string]Currency
 }
 
 func NewTemplateRenderer() (*TemplateRenderer, error) {
+	// Load currencies from embedded JSON
+	currencyData, err := fs.ReadFile(web.Content, "static/currencies.json")
+	if err != nil {
+		return nil, fmt.Errorf("reading currencies.json: %w", err)
+	}
+
+	var currencies []Currency
+	if err := json.Unmarshal(currencyData, &currencies); err != nil {
+		return nil, fmt.Errorf("parsing currencies.json: %w", err)
+	}
+
+	currencyByCode := make(map[string]Currency, len(currencies))
+	for _, c := range currencies {
+		currencyByCode[c.Code] = c
+	}
+
 	funcMap := template.FuncMap{
 		"formatMoney": func(d decimal.Decimal) string {
 			return d.StringFixed(2)
@@ -35,6 +60,20 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 				return a
 			}
 			return b
+		},
+		"currencySymbol": func(code string) string {
+			if c, ok := currencyByCode[code]; ok {
+				return c.Symbol
+			}
+			return code
+		},
+		"isCurrencyCode": func(code string, currencies []Currency) bool {
+			for _, c := range currencies {
+				if c.Code == code {
+					return true
+				}
+			}
+			return false
 		},
 	}
 
@@ -75,7 +114,11 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		templates[name] = t
 	}
 
-	return &TemplateRenderer{templates: templates}, nil
+	return &TemplateRenderer{
+		templates:      templates,
+		Currencies:     currencies,
+		currencyByCode: currencyByCode,
+	}, nil
 }
 
 func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
