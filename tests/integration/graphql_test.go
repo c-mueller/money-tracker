@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"icekalt.dev/money-tracker/internal/auth"
 )
 
 // gqlRequest sends a GraphQL request with Bearer token auth.
@@ -328,24 +331,68 @@ func TestGraphQLSummary(t *testing.T) {
 	}
 }
 
-func TestGraphQLTokenOnlyAuth(t *testing.T) {
+func TestGraphQLAuth(t *testing.T) {
 	env := setupTestEnv(t)
 
-	// Request with session cookie but no Bearer token should be rejected
-	body := `{"query":"{ households { id } }"}`
-	req, _ := http.NewRequest("POST", env.server.URL+"/graphql", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	// No Authorization header
+	t.Run("no auth returns 401", func(t *testing.T) {
+		body := `{"query":"{ households { id } }"}`
+		req, _ := http.NewRequest("POST", env.server.URL+"/graphql", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("executing request: %v", err)
-	}
-	defer resp.Body.Close()
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("executing request: %v", err)
+		}
+		defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("expected 401 for GraphQL without token, got %d", resp.StatusCode)
-	}
+		if resp.StatusCode != http.StatusUnauthorized {
+			t.Errorf("expected 401 for GraphQL without auth, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("bearer token accepted", func(t *testing.T) {
+		result := gqlRequest(t, env, `{ households { id } }`)
+		if _, ok := result["data"]; !ok {
+			t.Error("expected data in response with bearer token")
+		}
+	})
+
+	t.Run("session cookie accepted", func(t *testing.T) {
+		// Create a valid session cookie
+		fakeReq := httptest.NewRequest(http.MethodGet, "/", nil)
+		fakeRec := httptest.NewRecorder()
+		session, _ := env.sessionStore.New(fakeReq, auth.SessionName)
+		session.Values[auth.SessionKeyUser] = env.userID
+		session.Save(fakeReq, fakeRec)
+
+		cookies := fakeRec.Result().Cookies()
+		if len(cookies) == 0 {
+			t.Fatal("no session cookie was set")
+		}
+
+		body := `{"query":"{ households { id } }"}`
+		req, _ := http.NewRequest("POST", env.server.URL+"/graphql", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		for _, c := range cookies {
+			req.AddCookie(c)
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatalf("executing request: %v", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("expected 200 for GraphQL with session cookie, got %d", resp.StatusCode)
+		}
+
+		var result map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&result)
+		if _, ok := result["data"]; !ok {
+			t.Error("expected data in response with session cookie")
+		}
+	})
 }
 
 func TestGraphQLNoDeleteMutations(t *testing.T) {

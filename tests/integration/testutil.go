@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/sessions"
 	"icekalt.dev/money-tracker/ent"
 	"icekalt.dev/money-tracker/internal/api"
 	"icekalt.dev/money-tracker/internal/auth"
@@ -19,10 +20,12 @@ import (
 )
 
 type testEnv struct {
-	server   *httptest.Server
-	client   *ent.Client
-	services *api.Services
-	token    string // Bearer token for authenticated requests
+	server       *httptest.Server
+	client       *ent.Client
+	services     *api.Services
+	token        string // Bearer token for authenticated requests
+	sessionStore sessions.Store
+	userID       int
 }
 
 func setupTestEnv(t *testing.T) *testEnv {
@@ -93,9 +96,11 @@ func setupTestEnv(t *testing.T) *testEnv {
 	})
 
 	return &testEnv{
-		server:   ts,
-		client:   client,
-		services: svcs,
-		token:    plainToken,
+		server:       ts,
+		client:       client,
+		services:     svcs,
+		token:        plainToken,
+		sessionStore: store,
+		userID:       devUser.ID,
 	}
 }

@@ -84,14 +84,15 @@ func (s *Server) setupRoutes() {
 		},
 	}))
 
-	tokenAuthMW := mw.TokenOnlyAuth(s.services.APIToken, s.devUserID)
 	graphqlGroup := s.echo.Group("/graphql")
-	graphqlGroup.Use(tokenAuthMW)
+	graphqlGroup.Use(authMW)
 	graphqlGroup.POST("", echo.WrapHandler(gqlHandler))
 
-	// Playground only in dev mode
+	// Playground (behind auth so it works with browser sessions)
 	if devmode.Enabled {
-		s.echo.GET("/playground", echo.WrapHandler(playground.Handler("GraphQL", "/graphql")))
+		playgroundGroup := s.echo.Group("/playground")
+		playgroundGroup.Use(authMW)
+		playgroundGroup.GET("", echo.WrapHandler(playground.Handler("GraphQL", "/graphql")))
 	}
 
 	// --- Web Routes ---
