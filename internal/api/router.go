@@ -39,6 +39,7 @@ func (s *Server) setupRoutes() {
 	// --- API Routes ---
 	apiGroup := s.echo.Group("/api/v1")
 	apiGroup.GET("/health", s.handleHealth)
+	apiGroup.GET("/openapi.yaml", s.handleOpenAPISpec)
 	apiGroup.Use(authMW)
 
 	// Households
@@ -94,6 +95,11 @@ func (s *Server) setupRoutes() {
 		playgroundGroup.Use(authMW)
 		playgroundGroup.GET("", echo.WrapHandler(playground.Handler("GraphQL", "/graphql")))
 	}
+
+	// --- Swagger UI (behind auth) ---
+	swaggerGroup := s.echo.Group("/swagger")
+	swaggerGroup.Use(authMW)
+	swaggerGroup.GET("", s.handleSwaggerUI)
 
 	// --- Web Routes ---
 	webGroup := s.echo.Group("")
