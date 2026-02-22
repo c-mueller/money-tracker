@@ -113,3 +113,50 @@ func TestFrequencyName(t *testing.T) {
 		})
 	}
 }
+
+func TestDateFormat(t *testing.T) {
+	b := NewBundle(DE)
+
+	if got := b.DateFormat(DE); got != "02.01.2006" {
+		t.Errorf("DateFormat(DE) = %q, want 02.01.2006", got)
+	}
+	if got := b.DateFormat(EN); got != "01/02/2006" {
+		t.Errorf("DateFormat(EN) = %q, want 01/02/2006", got)
+	}
+}
+
+func TestThousandsSep(t *testing.T) {
+	b := NewBundle(DE)
+
+	if got := b.ThousandsSep(DE); got != "." {
+		t.Errorf("ThousandsSep(DE) = %q, want .", got)
+	}
+	if got := b.ThousandsSep(EN); got != "," {
+		t.Errorf("ThousandsSep(EN) = %q, want ,", got)
+	}
+}
+
+func TestDecimalSep(t *testing.T) {
+	b := NewBundle(DE)
+
+	if got := b.DecimalSep(DE); got != "," {
+		t.Errorf("DecimalSep(DE) = %q, want ,", got)
+	}
+	if got := b.DecimalSep(EN); got != "." {
+		t.Errorf("DecimalSep(EN) = %q, want .", got)
+	}
+}
+
+func TestBundleParseLocale(t *testing.T) {
+	b := NewBundle(DE)
+
+	if got := b.ParseLocale("en-US"); got != EN {
+		t.Errorf("bundle.ParseLocale(en-US) = %q, want en", got)
+	}
+	if got := b.ParseLocale("de-AT"); got != DE {
+		t.Errorf("bundle.ParseLocale(de-AT) = %q, want de", got)
+	}
+	if got := b.ParseLocale("fr"); got != DE {
+		t.Errorf("bundle.ParseLocale(fr) = %q, want de (default)", got)
+	}
+}

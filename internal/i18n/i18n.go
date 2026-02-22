@@ -1,9 +1,15 @@
 package i18n
 
 import (
+	"embed"
+	"encoding/json"
 	"fmt"
+	"io/fs"
 	"strings"
 )
+
+//go:embed locales/*.json
+var localesFS embed.FS
 
 // Locale represents a supported language.
 type Locale string
@@ -13,20 +19,48 @@ const (
 	EN Locale = "en"
 )
 
+// localeData represents the JSON structure for a single locale file.
+type localeData struct {
+	Locale       string            `json:"locale"`
+	DateFormat   string            `json:"date_format"`
+	ThousandsSep string            `json:"thousands_sep"`
+	DecimalSep   string            `json:"decimal_sep"`
+	Frequencies  map[string]string `json:"frequencies"`
+	Messages     map[string]string `json:"messages"`
+}
+
 // Bundle holds translations for all supported locales.
 type Bundle struct {
-	translations  map[Locale]map[string]string
+	locales       map[Locale]*localeData
 	defaultLocale Locale
 }
 
-// NewBundle creates a new translation bundle with the given default locale.
+// NewBundle creates a new translation bundle by loading all JSON locale files.
 func NewBundle(defaultLocale Locale) *Bundle {
 	b := &Bundle{
-		translations:  make(map[Locale]map[string]string),
+		locales:       make(map[Locale]*localeData),
 		defaultLocale: defaultLocale,
 	}
-	b.translations[DE] = deTranslations
-	b.translations[EN] = enTranslations
+
+	matches, err := fs.Glob(localesFS, "locales/*.json")
+	if err != nil {
+		panic(fmt.Sprintf("i18n: failed to glob locale files: %v", err))
+	}
+
+	for _, path := range matches {
+		data, err := fs.ReadFile(localesFS, path)
+		if err != nil {
+			panic(fmt.Sprintf("i18n: failed to read %s: %v", path, err))
+		}
+
+		var ld localeData
+		if err := json.Unmarshal(data, &ld); err != nil {
+			panic(fmt.Sprintf("i18n: failed to parse %s: %v", path, err))
+		}
+
+		b.locales[Locale(ld.Locale)] = &ld
+	}
+
 	return b
 }
 
@@ -34,8 +68,8 @@ func NewBundle(defaultLocale Locale) *Bundle {
 // If args are provided, fmt.Sprintf is used for interpolation.
 // Falls back to default locale, then returns the key itself.
 func (b *Bundle) T(locale Locale, key string, args ...interface{}) string {
-	if msgs, ok := b.translations[locale]; ok {
-		if msg, ok := msgs[key]; ok {
+	if ld, ok := b.locales[locale]; ok {
+		if msg, ok := ld.Messages[key]; ok {
 			if len(args) > 0 {
 				return fmt.Sprintf(msg, args...)
 			}
@@ -44,8 +78,8 @@ func (b *Bundle) T(locale Locale, key string, args ...interface{}) string {
 	}
 	// Fallback to default locale
 	if locale != b.defaultLocale {
-		if msgs, ok := b.translations[b.defaultLocale]; ok {
-			if msg, ok := msgs[key]; ok {
+		if ld, ok := b.locales[b.defaultLocale]; ok {
+			if msg, ok := ld.Messages[key]; ok {
 				if len(args) > 0 {
 					return fmt.Sprintf(msg, args...)
 				}
@@ -56,12 +90,72 @@ func (b *Bundle) T(locale Locale, key string, args ...interface{}) string {
 	return key
 }
 
+// FrequencyName returns the localized display name for a frequency.
+func (b *Bundle) FrequencyName(locale Locale, freq string) string {
+	if ld, ok := b.locales[locale]; ok {
+		if name, ok := ld.Frequencies[freq]; ok {
+			return name
+		}
+	}
+	// Fallback to default locale
+	if ld, ok := b.locales[b.defaultLocale]; ok {
+		if name, ok := ld.Frequencies[freq]; ok {
+			return name
+		}
+	}
+	return freq
+}
+
+// DateFormat returns the date format string for the given locale.
+func (b *Bundle) DateFormat(locale Locale) string {
+	if ld, ok := b.locales[locale]; ok {
+		return ld.DateFormat
+	}
+	if ld, ok := b.locales[b.defaultLocale]; ok {
+		return ld.DateFormat
+	}
+	return "2006-01-02"
+}
+
+// ThousandsSep returns the thousands separator for the given locale.
+func (b *Bundle) ThousandsSep(locale Locale) string {
+	if ld, ok := b.locales[locale]; ok {
+		return ld.ThousandsSep
+	}
+	if ld, ok := b.locales[b.defaultLocale]; ok {
+		return ld.ThousandsSep
+	}
+	return ","
+}
+
+// DecimalSep returns the decimal separator for the given locale.
+func (b *Bundle) DecimalSep(locale Locale) string {
+	if ld, ok := b.locales[locale]; ok {
+		return ld.DecimalSep
+	}
+	if ld, ok := b.locales[b.defaultLocale]; ok {
+		return ld.DecimalSep
+	}
+	return "."
+}
+
 // DefaultLocale returns the bundle's default locale.
 func (b *Bundle) DefaultLocale() Locale {
 	return b.defaultLocale
 }
 
 // ParseLocale normalizes a locale string to a supported Locale.
+func (b *Bundle) ParseLocale(s string) Locale {
+	s = strings.ToLower(strings.TrimSpace(s))
+	for code := range b.locales {
+		if strings.HasPrefix(s, string(code)) {
+			return code
+		}
+	}
+	return b.defaultLocale
+}
+
+// ParseLocale normalizes a locale string to a supported Locale (package-level).
 func ParseLocale(s string) Locale {
 	s = strings.ToLower(strings.TrimSpace(s))
 	switch {

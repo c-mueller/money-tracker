@@ -68,8 +68,8 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 		"tf": func(freq string) string {
 			return bundle.FrequencyName(defaultLocale, freq)
 		},
-		"formatMoney": formatMoneyForLocale(defaultLocale),
-		"formatDate":  formatDateForLocale(defaultLocale),
+		"formatMoney": formatMoneyForLocale(defaultLocale, bundle),
+		"formatDate":  formatDateForLocale(defaultLocale, bundle),
 		"derefTime": func(t *time.Time) time.Time {
 			if t == nil {
 				return time.Time{}
@@ -213,8 +213,8 @@ func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 		"tf": func(freq string) string {
 			return r.bundle.FrequencyName(locale, freq)
 		},
-		"formatMoney": formatMoneyForLocale(locale),
-		"formatDate":  formatDateForLocale(locale),
+		"formatMoney": formatMoneyForLocale(locale, r.bundle),
+		"formatDate":  formatDateForLocale(locale, r.bundle),
 	})
 
 	var buf bytes.Buffer
@@ -225,40 +225,12 @@ func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return err
 }
 
-func formatMoneyForLocale(locale i18n.Locale) func(decimal.Decimal) string {
+func formatMoneyForLocale(locale i18n.Locale, bundle *i18n.Bundle) func(decimal.Decimal) string {
+	thousandsSep := bundle.ThousandsSep(locale)
+	decimalSep := bundle.DecimalSep(locale)
+
 	return func(d decimal.Decimal) string {
 		s := d.StringFixed(2)
-		if locale == i18n.DE {
-			// 1234.50 → 1.234,50
-			s = strings.ReplaceAll(s, ".", "POINT")
-			// We need to handle the grouping for DE locale
-			parts := strings.SplitN(s, "POINT", 2)
-			intPart := parts[0]
-			decPart := parts[1]
-
-			// Add thousands separator
-			negative := false
-			if len(intPart) > 0 && intPart[0] == '-' {
-				negative = true
-				intPart = intPart[1:]
-			}
-
-			if len(intPart) > 3 {
-				var groups []string
-				for len(intPart) > 3 {
-					groups = append([]string{intPart[len(intPart)-3:]}, groups...)
-					intPart = intPart[:len(intPart)-3]
-				}
-				groups = append([]string{intPart}, groups...)
-				intPart = strings.Join(groups, ".")
-			}
-
-			if negative {
-				return "-" + intPart + "," + decPart
-			}
-			return intPart + "," + decPart
-		}
-		// EN: 1234.50 → 1,234.50
 		parts := strings.SplitN(s, ".", 2)
 		intPart := parts[0]
 		decPart := parts[1]
@@ -276,24 +248,23 @@ func formatMoneyForLocale(locale i18n.Locale) func(decimal.Decimal) string {
 				intPart = intPart[:len(intPart)-3]
 			}
 			groups = append([]string{intPart}, groups...)
-			intPart = strings.Join(groups, ",")
+			intPart = strings.Join(groups, thousandsSep)
 		}
 
 		if negative {
-			return "-" + intPart + "." + decPart
+			return "-" + intPart + decimalSep + decPart
 		}
-		return intPart + "." + decPart
+		return intPart + decimalSep + decPart
 	}
 }
 
-func formatDateForLocale(locale i18n.Locale) func(time.Time) string {
+func formatDateForLocale(locale i18n.Locale, bundle *i18n.Bundle) func(time.Time) string {
+	dateFormat := bundle.DateFormat(locale)
+
 	return func(t time.Time) string {
 		if t.IsZero() {
 			return ""
 		}
-		if locale == i18n.DE {
-			return t.Format("02.01.2006")
-		}
-		return t.Format("01/02/2006")
+		return t.Format(dateFormat)
 	}
 }
