@@ -24,6 +24,7 @@ func NewHouseholdRepository(client *ent.Client) *HouseholdRepository {
 func (r *HouseholdRepository) Create(ctx context.Context, household *domain.Household) (*domain.Household, error) {
 	h, err := r.client.Household.Create().
 		SetName(household.Name).
+		SetDescription(household.Description).
 		SetCurrency(household.Currency).
 		SetIcon(household.Icon).
 		SetOwnerID(household.OwnerID).
@@ -68,6 +69,7 @@ func (r *HouseholdRepository) ListByOwner(ctx context.Context, ownerID int) ([]*
 func (r *HouseholdRepository) Update(ctx context.Context, household *domain.Household) (*domain.Household, error) {
 	h, err := r.client.Household.UpdateOneID(household.ID).
 		SetName(household.Name).
+		SetDescription(household.Description).
 		SetCurrency(household.Currency).
 		SetIcon(household.Icon).
 		Save(ctx)

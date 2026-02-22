@@ -60,6 +60,26 @@ func (_u *HouseholdUpdate) SetNillableCurrency(v *string) *HouseholdUpdate {
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *HouseholdUpdate) SetDescription(v string) *HouseholdUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *HouseholdUpdate) SetNillableDescription(v *string) *HouseholdUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *HouseholdUpdate) ClearDescription() *HouseholdUpdate {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
 // SetIcon sets the "icon" field.
 func (_u *HouseholdUpdate) SetIcon(v string) *HouseholdUpdate {
 	_u.mutation.SetIcon(v)
@@ -264,6 +284,11 @@ func (_u *HouseholdUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := household.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Household.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Icon(); ok {
 		if err := household.IconValidator(v); err != nil {
 			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Household.icon": %w`, err)}
@@ -292,6 +317,12 @@ func (_u *HouseholdUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(household.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(household.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(household.FieldIcon, field.TypeString, value)
@@ -514,6 +545,26 @@ func (_u *HouseholdUpdateOne) SetNillableCurrency(v *string) *HouseholdUpdateOne
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *HouseholdUpdateOne) SetDescription(v string) *HouseholdUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *HouseholdUpdateOne) SetNillableDescription(v *string) *HouseholdUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *HouseholdUpdateOne) ClearDescription() *HouseholdUpdateOne {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
 // SetIcon sets the "icon" field.
 func (_u *HouseholdUpdateOne) SetIcon(v string) *HouseholdUpdateOne {
 	_u.mutation.SetIcon(v)
@@ -731,6 +782,11 @@ func (_u *HouseholdUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := household.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Household.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Icon(); ok {
 		if err := household.IconValidator(v); err != nil {
 			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Household.icon": %w`, err)}
@@ -776,6 +832,12 @@ func (_u *HouseholdUpdateOne) sqlSave(ctx context.Context) (_node *Household, er
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(household.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(household.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.Icon(); ok {
 		_spec.SetField(household.FieldIcon, field.TypeString, value)

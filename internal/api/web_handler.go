@@ -23,6 +23,7 @@ type pageData struct {
 	RecurringExpenses  []*domain.RecurringExpense
 	RecurringExpense   *domain.RecurringExpense
 	Summary            *domain.MonthlySummary
+	Summaries          map[int]*domain.MonthlySummary
 	Tokens             []*domain.APIToken
 	NewToken           string
 	Month              string
@@ -41,10 +42,22 @@ func (s *Server) handleWebDashboard(c echo.Context) error {
 		return err
 	}
 
+	now := time.Now()
+	year, month := now.Year(), now.Month()
+	summaries := make(map[int]*domain.MonthlySummary, len(households))
+	for _, hh := range households {
+		summary, err := s.services.Summary.GetMonthlySummary(ctx, hh.ID, year, month)
+		if err == nil {
+			summaries[hh.ID] = summary
+		}
+	}
+
 	return c.Render(http.StatusOK, "dashboard", pageData{
 		Title:      "Dashboard",
 		User:       s.getUserFromContext(c),
 		Households: households,
+		Summaries:  summaries,
+		Month:      fmt.Sprintf("%d-%02d", year, month),
 	})
 }
 
@@ -105,13 +118,14 @@ func (s *Server) handleWebHouseholdNew(c echo.Context) error {
 
 func (s *Server) handleWebHouseholdCreate(c echo.Context) error {
 	name := c.FormValue("name")
+	description := c.FormValue("description")
 	currency := c.FormValue("currency")
 	if currency == "" {
 		currency = "EUR"
 	}
 	icon := c.FormValue("icon")
 
-	_, err := s.services.Household.Create(c.Request().Context(), name, currency, icon)
+	_, err := s.services.Household.Create(c.Request().Context(), name, description, currency, icon)
 	if err != nil {
 		return err
 	}
@@ -524,10 +538,11 @@ func (s *Server) handleWebHouseholdSettingsUpdate(c echo.Context) error {
 	}
 
 	name := c.FormValue("name")
+	description := c.FormValue("description")
 	currency := c.FormValue("currency")
 	icon := c.FormValue("icon")
 
-	_, err = s.services.Household.Update(c.Request().Context(), id, name, currency, icon)
+	_, err = s.services.Household.Update(c.Request().Context(), id, name, description, currency, icon)
 	if err != nil {
 		return err
 	}

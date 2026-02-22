@@ -11,12 +11,32 @@
 {{else}}
 <div class="row">
     {{range .Households}}
-    <div class="col-md-4 mb-3">
-        <div class="card">
+    {{$summary := index $.Summaries .ID}}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title"><span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}</h5>
-                <p class="card-text text-muted">{{.Currency}}</p>
-                <a href="/households/{{.ID}}" class="btn btn-outline-primary btn-sm">Open</a>
+                {{if .Description}}<p class="card-text text-muted small mb-2">{{.Description}}</p>{{end}}
+                {{if $summary}}
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="small text-muted">One-time</div>
+                        <strong>{{formatMoney $summary.OneTimeTotal}}</strong>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted">Recurring</div>
+                        <strong>{{formatMoney $summary.RecurringTotal}}</strong>
+                    </div>
+                    <div class="col-4">
+                        <div class="small text-muted">Income</div>
+                        <strong class="text-success">{{formatMoney $summary.TotalIncome}}</strong>
+                    </div>
+                </div>
+                {{end}}
+                <a href="/households/{{.ID}}?month={{$.Month}}" class="btn btn-outline-primary btn-sm">Open</a>
+            </div>
+            <div class="card-footer text-muted small">
+                {{.Currency}} &middot; {{$.Month}}
             </div>
         </div>
     </div>

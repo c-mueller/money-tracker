@@ -1440,6 +1440,7 @@ type HouseholdMutation struct {
 	id                        *int
 	name                      *string
 	currency                  *string
+	description               *string
 	icon                      *string
 	created_at                *time.Time
 	updated_at                *time.Time
@@ -1628,6 +1629,55 @@ func (m *HouseholdMutation) OldCurrency(ctx context.Context) (v string, err erro
 // ResetCurrency resets all changes to the "currency" field.
 func (m *HouseholdMutation) ResetCurrency() {
 	m.currency = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *HouseholdMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *HouseholdMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Household entity.
+// If the Household object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HouseholdMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *HouseholdMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[household.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *HouseholdMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[household.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *HouseholdMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, household.FieldDescription)
 }
 
 // SetIcon sets the "icon" field.
@@ -1986,12 +2036,15 @@ func (m *HouseholdMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HouseholdMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, household.FieldName)
 	}
 	if m.currency != nil {
 		fields = append(fields, household.FieldCurrency)
+	}
+	if m.description != nil {
+		fields = append(fields, household.FieldDescription)
 	}
 	if m.icon != nil {
 		fields = append(fields, household.FieldIcon)
@@ -2014,6 +2067,8 @@ func (m *HouseholdMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case household.FieldCurrency:
 		return m.Currency()
+	case household.FieldDescription:
+		return m.Description()
 	case household.FieldIcon:
 		return m.Icon()
 	case household.FieldCreatedAt:
@@ -2033,6 +2088,8 @@ func (m *HouseholdMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldName(ctx)
 	case household.FieldCurrency:
 		return m.OldCurrency(ctx)
+	case household.FieldDescription:
+		return m.OldDescription(ctx)
 	case household.FieldIcon:
 		return m.OldIcon(ctx)
 	case household.FieldCreatedAt:
@@ -2061,6 +2118,13 @@ func (m *HouseholdMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCurrency(v)
+		return nil
+	case household.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case household.FieldIcon:
 		v, ok := value.(string)
@@ -2113,6 +2177,9 @@ func (m *HouseholdMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *HouseholdMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(household.FieldDescription) {
+		fields = append(fields, household.FieldDescription)
+	}
 	if m.FieldCleared(household.FieldIcon) {
 		fields = append(fields, household.FieldIcon)
 	}
@@ -2130,6 +2197,9 @@ func (m *HouseholdMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *HouseholdMutation) ClearField(name string) error {
 	switch name {
+	case household.FieldDescription:
+		m.ClearDescription()
+		return nil
 	case household.FieldIcon:
 		m.ClearIcon()
 		return nil
@@ -2146,6 +2216,9 @@ func (m *HouseholdMutation) ResetField(name string) error {
 		return nil
 	case household.FieldCurrency:
 		m.ResetCurrency()
+		return nil
+	case household.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case household.FieldIcon:
 		m.ResetIcon()

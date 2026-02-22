@@ -122,18 +122,24 @@ func init() {
 			return nil
 		}
 	}()
+	// householdDescDescription is the schema descriptor for description field.
+	householdDescDescription := householdFields[2].Descriptor()
+	// household.DefaultDescription holds the default value on creation for the description field.
+	household.DefaultDescription = householdDescDescription.Default.(string)
+	// household.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	household.DescriptionValidator = householdDescDescription.Validators[0].(func(string) error)
 	// householdDescIcon is the schema descriptor for icon field.
-	householdDescIcon := householdFields[2].Descriptor()
+	householdDescIcon := householdFields[3].Descriptor()
 	// household.DefaultIcon holds the default value on creation for the icon field.
 	household.DefaultIcon = householdDescIcon.Default.(string)
 	// household.IconValidator is a validator for the "icon" field. It is called by the builders before save.
 	household.IconValidator = householdDescIcon.Validators[0].(func(string) error)
 	// householdDescCreatedAt is the schema descriptor for created_at field.
-	householdDescCreatedAt := householdFields[3].Descriptor()
+	householdDescCreatedAt := householdFields[4].Descriptor()
 	// household.DefaultCreatedAt holds the default value on creation for the created_at field.
 	household.DefaultCreatedAt = householdDescCreatedAt.Default.(func() time.Time)
 	// householdDescUpdatedAt is the schema descriptor for updated_at field.
-	householdDescUpdatedAt := householdFields[4].Descriptor()
+	householdDescUpdatedAt := householdFields[5].Descriptor()
 	// household.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	household.DefaultUpdatedAt = householdDescUpdatedAt.Default.(func() time.Time)
 	// household.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

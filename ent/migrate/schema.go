@@ -67,6 +67,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "currency", Type: field.TypeString, Size: 3, Default: "EUR"},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500, Default: ""},
 		{Name: "icon", Type: field.TypeString, Nullable: true, Size: 50, Default: "home"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -80,7 +81,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "households_users_households",
-				Columns:    []*schema.Column{HouseholdsColumns[6]},
+				Columns:    []*schema.Column{HouseholdsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

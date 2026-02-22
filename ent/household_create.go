@@ -44,6 +44,20 @@ func (_c *HouseholdCreate) SetNillableCurrency(v *string) *HouseholdCreate {
 	return _c
 }
 
+// SetDescription sets the "description" field.
+func (_c *HouseholdCreate) SetDescription(v string) *HouseholdCreate {
+	_c.mutation.SetDescription(v)
+	return _c
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_c *HouseholdCreate) SetNillableDescription(v *string) *HouseholdCreate {
+	if v != nil {
+		_c.SetDescription(*v)
+	}
+	return _c
+}
+
 // SetIcon sets the "icon" field.
 func (_c *HouseholdCreate) SetIcon(v string) *HouseholdCreate {
 	_c.mutation.SetIcon(v)
@@ -181,6 +195,10 @@ func (_c *HouseholdCreate) defaults() {
 		v := household.DefaultCurrency
 		_c.mutation.SetCurrency(v)
 	}
+	if _, ok := _c.mutation.Description(); !ok {
+		v := household.DefaultDescription
+		_c.mutation.SetDescription(v)
+	}
 	if _, ok := _c.mutation.Icon(); !ok {
 		v := household.DefaultIcon
 		_c.mutation.SetIcon(v)
@@ -211,6 +229,11 @@ func (_c *HouseholdCreate) check() error {
 	if v, ok := _c.mutation.Currency(); ok {
 		if err := household.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Description(); ok {
+		if err := household.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Household.description": %w`, err)}
 		}
 	}
 	if v, ok := _c.mutation.Icon(); ok {
@@ -260,6 +283,10 @@ func (_c *HouseholdCreate) createSpec() (*Household, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
+	}
+	if value, ok := _c.mutation.Description(); ok {
+		_spec.SetField(household.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if value, ok := _c.mutation.Icon(); ok {
 		_spec.SetField(household.FieldIcon, field.TypeString, value)

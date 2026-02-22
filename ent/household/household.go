@@ -18,6 +18,8 @@ const (
 	FieldName = "name"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
 	// FieldIcon holds the string denoting the icon field in the database.
 	FieldIcon = "icon"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -69,6 +71,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldCurrency,
+	FieldDescription,
 	FieldIcon,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -102,6 +105,10 @@ var (
 	DefaultCurrency string
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(string) error
+	// DefaultDescription holds the default value on creation for the "description" field.
+	DefaultDescription string
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
 	// DefaultIcon holds the default value on creation for the "icon" field.
 	DefaultIcon string
 	// IconValidator is a validator for the "icon" field. It is called by the builders before save.
@@ -130,6 +137,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByCurrency orders the results by the currency field.
 func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
 // ByIcon orders the results by the icon field.

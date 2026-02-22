@@ -7,6 +7,10 @@
         <input type="text" class="form-control" id="name" name="name" value="{{.Household.Name}}" required maxlength="100">
     </div>
     <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="2" maxlength="500">{{.Household.Description}}</textarea>
+    </div>
+    <div class="mb-3">
         <label for="currency-select" class="form-label">Currency</label>
         <select class="form-select" id="currency-select" name="currency">
             {{$current := .Household.Currency}}

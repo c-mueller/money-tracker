@@ -19,12 +19,13 @@ func userToDomain(u *ent.User) *domain.User {
 
 func householdToDomain(h *ent.Household) *domain.Household {
 	hh := &domain.Household{
-		ID:        h.ID,
-		Name:      h.Name,
-		Currency:  h.Currency,
-		Icon:      h.Icon,
-		CreatedAt: h.CreatedAt,
-		UpdatedAt: h.UpdatedAt,
+		ID:          h.ID,
+		Name:        h.Name,
+		Description: h.Description,
+		Currency:    h.Currency,
+		Icon:        h.Icon,
+		CreatedAt:   h.CreatedAt,
+		UpdatedAt:   h.UpdatedAt,
 	}
 	if owner := h.Edges.Owner; owner != nil {
 		hh.OwnerID = owner.ID
