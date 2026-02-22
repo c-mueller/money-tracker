@@ -1,0 +1,34 @@
+{{define "content"}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Categories — {{.Household.Name}}</h1>
+    <a href="/households/{{.Household.ID}}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+<form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
+    <input type="text" class="form-control" name="name" placeholder="New category name" required maxlength="50">
+    <button type="submit" class="btn btn-primary">Add</button>
+</form>
+
+{{if not .Categories}}
+<p class="text-muted">No categories yet.</p>
+{{else}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Categories}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete category '{{.Name}}'?" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE">Delete</button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}
+{{end}}

@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      MONEY_TRACKER_DATABASE_DRIVER: postgres
+      MONEY_TRACKER_DATABASE_DSN: postgres://money:money@db:5432/money_tracker?sslmode=disable
+      MONEY_TRACKER_SERVER_HOST: "0.0.0.0"
+      MONEY_TRACKER_SERVER_PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: money
+      POSTGRES_PASSWORD: money
+      POSTGRES_DB: money_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U money -d money_tracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

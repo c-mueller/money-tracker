@@ -1,0 +1,26 @@
+{{define "content"}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Dashboard</h1>
+    <a href="/households/new" class="btn btn-primary">New Household</a>
+</div>
+
+{{if not .Households}}
+<div class="alert alert-info">
+    No households yet. Create your first household to get started.
+</div>
+{{else}}
+<div class="row">
+    {{range .Households}}
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{.Name}}</h5>
+                <p class="card-text text-muted">{{.Currency}}</p>
+                <a href="/households/{{.ID}}" class="btn btn-outline-primary btn-sm">Open</a>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,45 @@
+{{define "content"}}
+<h1>API Tokens</h1>
+
+<form method="POST" action="/tokens" class="mb-4 d-flex gap-2" style="max-width: 400px;">
+    <input type="text" class="form-control" name="name" placeholder="Token name" required maxlength="100">
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+{{if .NewToken}}
+<div class="alert alert-success">
+    <strong>New token created!</strong> Copy it now — it won't be shown again.
+    <div class="mt-2">
+        <code id="newToken">{{.NewToken}}</code>
+        <button class="btn btn-sm btn-outline-secondary ms-2" data-copy="#newToken">Copy</button>
+    </div>
+</div>
+{{end}}
+
+{{if not .Tokens}}
+<p class="text-muted">No API tokens yet.</p>
+{{else}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Last Used</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Tokens}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{formatDate .CreatedAt}}</td>
+            <td>{{if .LastUsed}}{{formatDate (derefTime .LastUsed)}}{{else}}Never{{end}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete token '{{.Name}}'?" data-action="/api/v1/tokens/{{.ID}}" data-method="DELETE">Delete</button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}
+{{end}}

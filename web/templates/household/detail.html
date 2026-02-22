@@ -1,0 +1,98 @@
+{{define "content"}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>{{.Household.Name}}</h1>
+        <span class="badge bg-secondary">{{.Household.Currency}}</span>
+    </div>
+    <div>
+        <a href="/households/{{.Household.ID}}/edit" class="btn btn-outline-secondary btn-sm">Edit</a>
+        <button class="btn btn-outline-danger btn-sm" data-confirm="Delete this household?" data-action="/api/v1/households/{{.Household.ID}}" data-method="DELETE" data-redirect="/">Delete</button>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Month</h6>
+                <div class="d-flex justify-content-center align-items-center gap-2">
+                    <a href="?month={{.PrevMonth}}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
+                    <strong>{{.Month}}</strong>
+                    <a href="?month={{.NextMonth}}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{if .Summary}}
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Recurring</h6>
+                <h4>{{formatMoney .Summary.RecurringTotal}}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">One-time</h6>
+                <h4>{{formatMoney .Summary.OneTimeTotal}}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Income</h6>
+                <h4 class="text-success">{{formatMoney .Summary.TotalIncome}}</h4>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link active" href="/households/{{.Household.ID}}?month={{.Month}}">Transactions</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/households/{{.Household.ID}}/categories">Categories</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/households/{{.Household.ID}}/recurring">Recurring</a>
+    </li>
+</ul>
+
+<div class="mb-3">
+    <a href="/households/{{.Household.ID}}/transactions/new?month={{.Month}}" class="btn btn-sm btn-primary">Add Transaction</a>
+</div>
+
+{{if not .Transactions}}
+<p class="text-muted">No transactions for this month.</p>
+{{else}}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th class="text-end">Amount</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Transactions}}
+        <tr>
+            <td>{{formatDate .Date}}</td>
+            <td>{{.Description}}</td>
+            <td>{{.CategoryID}}</td>
+            <td class="text-end">{{formatMoney .Amount}}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="Delete this transaction?" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE">X</button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}
+{{end}}
