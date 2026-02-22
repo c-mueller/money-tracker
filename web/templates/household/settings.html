@@ -1,96 +1,107 @@
 {{define "content"}}
 {{template "household_header" .}}
 
-<h2>{{t "household"}}</h2>
-
-<form method="POST" action="/households/{{.Household.ID}}/settings" class="mt-3" style="max-width: 500px;">
-    <div class="mb-3">
-        <label for="name" class="form-label">{{t "name"}}</label>
-        <input type="text" class="form-control" id="name" name="name" value="{{.Household.Name}}" required maxlength="100">
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="list-group">
+            <a href="/households/{{.Household.ID}}/settings?section=household" class="list-group-item list-group-item-action {{if eq .ActiveSection "household"}}active{{end}}">{{t "household"}}</a>
+            <a href="/households/{{.Household.ID}}/settings?section=categories" class="list-group-item list-group-item-action {{if eq .ActiveSection "categories"}}active{{end}}">{{t "categories"}}</a>
+            <a href="/households/{{.Household.ID}}/settings?section=danger" class="list-group-item list-group-item-action list-group-item-danger {{if eq .ActiveSection "danger"}}active{{end}}">{{t "danger_zone"}}</a>
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="description" class="form-label">{{t "description"}}</label>
-        <textarea class="form-control" id="description" name="description" rows="2" maxlength="500">{{.Household.Description}}</textarea>
-    </div>
-    <div class="mb-3">
-        <label for="currency-select" class="form-label">{{t "currency"}}</label>
-        <select class="form-select" id="currency-select" name="currency">
-            {{$current := .Household.Currency}}
-            {{$currencies := .Currencies}}
-            {{range .Currencies}}
-            <option value="{{.Code}}" {{if eq .Code $current}}selected{{end}}>{{.Code}} ({{.Symbol}}) — {{.Label}}</option>
-            {{end}}
-            <option value="CUSTOM" {{if not (isCurrencyCode $current $currencies)}}selected{{end}}>{{t "custom_currency"}}</option>
-        </select>
-        <input type="text" class="form-control mt-2 {{if isCurrencyCode $current $currencies}}d-none{{end}}" id="currency-custom" maxlength="3" pattern="[A-Z]{3}" placeholder="e.g. TRY" value="{{if not (isCurrencyCode $current $currencies)}}{{$current}}{{end}}">
-    </div>
+    <div class="col-md-9">
+        {{if eq .ActiveSection "household"}}
+        <h2>{{t "household"}}</h2>
+        <form method="POST" action="/households/{{.Household.ID}}/settings" class="mt-3" style="max-width: 500px;">
+            <div class="mb-3">
+                <label for="name" class="form-label">{{t "name"}}</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{.Household.Name}}" required maxlength="100">
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">{{t "description"}}</label>
+                <textarea class="form-control" id="description" name="description" rows="2" maxlength="500">{{.Household.Description}}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="currency-select" class="form-label">{{t "currency"}}</label>
+                <select class="form-select" id="currency-select" name="currency">
+                    {{$current := .Household.Currency}}
+                    {{$currencies := .Currencies}}
+                    {{range .Currencies}}
+                    <option value="{{.Code}}" {{if eq .Code $current}}selected{{end}}>{{.Code}} ({{.Symbol}}) — {{.Label}}</option>
+                    {{end}}
+                    <option value="CUSTOM" {{if not (isCurrencyCode $current $currencies)}}selected{{end}}>{{t "custom_currency"}}</option>
+                </select>
+                <input type="text" class="form-control mt-2 {{if isCurrencyCode $current $currencies}}d-none{{end}}" id="currency-custom" maxlength="3" pattern="[A-Z]{3}" placeholder="e.g. TRY" value="{{if not (isCurrencyCode $current $currencies)}}{{$current}}{{end}}">
+            </div>
 
-    {{template "icon_picker" dict "SelectedIcon" .Household.Icon "Icons" .Icons}}
+            {{template "icon_picker" dict "SelectedIcon" .Household.Icon "Icons" .Icons}}
 
-    <button type="submit" class="btn btn-primary">{{t "save"}}</button>
-</form>
+            <button type="submit" class="btn btn-primary">{{t "save"}}</button>
+        </form>
 
-<hr class="mt-4">
+        <script>
+        (function() {
+            var sel = document.getElementById('currency-select');
+            var custom = document.getElementById('currency-custom');
 
-<h2>{{t "categories"}}</h2>
+            function toggle() {
+                if (sel.value === 'CUSTOM') {
+                    custom.classList.remove('d-none');
+                    custom.setAttribute('name', 'currency');
+                    custom.required = true;
+                    sel.removeAttribute('name');
+                } else {
+                    custom.classList.add('d-none');
+                    custom.removeAttribute('name');
+                    custom.required = false;
+                    sel.setAttribute('name', 'currency');
+                }
+            }
 
-<form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
-    <input type="text" class="form-control" name="name" placeholder="{{t "new_category_placeholder"}}" required maxlength="50">
-    <button type="submit" class="btn btn-primary">{{t "add"}}</button>
-</form>
+            sel.addEventListener('change', toggle);
+            toggle();
+        })();
+        </script>
 
-{{if not .Categories}}
-<p class="text-muted">{{t "no_categories_empty"}}</p>
-{{else}}
-<table class="table">
-    <thead>
-        <tr>
-            <th>{{t "name"}}</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {{range .Categories}}
-        <tr>
-            <td>
-                <span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}
-            </td>
-            <td class="text-end text-nowrap">
-                <a href="/households/{{$.Household.ID}}/categories/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
-                <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_category_confirm" .Name}}" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
-            </td>
-        </tr>
+        {{else if eq .ActiveSection "categories"}}
+        <h2>{{t "categories"}}</h2>
+
+        <form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
+            <input type="text" class="form-control" name="name" placeholder="{{t "new_category_placeholder"}}" required maxlength="50">
+            <button type="submit" class="btn btn-primary">{{t "add"}}</button>
+        </form>
+
+        {{if not .Categories}}
+        <p class="text-muted">{{t "no_categories_empty"}}</p>
+        {{else}}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>{{t "name"}}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Categories}}
+                <tr>
+                    <td>
+                        <span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a href="/households/{{$.Household.ID}}/categories/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                        <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_category_confirm" .Name}}" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
         {{end}}
-    </tbody>
-</table>
-{{end}}
 
-<hr class="mt-4">
-
-<h3 class="text-danger">{{t "danger_zone"}}</h3>
-<button class="btn btn-outline-danger btn-sm" data-confirm="{{t "delete_household_confirm"}}" data-action="/api/v1/households/{{.Household.ID}}" data-method="DELETE" data-redirect="/">{{t "delete_household"}}</button>
-
-<script>
-(function() {
-    var sel = document.getElementById('currency-select');
-    var custom = document.getElementById('currency-custom');
-
-    function toggle() {
-        if (sel.value === 'CUSTOM') {
-            custom.classList.remove('d-none');
-            custom.setAttribute('name', 'currency');
-            custom.required = true;
-            sel.removeAttribute('name');
-        } else {
-            custom.classList.add('d-none');
-            custom.removeAttribute('name');
-            custom.required = false;
-            sel.setAttribute('name', 'currency');
-        }
-    }
-
-    sel.addEventListener('change', toggle);
-    toggle();
-})();
-</script>
+        {{else if eq .ActiveSection "danger"}}
+        <h2 class="text-danger">{{t "danger_zone"}}</h2>
+        <p class="text-muted">{{t "delete_household_confirm"}}</p>
+        <button class="btn btn-outline-danger" data-confirm="{{t "delete_household_confirm"}}" data-action="/api/v1/households/{{.Household.ID}}" data-method="DELETE" data-redirect="/">{{t "delete_household"}}</button>
+        {{end}}
+    </div>
+</div>
 {{end}}
