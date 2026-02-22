@@ -134,6 +134,13 @@ func TestCategoryUpdate(t *testing.T) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
 	})
+
+	t.Run("empty name", func(t *testing.T) {
+		_, err := svc.Category.Update(ctx, cat.ID, "", "icon")
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
 }
 
 func TestCategoryDelete(t *testing.T) {

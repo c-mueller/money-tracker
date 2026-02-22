@@ -148,6 +148,54 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
 	})
+
+	t.Run("add end date", func(t *testing.T) {
+		endDate := time.Date(2027, 12, 31, 0, 0, 0, 0, time.UTC)
+		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if updated.EndDate == nil {
+			t.Error("expected EndDate to be set")
+		}
+	})
+
+	t.Run("end date before start date", func(t *testing.T) {
+		endDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("empty name", func(t *testing.T) {
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("zero amount", func(t *testing.T) {
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", domain.ZeroMoney(), domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("invalid frequency", func(t *testing.T) {
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.Frequency("invalid"), true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("long description", func(t *testing.T) {
+		longDesc := string(make([]byte, 501))
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", longDesc, amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
 }
 
 func TestRecurringExpenseDelete(t *testing.T) {

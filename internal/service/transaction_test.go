@@ -46,6 +46,15 @@ func TestTransactionCreate(t *testing.T) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
 	})
+
+	t.Run("long description", func(t *testing.T) {
+		amount, _ := domain.NewMoney("10")
+		longDesc := string(make([]byte, 501))
+		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, longDesc, time.Now())
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
 }
 
 func TestTransactionListByMonth(t *testing.T) {
@@ -119,6 +128,22 @@ func TestTransactionUpdate(t *testing.T) {
 		_, err := svc.Transaction.Update(ctx, hh.ID, 99999, cat.ID, newAmount, "test", time.Now())
 		if !errors.Is(err, domain.ErrNotFound) {
 			t.Errorf("expected ErrNotFound, got %v", err)
+		}
+	})
+
+	t.Run("zero amount", func(t *testing.T) {
+		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, domain.ZeroMoney(), "test", time.Now())
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("long description", func(t *testing.T) {
+		amount, _ := domain.NewMoney("10")
+		longDesc := string(make([]byte, 501))
+		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, amount, longDesc, time.Now())
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
 		}
 	})
 }

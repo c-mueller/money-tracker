@@ -367,6 +367,262 @@ func TestTokenManagement(t *testing.T) {
 	}
 }
 
+func TestTokenDelete(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Create a new token
+	resp := doRequest(t, env, "POST", "/api/v1/tokens", `{"name":"Deletable Token"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var tokenResp map[string]interface{}
+	decodeJSON(t, resp, &tokenResp)
+	tokenID := itoa(int(tokenResp["id"].(float64)))
+
+	// List tokens — count before delete
+	resp = doRequest(t, env, "GET", "/api/v1/tokens", "")
+	assertStatus(t, resp, http.StatusOK)
+	var tokens []map[string]interface{}
+	decodeJSON(t, resp, &tokens)
+	countBefore := len(tokens)
+
+	// Delete the token
+	resp = doRequest(t, env, "DELETE", "/api/v1/tokens/"+tokenID, "")
+	assertStatus(t, resp, http.StatusNoContent)
+
+	// List tokens — count after delete
+	resp = doRequest(t, env, "GET", "/api/v1/tokens", "")
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &tokens)
+	if len(tokens) != countBefore-1 {
+		t.Errorf("expected %d tokens after delete, got %d", countBefore-1, len(tokens))
+	}
+}
+
+func TestTokenDeleteInvalidID(t *testing.T) {
+	env := setupTestEnv(t)
+
+	resp := doRequest(t, env, "DELETE", "/api/v1/tokens/abc", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+}
+
+func TestHandlerErrorPaths(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup household + category
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"Error Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Cat"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// --- Invalid ID parameter tests ---
+	resp = doRequest(t, env, "PUT", "/api/v1/households/abc", `{"name":"X","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/abc", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/categories/abc", `{"name":"X"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/"+hhID+"/categories/abc", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/abc",
+		`{"category_id":1,"amount":"10","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/"+hhID+"/transactions/abc", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/abc",
+		`{"category_id":1,"name":"X","amount":"10","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/"+hhID+"/recurring-expenses/abc", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Not found tests ---
+	resp = doRequest(t, env, "PUT", "/api/v1/households/99999", `{"name":"X","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusNotFound)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/99999", "")
+	assertStatus(t, resp, http.StatusNotFound)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/categories/99999", `{"name":"X"}`)
+	assertStatus(t, resp, http.StatusNotFound)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/99999",
+		`{"category_id":`+catID+`,"amount":"10","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusNotFound)
+
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/99999",
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusNotFound)
+
+	// --- Transaction validation errors ---
+	// Invalid amount
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"notanumber","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Invalid date
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"10","description":"x","date":"not-a-date"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Zero amount
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"0","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusUnprocessableEntity)
+
+	// --- Recurring expense validation errors ---
+	// Invalid amount
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"X","amount":"bad","frequency":"monthly","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Invalid frequency
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"bogus","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Invalid start date
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"monthly","start_date":"nope"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Invalid end date
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"monthly","start_date":"2026-01-01","end_date":"nope"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Recurring expense update validation ---
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"RE","amount":"-50","frequency":"monthly","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var re map[string]interface{}
+	decodeJSON(t, resp, &re)
+	reID := itoa(int(re["id"].(float64)))
+
+	// Update with invalid amount
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"X","amount":"bad","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Update with invalid frequency
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"bogus","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Update with invalid start date
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"monthly","active":true,"start_date":"nope"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Update with invalid end date
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"X","amount":"10","frequency":"monthly","active":true,"start_date":"2026-01-01","end_date":"nope"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Transaction update validation ---
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"-25","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var tx map[string]interface{}
+	decodeJSON(t, resp, &tx)
+	txID := itoa(int(tx["id"].(float64)))
+
+	// Update with invalid amount
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/"+txID,
+		`{"category_id":`+catID+`,"amount":"bad","description":"x","date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// Update with invalid date
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/"+txID,
+		`{"category_id":`+catID+`,"amount":"10","description":"x","date":"bad-date"}`)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Summary with invalid month ---
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/summary?month=not-a-month", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Summary with non-existent household ---
+	resp = doRequest(t, env, "GET", "/api/v1/households/99999/summary?month=2026-01", "")
+	assertStatus(t, resp, http.StatusNotFound)
+
+	// --- Transactions list with invalid month ---
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/transactions?month=bad", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Category with household ID parsing ---
+	resp = doRequest(t, env, "GET", "/api/v1/households/abc/categories", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/abc/categories/1", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	// --- Recurring with household ID parsing ---
+	resp = doRequest(t, env, "GET", "/api/v1/households/abc/recurring-expenses", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = doRequest(t, env, "DELETE", "/api/v1/households/abc/recurring-expenses/1", "")
+	assertStatus(t, resp, http.StatusBadRequest)
+}
+
+func TestRecurringExpenseWithEndDate(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"EndDate Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Bills"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create with end date
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"Subscription","amount":"-9.99","frequency":"monthly","start_date":"2026-01-01","end_date":"2026-12-31"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var re map[string]interface{}
+	decodeJSON(t, resp, &re)
+	reID := itoa(int(re["id"].(float64)))
+
+	if re["end_date"] != "2026-12-31" {
+		t.Errorf("expected end_date '2026-12-31', got %v", re["end_date"])
+	}
+
+	// Update with end date
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"Subscription","amount":"-9.99","frequency":"monthly","active":true,"start_date":"2026-01-01","end_date":"2027-06-30"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &re)
+	if re["end_date"] != "2027-06-30" {
+		t.Errorf("expected end_date '2027-06-30', got %v", re["end_date"])
+	}
+
+	// Update removing end date (nil)
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"Subscription","amount":"-9.99","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusOK)
+	var reNoEnd map[string]interface{}
+	decodeJSON(t, resp, &reNoEnd)
+	if reNoEnd["end_date"] != nil {
+		t.Errorf("expected end_date nil, got %v", reNoEnd["end_date"])
+	}
+}
+
 func TestUnauthorized(t *testing.T) {
 	env := setupTestEnv(t)
 
