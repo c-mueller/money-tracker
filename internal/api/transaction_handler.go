@@ -61,6 +61,40 @@ func (s *Server) handleCreateTransaction(c echo.Context) error {
 	return c.JSON(http.StatusCreated, toTransactionResponse(tx))
 }
 
+func (s *Server) handleUpdateTransaction(c echo.Context) error {
+	householdID, err := parseID(c, "id")
+	if err != nil {
+		return respondError(c, err)
+	}
+
+	txID, err := parseID(c, "transactionId")
+	if err != nil {
+		return respondError(c, err)
+	}
+
+	var req UpdateTransactionRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+	}
+
+	amount, err := domain.NewMoney(req.Amount)
+	if err != nil {
+		return respondError(c, fmt.Errorf("%w: invalid amount", domain.ErrValidation))
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return respondError(c, fmt.Errorf("%w: invalid date format, expected YYYY-MM-DD", domain.ErrValidation))
+	}
+
+	tx, err := s.services.Transaction.Update(c.Request().Context(), householdID, txID, req.CategoryID, amount, req.Description, date)
+	if err != nil {
+		return respondError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, toTransactionResponse(tx))
+}
+
 func (s *Server) handleDeleteTransaction(c echo.Context) error {
 	householdID, err := parseID(c, "id")
 	if err != nil {

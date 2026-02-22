@@ -421,6 +421,146 @@ func decodeJSON(t *testing.T, resp *http.Response, v interface{}) {
 	}
 }
 
+func TestTransactionUpdate(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"TxUpdate Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Bills"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create transaction
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"-25.50","description":"Electric","date":"2026-02-10"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var tx map[string]interface{}
+	decodeJSON(t, resp, &tx)
+	txID := itoa(int(tx["id"].(float64)))
+
+	// Update transaction
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/"+txID,
+		`{"category_id":`+catID+`,"amount":"-30.00","description":"Electric Updated","date":"2026-02-15"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &tx)
+	if tx["amount"] != "-30" {
+		t.Errorf("expected amount '-30', got %v", tx["amount"])
+	}
+	if tx["description"] != "Electric Updated" {
+		t.Errorf("expected description 'Electric Updated', got %v", tx["description"])
+	}
+	if tx["date"] != "2026-02-15" {
+		t.Errorf("expected date '2026-02-15', got %v", tx["date"])
+	}
+}
+
+func TestHouseholdFullFields(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Create with description and icon
+	resp := doRequest(t, env, "POST", "/api/v1/households",
+		`{"name":"Full Fields","description":"Test description","currency":"EUR","icon":"wallet"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	if hh["description"] != "Test description" {
+		t.Errorf("expected description 'Test description', got %v", hh["description"])
+	}
+	if hh["icon"] != "wallet" {
+		t.Errorf("expected icon 'wallet', got %v", hh["icon"])
+	}
+
+	// Update with new description and icon
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID,
+		`{"name":"Full Fields Updated","description":"Updated desc","currency":"USD","icon":"piggybank"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &hh)
+	if hh["description"] != "Updated desc" {
+		t.Errorf("expected description 'Updated desc', got %v", hh["description"])
+	}
+	if hh["icon"] != "piggybank" {
+		t.Errorf("expected icon 'piggybank', got %v", hh["icon"])
+	}
+}
+
+func TestCategoryWithIcon(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup household
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"Icon Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	// Create category with icon
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Food","icon":"restaurant"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+	if cat["icon"] != "restaurant" {
+		t.Errorf("expected icon 'restaurant', got %v", cat["icon"])
+	}
+
+	// Update category with new icon
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/categories/"+catID, `{"name":"Dining","icon":"dining"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &cat)
+	if cat["name"] != "Dining" {
+		t.Errorf("expected name 'Dining', got %v", cat["name"])
+	}
+	if cat["icon"] != "dining" {
+		t.Errorf("expected icon 'dining', got %v", cat["icon"])
+	}
+}
+
+func TestRecurringExpenseDescription(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"RE Desc Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Bills"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create with description
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"Internet","description":"Fiber 100Mbit","amount":"-39.99","frequency":"monthly","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var re map[string]interface{}
+	decodeJSON(t, resp, &re)
+	reID := itoa(int(re["id"].(float64)))
+	if re["description"] != "Fiber 100Mbit" {
+		t.Errorf("expected description 'Fiber 100Mbit', got %v", re["description"])
+	}
+
+	// Update with new description
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"Internet","description":"Fiber 1Gbit","amount":"-49.99","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &re)
+	if re["description"] != "Fiber 1Gbit" {
+		t.Errorf("expected description 'Fiber 1Gbit', got %v", re["description"])
+	}
+}
+
 func itoa(i int) string {
 	return fmt.Sprintf("%d", i)
 }

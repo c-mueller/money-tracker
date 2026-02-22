@@ -36,7 +36,7 @@ func (s *Server) handleCreateCategory(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
 	}
 
-	cat, err := s.services.Category.Create(c.Request().Context(), householdID, req.Name, "")
+	cat, err := s.services.Category.Create(c.Request().Context(), householdID, req.Name, req.Icon)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -55,12 +55,12 @@ func (s *Server) handleUpdateCategory(c echo.Context) error {
 		return respondError(c, err)
 	}
 
-	var req CreateCategoryRequest
+	var req UpdateCategoryRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
 	}
 
-	cat, err := s.services.Category.Update(c.Request().Context(), categoryID, req.Name, "")
+	cat, err := s.services.Category.Update(c.Request().Context(), categoryID, req.Name, req.Icon)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -91,6 +91,7 @@ func toCategoryResponse(cat *domain.Category) CategoryResponse {
 		ID:          cat.ID,
 		HouseholdID: cat.HouseholdID,
 		Name:        cat.Name,
+		Icon:        cat.Icon,
 		CreatedAt:   cat.CreatedAt,
 		UpdatedAt:   cat.UpdatedAt,
 	}

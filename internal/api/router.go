@@ -1,8 +1,13 @@
 package api
 
 import (
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/sessions"
+	"github.com/labstack/echo/v4"
 	"icekalt.dev/money-tracker/internal/auth"
+	"icekalt.dev/money-tracker/internal/devmode"
+	gql "icekalt.dev/money-tracker/internal/graphql"
 	mw "icekalt.dev/money-tracker/internal/middleware"
 )
 
@@ -51,6 +56,7 @@ func (s *Server) setupRoutes() {
 	// Transactions
 	apiGroup.GET("/households/:id/transactions", s.handleListTransactions)
 	apiGroup.POST("/households/:id/transactions", s.handleCreateTransaction)
+	apiGroup.PUT("/households/:id/transactions/:transactionId", s.handleUpdateTransaction)
 	apiGroup.DELETE("/households/:id/transactions/:transactionId", s.handleDeleteTransaction)
 
 	// Recurring Expenses
@@ -66,6 +72,27 @@ func (s *Server) setupRoutes() {
 	apiGroup.GET("/tokens", s.handleListTokens)
 	apiGroup.POST("/tokens", s.handleCreateToken)
 	apiGroup.DELETE("/tokens/:tokenId", s.handleDeleteToken)
+
+	// --- GraphQL ---
+	gqlHandler := handler.NewDefaultServer(gql.NewExecutableSchema(gql.Config{
+		Resolvers: &gql.Resolver{
+			HouseholdSvc:        s.services.Household,
+			CategorySvc:         s.services.Category,
+			TransactionSvc:      s.services.Transaction,
+			RecurringExpenseSvc: s.services.RecurringExpense,
+			SummarySvc:          s.services.Summary,
+		},
+	}))
+
+	tokenAuthMW := mw.TokenOnlyAuth(s.services.APIToken, s.devUserID)
+	graphqlGroup := s.echo.Group("/graphql")
+	graphqlGroup.Use(tokenAuthMW)
+	graphqlGroup.POST("", echo.WrapHandler(gqlHandler))
+
+	// Playground only in dev mode
+	if devmode.Enabled {
+		s.echo.GET("/playground", echo.WrapHandler(playground.Handler("GraphQL", "/graphql")))
+	}
 
 	// --- Web Routes ---
 	webGroup := s.echo.Group("")

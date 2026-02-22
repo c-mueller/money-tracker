@@ -4,34 +4,59 @@ import "time"
 
 // Household DTOs
 type CreateHouseholdRequest struct {
-	Name     string `json:"name"`
-	Currency string `json:"currency"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Currency    string `json:"currency"`
+	Icon        string `json:"icon"`
+}
+
+type UpdateHouseholdRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Currency    string `json:"currency"`
+	Icon        string `json:"icon"`
 }
 
 type HouseholdResponse struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	Currency  string    `json:"currency"`
-	OwnerID   int       `json:"owner_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Currency    string    `json:"currency"`
+	Icon        string    `json:"icon"`
+	OwnerID     int       `json:"owner_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // Category DTOs
 type CreateCategoryRequest struct {
 	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type UpdateCategoryRequest struct {
+	Name string `json:"name"`
+	Icon string `json:"icon"`
 }
 
 type CategoryResponse struct {
 	ID          int       `json:"id"`
 	HouseholdID int      `json:"household_id"`
 	Name        string    `json:"name"`
+	Icon        string    `json:"icon"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // Transaction DTOs
 type CreateTransactionRequest struct {
+	CategoryID  int    `json:"category_id"`
+	Amount      string `json:"amount"`
+	Description string `json:"description"`
+	Date        string `json:"date"`
+}
+
+type UpdateTransactionRequest struct {
 	CategoryID  int    `json:"category_id"`
 	Amount      string `json:"amount"`
 	Description string `json:"description"`
@@ -51,22 +76,24 @@ type TransactionResponse struct {
 
 // RecurringExpense DTOs
 type CreateRecurringExpenseRequest struct {
-	CategoryID int     `json:"category_id"`
-	Name       string  `json:"name"`
-	Amount     string  `json:"amount"`
-	Frequency  string  `json:"frequency"`
-	StartDate  string  `json:"start_date"`
-	EndDate    *string `json:"end_date,omitempty"`
+	CategoryID  int     `json:"category_id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Amount      string  `json:"amount"`
+	Frequency   string  `json:"frequency"`
+	StartDate   string  `json:"start_date"`
+	EndDate     *string `json:"end_date,omitempty"`
 }
 
 type UpdateRecurringExpenseRequest struct {
-	CategoryID int     `json:"category_id"`
-	Name       string  `json:"name"`
-	Amount     string  `json:"amount"`
-	Frequency  string  `json:"frequency"`
-	Active     bool    `json:"active"`
-	StartDate  string  `json:"start_date"`
-	EndDate    *string `json:"end_date,omitempty"`
+	CategoryID  int     `json:"category_id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Amount      string  `json:"amount"`
+	Frequency   string  `json:"frequency"`
+	Active      bool    `json:"active"`
+	StartDate   string  `json:"start_date"`
+	EndDate     *string `json:"end_date,omitempty"`
 }
 
 type RecurringExpenseResponse struct {
@@ -74,6 +101,7 @@ type RecurringExpenseResponse struct {
 	HouseholdID int      `json:"household_id"`
 	CategoryID  int       `json:"category_id"`
 	Name        string    `json:"name"`
+	Description string    `json:"description"`
 	Amount      string    `json:"amount"`
 	Frequency   string    `json:"frequency"`
 	Active      bool      `json:"active"`

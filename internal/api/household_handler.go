@@ -30,7 +30,7 @@ func (s *Server) handleCreateHousehold(c echo.Context) error {
 		req.Currency = "EUR"
 	}
 
-	h, err := s.services.Household.Create(c.Request().Context(), req.Name, "", req.Currency, "")
+	h, err := s.services.Household.Create(c.Request().Context(), req.Name, req.Description, req.Currency, req.Icon)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -44,12 +44,12 @@ func (s *Server) handleUpdateHousehold(c echo.Context) error {
 		return respondError(c, err)
 	}
 
-	var req CreateHouseholdRequest
+	var req UpdateHouseholdRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
 	}
 
-	h, err := s.services.Household.Update(c.Request().Context(), id, req.Name, "", req.Currency, "")
+	h, err := s.services.Household.Update(c.Request().Context(), id, req.Name, req.Description, req.Currency, req.Icon)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -72,11 +72,13 @@ func (s *Server) handleDeleteHousehold(c echo.Context) error {
 
 func toHouseholdResponse(h *domain.Household) HouseholdResponse {
 	return HouseholdResponse{
-		ID:        h.ID,
-		Name:      h.Name,
-		Currency:  h.Currency,
-		OwnerID:   h.OwnerID,
-		CreatedAt: h.CreatedAt,
-		UpdatedAt: h.UpdatedAt,
+		ID:          h.ID,
+		Name:        h.Name,
+		Description: h.Description,
+		Currency:    h.Currency,
+		Icon:        h.Icon,
+		OwnerID:     h.OwnerID,
+		CreatedAt:   h.CreatedAt,
+		UpdatedAt:   h.UpdatedAt,
 	}
 }

@@ -1,0 +1,152 @@
+type Household {
+  id: Int!
+  name: String!
+  description: String!
+  currency: String!
+  icon: String!
+  ownerID: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Category {
+  id: Int!
+  householdID: Int!
+  name: String!
+  icon: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Transaction {
+  id: Int!
+  householdID: Int!
+  categoryID: Int!
+  amount: String!
+  description: String!
+  date: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type RecurringExpense {
+  id: Int!
+  householdID: Int!
+  categoryID: Int!
+  name: String!
+  description: String!
+  amount: String!
+  frequency: String!
+  active: Boolean!
+  startDate: String!
+  endDate: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type CategorySummary {
+  categoryID: Int!
+  categoryName: String!
+  recurring: String!
+  oneTime: String!
+  total: String!
+}
+
+type MonthlySummary {
+  month: String!
+  householdID: Int!
+  totalIncome: String!
+  totalExpenses: String!
+  recurringTotal: String!
+  oneTimeTotal: String!
+  categoryBreakdown: [CategorySummary!]!
+}
+
+# Inputs
+
+input CreateHouseholdInput {
+  name: String!
+  description: String
+  currency: String!
+  icon: String
+}
+
+input UpdateHouseholdInput {
+  id: Int!
+  name: String!
+  description: String
+  currency: String!
+  icon: String
+}
+
+input CreateCategoryInput {
+  householdID: Int!
+  name: String!
+  icon: String
+}
+
+input UpdateCategoryInput {
+  id: Int!
+  name: String!
+  icon: String
+}
+
+input CreateTransactionInput {
+  householdID: Int!
+  categoryID: Int!
+  amount: String!
+  description: String
+  date: String!
+}
+
+input UpdateTransactionInput {
+  id: Int!
+  householdID: Int!
+  categoryID: Int!
+  amount: String!
+  description: String
+  date: String!
+}
+
+input CreateRecurringExpenseInput {
+  householdID: Int!
+  categoryID: Int!
+  name: String!
+  description: String
+  amount: String!
+  frequency: String!
+  startDate: String!
+  endDate: String
+}
+
+input UpdateRecurringExpenseInput {
+  id: Int!
+  categoryID: Int!
+  name: String!
+  description: String
+  amount: String!
+  frequency: String!
+  active: Boolean!
+  startDate: String!
+  endDate: String
+}
+
+type Query {
+  households: [Household!]!
+  household(id: Int!): Household!
+  categories(householdID: Int!): [Category!]!
+  transactions(householdID: Int!, month: String!): [Transaction!]!
+  recurringExpenses(householdID: Int!): [RecurringExpense!]!
+  monthlySummary(householdID: Int!, month: String!): MonthlySummary!
+}
+
+type Mutation {
+  createHousehold(input: CreateHouseholdInput!): Household!
+  updateHousehold(input: UpdateHouseholdInput!): Household!
+  createCategory(input: CreateCategoryInput!): Category!
+  updateCategory(input: UpdateCategoryInput!): Category!
+  createTransaction(input: CreateTransactionInput!): Transaction!
+  updateTransaction(input: UpdateTransactionInput!): Transaction!
+  createRecurringExpense(input: CreateRecurringExpenseInput!): RecurringExpense!
+  updateRecurringExpense(input: UpdateRecurringExpenseInput!): RecurringExpense!
+}

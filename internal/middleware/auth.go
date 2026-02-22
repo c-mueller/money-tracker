@@ -11,6 +11,38 @@ import (
 	"icekalt.dev/money-tracker/internal/service"
 )
 
+// TokenOnlyAuth creates middleware that only accepts Bearer token authentication (no session cookies).
+// Used for the GraphQL endpoint.
+func TokenOnlyAuth(tokenSvc *service.APITokenService, devUserID int) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Dev mode: auto-auth
+			if devmode.Enabled {
+				c.Set(UserIDContextKey, devUserID)
+				ctx := service.WithUserID(c.Request().Context(), devUserID)
+				c.SetRequest(c.Request().WithContext(ctx))
+				return next(c)
+			}
+
+			// Only accept Bearer token
+			authHeader := c.Request().Header.Get("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				token := strings.TrimPrefix(authHeader, "Bearer ")
+				apiToken, err := tokenSvc.ValidateToken(c.Request().Context(), token)
+				if err != nil {
+					return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				}
+				c.Set(UserIDContextKey, apiToken.UserID)
+				ctx := service.WithUserID(c.Request().Context(), apiToken.UserID)
+				c.SetRequest(c.Request().WithContext(ctx))
+				return next(c)
+			}
+
+			return echo.NewHTTPError(http.StatusUnauthorized, "token authentication required")
+		}
+	}
+}
+
 func Auth(store sessions.Store, tokenSvc *service.APITokenService, devUserID int) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
