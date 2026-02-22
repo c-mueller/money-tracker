@@ -32,6 +32,7 @@ type TransactionRepo interface {
 	Create(ctx context.Context, tx *Transaction) (*Transaction, error)
 	GetByID(ctx context.Context, id int) (*Transaction, error)
 	ListByHouseholdAndMonth(ctx context.Context, householdID int, year int, month time.Month) ([]*Transaction, error)
+	Update(ctx context.Context, tx *Transaction) (*Transaction, error)
 	Delete(ctx context.Context, id int) error
 }
 

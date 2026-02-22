@@ -13,6 +13,7 @@ type RecurringExpense struct {
 func (RecurringExpense) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty().MaxLen(100),
+		field.String("description").Optional().MaxLen(500).Default(""),
 		field.String("amount").NotEmpty(),
 		field.String("frequency").NotEmpty(),
 		field.Bool("active").Default(true),

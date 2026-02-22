@@ -66,9 +66,10 @@ func transactionToDomain(t *ent.Transaction) *domain.Transaction {
 func recurringExpenseToDomain(r *ent.RecurringExpense) *domain.RecurringExpense {
 	amount, _ := decimal.NewFromString(r.Amount)
 	re := &domain.RecurringExpense{
-		ID:        r.ID,
-		Name:      r.Name,
-		Amount:    amount,
+		ID:          r.ID,
+		Name:        r.Name,
+		Description: r.Description,
+		Amount:      amount,
 		Frequency: domain.Frequency(r.Frequency),
 		Active:    r.Active,
 		StartDate: r.StartDate,

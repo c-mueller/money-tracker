@@ -5,7 +5,6 @@
         <span class="badge bg-secondary">{{.Household.Currency}}</span>
     </div>
     <div>
-        <a href="/households/{{.Household.ID}}/edit" class="btn btn-outline-secondary btn-sm">Edit</a>
         <button class="btn btn-outline-danger btn-sm" data-confirm="Delete this household?" data-action="/api/v1/households/{{.Household.ID}}" data-method="DELETE" data-redirect="/">Delete</button>
     </div>
 </div>

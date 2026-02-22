@@ -2,13 +2,13 @@
 {{template "household_header" .}}
 
 <div class="mb-3">
-    <a href="/households/{{.Household.ID}}/recurring/new" class="btn btn-primary btn-sm">Add Recurring Expense</a>
+    <a href="/households/{{.Household.ID}}/recurring/new" class="btn btn-primary btn-sm">Add Recurring Transaction</a>
 </div>
 
 {{if not .RecurringExpenses}}
-<p class="text-muted">No recurring expenses yet.</p>
+<p class="text-muted">No recurring transactions yet.</p>
 {{else}}
-<table class="table">
+<table class="table table-hover">
     <thead>
         <tr>
             <th>Name</th>
@@ -21,7 +21,7 @@
     <tbody>
         {{range .RecurringExpenses}}
         <tr>
-            <td>{{.Name}}</td>
+            <td><a href="/households/{{$.Household.ID}}/recurring/{{.ID}}/edit" class="text-decoration-none text-body">{{.Name}}</a></td>
             <td>{{formatMoney .Amount}}</td>
             <td>{{.Frequency}}</td>
             <td>{{if .Active}}<span class="badge bg-success">Active</span>{{else}}<span class="badge bg-secondary">Inactive</span>{{end}}</td>

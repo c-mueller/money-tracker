@@ -88,6 +88,7 @@ var (
 	RecurringExpensesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500, Default: ""},
 		{Name: "amount", Type: field.TypeString},
 		{Name: "frequency", Type: field.TypeString},
 		{Name: "active", Type: field.TypeBool, Default: true},
@@ -106,13 +107,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "recurring_expenses_categories_recurring_expenses",
-				Columns:    []*schema.Column{RecurringExpensesColumns[9]},
+				Columns:    []*schema.Column{RecurringExpensesColumns[10]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "recurring_expenses_households_recurring_expenses",
-				Columns:    []*schema.Column{RecurringExpensesColumns[10]},
+				Columns:    []*schema.Column{RecurringExpensesColumns[11]},
 				RefColumns: []*schema.Column{HouseholdsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

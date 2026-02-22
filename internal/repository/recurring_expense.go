@@ -21,6 +21,7 @@ func NewRecurringExpenseRepository(client *ent.Client) *RecurringExpenseReposito
 func (r *RecurringExpenseRepository) Create(ctx context.Context, expense *domain.RecurringExpense) (*domain.RecurringExpense, error) {
 	q := r.client.RecurringExpense.Create().
 		SetName(expense.Name).
+		SetDescription(expense.Description).
 		SetAmount(expense.Amount.String()).
 		SetFrequency(string(expense.Frequency)).
 		SetActive(expense.Active).
@@ -96,10 +97,12 @@ func (r *RecurringExpenseRepository) ListActiveByHousehold(ctx context.Context, 
 func (r *RecurringExpenseRepository) Update(ctx context.Context, expense *domain.RecurringExpense) (*domain.RecurringExpense, error) {
 	q := r.client.RecurringExpense.UpdateOneID(expense.ID).
 		SetName(expense.Name).
+		SetDescription(expense.Description).
 		SetAmount(expense.Amount.String()).
 		SetFrequency(string(expense.Frequency)).
 		SetActive(expense.Active).
-		SetStartDate(expense.StartDate)
+		SetStartDate(expense.StartDate).
+		SetCategoryID(expense.CategoryID)
 
 	if expense.EndDate != nil {
 		q.SetEndDate(*expense.EndDate)

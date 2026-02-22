@@ -2169,6 +2169,7 @@ type RecurringExpenseMutation struct {
 	typ              string
 	id               *int
 	name             *string
+	description      *string
 	amount           *string
 	frequency        *string
 	active           *bool
@@ -2318,6 +2319,55 @@ func (m *RecurringExpenseMutation) OldName(ctx context.Context) (v string, err e
 // ResetName resets all changes to the "name" field.
 func (m *RecurringExpenseMutation) ResetName() {
 	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *RecurringExpenseMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RecurringExpenseMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the RecurringExpense entity.
+// If the RecurringExpense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringExpenseMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *RecurringExpenseMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[recurringexpense.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *RecurringExpenseMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[recurringexpense.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RecurringExpenseMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, recurringexpense.FieldDescription)
 }
 
 // SetAmount sets the "amount" field.
@@ -2697,9 +2747,12 @@ func (m *RecurringExpenseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecurringExpenseMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, recurringexpense.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, recurringexpense.FieldDescription)
 	}
 	if m.amount != nil {
 		fields = append(fields, recurringexpense.FieldAmount)
@@ -2732,6 +2785,8 @@ func (m *RecurringExpenseMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case recurringexpense.FieldName:
 		return m.Name()
+	case recurringexpense.FieldDescription:
+		return m.Description()
 	case recurringexpense.FieldAmount:
 		return m.Amount()
 	case recurringexpense.FieldFrequency:
@@ -2757,6 +2812,8 @@ func (m *RecurringExpenseMutation) OldField(ctx context.Context, name string) (e
 	switch name {
 	case recurringexpense.FieldName:
 		return m.OldName(ctx)
+	case recurringexpense.FieldDescription:
+		return m.OldDescription(ctx)
 	case recurringexpense.FieldAmount:
 		return m.OldAmount(ctx)
 	case recurringexpense.FieldFrequency:
@@ -2786,6 +2843,13 @@ func (m *RecurringExpenseMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case recurringexpense.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case recurringexpense.FieldAmount:
 		v, ok := value.(string)
@@ -2866,6 +2930,9 @@ func (m *RecurringExpenseMutation) AddField(name string, value ent.Value) error 
 // mutation.
 func (m *RecurringExpenseMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(recurringexpense.FieldDescription) {
+		fields = append(fields, recurringexpense.FieldDescription)
+	}
 	if m.FieldCleared(recurringexpense.FieldEndDate) {
 		fields = append(fields, recurringexpense.FieldEndDate)
 	}
@@ -2883,6 +2950,9 @@ func (m *RecurringExpenseMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *RecurringExpenseMutation) ClearField(name string) error {
 	switch name {
+	case recurringexpense.FieldDescription:
+		m.ClearDescription()
+		return nil
 	case recurringexpense.FieldEndDate:
 		m.ClearEndDate()
 		return nil
@@ -2896,6 +2966,9 @@ func (m *RecurringExpenseMutation) ResetField(name string) error {
 	switch name {
 	case recurringexpense.FieldName:
 		m.ResetName()
+		return nil
+	case recurringexpense.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case recurringexpense.FieldAmount:
 		m.ResetAmount()

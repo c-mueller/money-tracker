@@ -12,22 +12,24 @@ import (
 )
 
 type pageData struct {
-	Title             string
-	User              *domain.User
-	Households        []*domain.Household
-	Household         *domain.Household
-	Categories        []*domain.Category
-	Transactions      []*domain.Transaction
-	RecurringExpenses []*domain.RecurringExpense
-	Summary           *domain.MonthlySummary
-	Tokens            []*domain.APIToken
-	NewToken          string
-	Month             string
-	PrevMonth         string
-	NextMonth         string
-	Currencies        []Currency
-	ActiveTab         string
-	Frequencies       []domain.Frequency
+	Title              string
+	User               *domain.User
+	Households         []*domain.Household
+	Household          *domain.Household
+	Categories         []*domain.Category
+	Transactions       []*domain.Transaction
+	Transaction        *domain.Transaction
+	RecurringExpenses  []*domain.RecurringExpense
+	RecurringExpense   *domain.RecurringExpense
+	Summary            *domain.MonthlySummary
+	Tokens             []*domain.APIToken
+	NewToken           string
+	Month              string
+	PrevMonth          string
+	NextMonth          string
+	Currencies         []Currency
+	ActiveTab          string
+	Frequencies        []domain.Frequency
 }
 
 func (s *Server) handleWebDashboard(c echo.Context) error {
@@ -181,6 +183,86 @@ func (s *Server) handleWebTransactionCreate(c echo.Context) error {
 	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d?month=%s", id, month))
 }
 
+func (s *Server) handleWebTransactionEdit(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	txID, err := parseID(c, "transactionId")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	tx, err := s.services.Transaction.GetByID(ctx, txID)
+	if err != nil {
+		return err
+	}
+
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	month := fmt.Sprintf("%d-%02d", tx.Date.Year(), tx.Date.Month())
+
+	return c.Render(http.StatusOK, "transaction_form", pageData{
+		Title:       "Edit Transaction",
+		User:        s.getUserFromContext(c),
+		Household:   hh,
+		Transaction: tx,
+		Categories:  categories,
+		Month:       month,
+	})
+}
+
+func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	txID, err := parseID(c, "transactionId")
+	if err != nil {
+		return err
+	}
+
+	amount, err := domain.NewMoney(c.FormValue("amount"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+	}
+
+	if c.FormValue("type") == "expense" {
+		amount = amount.Neg()
+	}
+
+	categoryID, err := s.resolveCategory(c, id)
+	if err != nil {
+		return err
+	}
+
+	date, err := time.Parse("2006-01-02", c.FormValue("date"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid date")
+	}
+
+	description := c.FormValue("description")
+
+	_, err = s.services.Transaction.Update(c.Request().Context(), id, txID, categoryID, amount, description, date)
+	if err != nil {
+		return err
+	}
+
+	month := fmt.Sprintf("%d-%02d", date.Year(), date.Month())
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d?month=%s", id, month))
+}
+
 func (s *Server) handleWebCategoryList(c echo.Context) error {
 	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
@@ -247,7 +329,7 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
 	return c.Render(http.StatusOK, "recurring_list", pageData{
-		Title:             "Recurring Expenses",
+		Title:             "Recurring Transactions",
 		User:              s.getUserFromContext(c),
 		Household:         hh,
 		RecurringExpenses: expenses,
@@ -274,7 +356,7 @@ func (s *Server) handleWebRecurringNew(c echo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, "recurring_form", pageData{
-		Title:       "New Recurring Expense",
+		Title:       "New Recurring Transaction",
 		User:        s.getUserFromContext(c),
 		Household:   hh,
 		Categories:  categories,
@@ -320,8 +402,99 @@ func (s *Server) handleWebRecurringCreate(c echo.Context) error {
 	}
 
 	name := c.FormValue("name")
+	description := c.FormValue("description")
 
-	_, err = s.services.RecurringExpense.Create(c.Request().Context(), id, categoryID, name, amount, freq, startDate, endDate)
+	_, err = s.services.RecurringExpense.Create(c.Request().Context(), id, categoryID, name, description, amount, freq, startDate, endDate)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/recurring", id))
+}
+
+func (s *Server) handleWebRecurringEdit(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	recurringID, err := parseID(c, "recurringId")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	re, err := s.services.RecurringExpense.GetByID(ctx, recurringID)
+	if err != nil {
+		return err
+	}
+
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(http.StatusOK, "recurring_form", pageData{
+		Title:            "Edit Recurring Transaction",
+		User:             s.getUserFromContext(c),
+		Household:        hh,
+		RecurringExpense: re,
+		Categories:       categories,
+		Frequencies:      domain.AllFrequencies(),
+	})
+}
+
+func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	recurringID, err := parseID(c, "recurringId")
+	if err != nil {
+		return err
+	}
+
+	categoryID, err := s.resolveCategory(c, id)
+	if err != nil {
+		return err
+	}
+
+	amount, err := domain.NewMoney(c.FormValue("amount"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+	}
+
+	if c.FormValue("type") == "expense" {
+		amount = amount.Neg()
+	}
+
+	freq := domain.Frequency(c.FormValue("frequency"))
+
+	startDate, err := time.Parse("2006-01-02", c.FormValue("start_date"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid start date")
+	}
+
+	var endDate *time.Time
+	if ed := c.FormValue("end_date"); ed != "" {
+		t, err := time.Parse("2006-01-02", ed)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "invalid end date")
+		}
+		endDate = &t
+	}
+
+	name := c.FormValue("name")
+	description := c.FormValue("description")
+	active := c.FormValue("active") == "on"
+
+	_, err = s.services.RecurringExpense.Update(c.Request().Context(), recurringID, categoryID, name, description, amount, freq, active, startDate, endDate)
 	if err != nil {
 		return err
 	}

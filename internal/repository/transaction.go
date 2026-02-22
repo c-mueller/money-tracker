@@ -74,6 +74,24 @@ func (r *TransactionRepository) ListByHouseholdAndMonth(ctx context.Context, hou
 	return result, nil
 }
 
+func (r *TransactionRepository) Update(ctx context.Context, tx *domain.Transaction) (*domain.Transaction, error) {
+	t, err := r.client.Transaction.UpdateOneID(tx.ID).
+		SetAmount(tx.Amount.String()).
+		SetDescription(tx.Description).
+		SetDate(tx.Date).
+		SetCategoryID(tx.CategoryID).
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, fmt.Errorf("%w: transaction %d", domain.ErrNotFound, tx.ID)
+		}
+		return nil, err
+	}
+	t.Edges.Household = &ent.Household{ID: tx.HouseholdID}
+	t.Edges.Category = &ent.Category{ID: tx.CategoryID}
+	return transactionToDomain(t), nil
+}
+
 func (r *TransactionRepository) Delete(ctx context.Context, id int) error {
 	err := r.client.Transaction.DeleteOneID(id).Exec(ctx)
 	if err != nil {

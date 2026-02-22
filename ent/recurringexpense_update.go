@@ -44,6 +44,26 @@ func (_u *RecurringExpenseUpdate) SetNillableName(v *string) *RecurringExpenseUp
 	return _u
 }
 
+// SetDescription sets the "description" field.
+func (_u *RecurringExpenseUpdate) SetDescription(v string) *RecurringExpenseUpdate {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *RecurringExpenseUpdate) SetNillableDescription(v *string) *RecurringExpenseUpdate {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *RecurringExpenseUpdate) ClearDescription() *RecurringExpenseUpdate {
+	_u.mutation.ClearDescription()
+	return _u
+}
+
 // SetAmount sets the "amount" field.
 func (_u *RecurringExpenseUpdate) SetAmount(v string) *RecurringExpenseUpdate {
 	_u.mutation.SetAmount(v)
@@ -208,6 +228,11 @@ func (_u *RecurringExpenseUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := recurringexpense.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Amount(); ok {
 		if err := recurringexpense.AmountValidator(v); err != nil {
 			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.amount": %w`, err)}
@@ -241,6 +266,12 @@ func (_u *RecurringExpenseUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(recurringexpense.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(recurringexpense.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(recurringexpense.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.Amount(); ok {
 		_spec.SetField(recurringexpense.FieldAmount, field.TypeString, value)
@@ -352,6 +383,26 @@ func (_u *RecurringExpenseUpdateOne) SetNillableName(v *string) *RecurringExpens
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetDescription sets the "description" field.
+func (_u *RecurringExpenseUpdateOne) SetDescription(v string) *RecurringExpenseUpdateOne {
+	_u.mutation.SetDescription(v)
+	return _u
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (_u *RecurringExpenseUpdateOne) SetNillableDescription(v *string) *RecurringExpenseUpdateOne {
+	if v != nil {
+		_u.SetDescription(*v)
+	}
+	return _u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_u *RecurringExpenseUpdateOne) ClearDescription() *RecurringExpenseUpdateOne {
+	_u.mutation.ClearDescription()
 	return _u
 }
 
@@ -532,6 +583,11 @@ func (_u *RecurringExpenseUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Description(); ok {
+		if err := recurringexpense.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.description": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Amount(); ok {
 		if err := recurringexpense.AmountValidator(v); err != nil {
 			return &ValidationError{Name: "amount", err: fmt.Errorf(`ent: validator failed for field "RecurringExpense.amount": %w`, err)}
@@ -582,6 +638,12 @@ func (_u *RecurringExpenseUpdateOne) sqlSave(ctx context.Context) (_node *Recurr
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(recurringexpense.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Description(); ok {
+		_spec.SetField(recurringexpense.FieldDescription, field.TypeString, value)
+	}
+	if _u.mutation.DescriptionCleared() {
+		_spec.ClearField(recurringexpense.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.Amount(); ok {
 		_spec.SetField(recurringexpense.FieldAmount, field.TypeString, value)

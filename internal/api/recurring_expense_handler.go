@@ -62,7 +62,7 @@ func (s *Server) handleCreateRecurringExpense(c echo.Context) error {
 		endDate = &t
 	}
 
-	re, err := s.services.RecurringExpense.Create(c.Request().Context(), householdID, req.CategoryID, req.Name, amount, freq, startDate, endDate)
+	re, err := s.services.RecurringExpense.Create(c.Request().Context(), householdID, req.CategoryID, req.Name, "", amount, freq, startDate, endDate)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -110,7 +110,7 @@ func (s *Server) handleUpdateRecurringExpense(c echo.Context) error {
 		endDate = &t
 	}
 
-	re, err := s.services.RecurringExpense.Update(c.Request().Context(), recurringID, req.Name, amount, freq, req.Active, startDate, endDate)
+	re, err := s.services.RecurringExpense.Update(c.Request().Context(), recurringID, req.CategoryID, req.Name, "", amount, freq, req.Active, startDate, endDate)
 	if err != nil {
 		return respondError(c, err)
 	}

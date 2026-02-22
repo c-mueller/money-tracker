@@ -75,6 +75,12 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 			}
 			return false
 		},
+		"absAmount": func(d decimal.Decimal) string {
+			return d.Abs().StringFixed(2)
+		},
+		"isNegative": func(d decimal.Decimal) bool {
+			return d.IsNegative()
+		},
 	}
 
 	templatesFS, err := fs.Sub(web.Content, "templates")

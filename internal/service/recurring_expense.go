@@ -17,8 +17,11 @@ func NewRecurringExpenseService(repo domain.RecurringExpenseRepo, household *Hou
 	return &RecurringExpenseService{repo: repo, household: household}
 }
 
-func (s *RecurringExpenseService) Create(ctx context.Context, householdID, categoryID int, name string, amount domain.Money, freq domain.Frequency, startDate time.Time, endDate *time.Time) (*domain.RecurringExpense, error) {
+func (s *RecurringExpenseService) Create(ctx context.Context, householdID, categoryID int, name, description string, amount domain.Money, freq domain.Frequency, startDate time.Time, endDate *time.Time) (*domain.RecurringExpense, error) {
 	if err := domain.ValidateHouseholdName(name); err != nil {
+		return nil, err
+	}
+	if err := domain.ValidateDescription(description); err != nil {
 		return nil, err
 	}
 	if err := domain.ValidateAmount(amount); err != nil {
@@ -41,12 +44,17 @@ func (s *RecurringExpenseService) Create(ctx context.Context, householdID, categ
 		HouseholdID: householdID,
 		CategoryID:  categoryID,
 		Name:        name,
+		Description: description,
 		Amount:      amount,
 		Frequency:   freq,
 		Active:      true,
 		StartDate:   startDate,
 		EndDate:     endDate,
 	})
+}
+
+func (s *RecurringExpenseService) GetByID(ctx context.Context, id int) (*domain.RecurringExpense, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *RecurringExpenseService) List(ctx context.Context, householdID int) ([]*domain.RecurringExpense, error) {
@@ -57,7 +65,7 @@ func (s *RecurringExpenseService) List(ctx context.Context, householdID int) ([]
 	return s.repo.ListByHousehold(ctx, householdID)
 }
 
-func (s *RecurringExpenseService) Update(ctx context.Context, id int, name string, amount domain.Money, freq domain.Frequency, active bool, startDate time.Time, endDate *time.Time) (*domain.RecurringExpense, error) {
+func (s *RecurringExpenseService) Update(ctx context.Context, id, categoryID int, name, description string, amount domain.Money, freq domain.Frequency, active bool, startDate time.Time, endDate *time.Time) (*domain.RecurringExpense, error) {
 	existing, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -68,6 +76,9 @@ func (s *RecurringExpenseService) Update(ctx context.Context, id int, name strin
 	}
 
 	if err := domain.ValidateHouseholdName(name); err != nil {
+		return nil, err
+	}
+	if err := domain.ValidateDescription(description); err != nil {
 		return nil, err
 	}
 	if err := domain.ValidateAmount(amount); err != nil {
@@ -83,7 +94,9 @@ func (s *RecurringExpenseService) Update(ctx context.Context, id int, name strin
 	}
 
 	existing.Name = name
+	existing.Description = description
 	existing.Amount = amount
+	existing.CategoryID = categoryID
 	existing.Frequency = freq
 	existing.Active = active
 	existing.StartDate = startDate

@@ -146,24 +146,30 @@ func init() {
 			return nil
 		}
 	}()
+	// recurringexpenseDescDescription is the schema descriptor for description field.
+	recurringexpenseDescDescription := recurringexpenseFields[1].Descriptor()
+	// recurringexpense.DefaultDescription holds the default value on creation for the description field.
+	recurringexpense.DefaultDescription = recurringexpenseDescDescription.Default.(string)
+	// recurringexpense.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	recurringexpense.DescriptionValidator = recurringexpenseDescDescription.Validators[0].(func(string) error)
 	// recurringexpenseDescAmount is the schema descriptor for amount field.
-	recurringexpenseDescAmount := recurringexpenseFields[1].Descriptor()
+	recurringexpenseDescAmount := recurringexpenseFields[2].Descriptor()
 	// recurringexpense.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
 	recurringexpense.AmountValidator = recurringexpenseDescAmount.Validators[0].(func(string) error)
 	// recurringexpenseDescFrequency is the schema descriptor for frequency field.
-	recurringexpenseDescFrequency := recurringexpenseFields[2].Descriptor()
+	recurringexpenseDescFrequency := recurringexpenseFields[3].Descriptor()
 	// recurringexpense.FrequencyValidator is a validator for the "frequency" field. It is called by the builders before save.
 	recurringexpense.FrequencyValidator = recurringexpenseDescFrequency.Validators[0].(func(string) error)
 	// recurringexpenseDescActive is the schema descriptor for active field.
-	recurringexpenseDescActive := recurringexpenseFields[3].Descriptor()
+	recurringexpenseDescActive := recurringexpenseFields[4].Descriptor()
 	// recurringexpense.DefaultActive holds the default value on creation for the active field.
 	recurringexpense.DefaultActive = recurringexpenseDescActive.Default.(bool)
 	// recurringexpenseDescCreatedAt is the schema descriptor for created_at field.
-	recurringexpenseDescCreatedAt := recurringexpenseFields[6].Descriptor()
+	recurringexpenseDescCreatedAt := recurringexpenseFields[7].Descriptor()
 	// recurringexpense.DefaultCreatedAt holds the default value on creation for the created_at field.
 	recurringexpense.DefaultCreatedAt = recurringexpenseDescCreatedAt.Default.(func() time.Time)
 	// recurringexpenseDescUpdatedAt is the schema descriptor for updated_at field.
-	recurringexpenseDescUpdatedAt := recurringexpenseFields[7].Descriptor()
+	recurringexpenseDescUpdatedAt := recurringexpenseFields[8].Descriptor()
 	// recurringexpense.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	recurringexpense.DefaultUpdatedAt = recurringexpenseDescUpdatedAt.Default.(func() time.Time)
 	// recurringexpense.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
