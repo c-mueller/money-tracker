@@ -25,6 +25,7 @@ func (r *HouseholdRepository) Create(ctx context.Context, household *domain.Hous
 	h, err := r.client.Household.Create().
 		SetName(household.Name).
 		SetCurrency(household.Currency).
+		SetIcon(household.Icon).
 		SetOwnerID(household.OwnerID).
 		Save(ctx)
 	if err != nil {
@@ -68,6 +69,7 @@ func (r *HouseholdRepository) Update(ctx context.Context, household *domain.Hous
 	h, err := r.client.Household.UpdateOneID(household.ID).
 		SetName(household.Name).
 		SetCurrency(household.Currency).
+		SetIcon(household.Icon).
 		Save(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

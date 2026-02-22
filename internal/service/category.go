@@ -16,7 +16,7 @@ func NewCategoryService(repo domain.CategoryRepo, household *HouseholdService) *
 	return &CategoryService{repo: repo, household: household}
 }
 
-func (s *CategoryService) Create(ctx context.Context, householdID int, name string) (*domain.Category, error) {
+func (s *CategoryService) Create(ctx context.Context, householdID int, name, icon string) (*domain.Category, error) {
 	if err := domain.ValidateCategoryName(name); err != nil {
 		return nil, err
 	}
@@ -25,10 +25,19 @@ func (s *CategoryService) Create(ctx context.Context, householdID int, name stri
 		return nil, err
 	}
 
+	if icon == "" {
+		icon = "category"
+	}
+
 	return s.repo.Create(ctx, &domain.Category{
 		HouseholdID: householdID,
 		Name:        name,
+		Icon:        icon,
 	})
+}
+
+func (s *CategoryService) GetByID(ctx context.Context, id int) (*domain.Category, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *CategoryService) List(ctx context.Context, householdID int) ([]*domain.Category, error) {
@@ -39,7 +48,7 @@ func (s *CategoryService) List(ctx context.Context, householdID int) ([]*domain.
 	return s.repo.ListByHousehold(ctx, householdID)
 }
 
-func (s *CategoryService) Update(ctx context.Context, id int, name string) (*domain.Category, error) {
+func (s *CategoryService) Update(ctx context.Context, id int, name, icon string) (*domain.Category, error) {
 	cat, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -54,6 +63,7 @@ func (s *CategoryService) Update(ctx context.Context, id int, name string) (*dom
 	}
 
 	cat.Name = name
+	cat.Icon = icon
 	return s.repo.Update(ctx, cat)
 }
 

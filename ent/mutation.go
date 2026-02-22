@@ -694,6 +694,7 @@ type CategoryMutation struct {
 	typ                       string
 	id                        *int
 	name                      *string
+	icon                      *string
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -842,6 +843,55 @@ func (m *CategoryMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *CategoryMutation) ResetName() {
 	m.name = nil
+}
+
+// SetIcon sets the "icon" field.
+func (m *CategoryMutation) SetIcon(s string) {
+	m.icon = &s
+}
+
+// Icon returns the value of the "icon" field in the mutation.
+func (m *CategoryMutation) Icon() (r string, exists bool) {
+	v := m.icon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcon returns the old "icon" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldIcon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcon: %w", err)
+	}
+	return oldValue.Icon, nil
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (m *CategoryMutation) ClearIcon() {
+	m.icon = nil
+	m.clearedFields[category.FieldIcon] = struct{}{}
+}
+
+// IconCleared returns if the "icon" field was cleared in this mutation.
+func (m *CategoryMutation) IconCleared() bool {
+	_, ok := m.clearedFields[category.FieldIcon]
+	return ok
+}
+
+// ResetIcon resets all changes to the "icon" field.
+func (m *CategoryMutation) ResetIcon() {
+	m.icon = nil
+	delete(m.clearedFields, category.FieldIcon)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1097,9 +1147,12 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, category.FieldName)
+	}
+	if m.icon != nil {
+		fields = append(fields, category.FieldIcon)
 	}
 	if m.created_at != nil {
 		fields = append(fields, category.FieldCreatedAt)
@@ -1117,6 +1170,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case category.FieldName:
 		return m.Name()
+	case category.FieldIcon:
+		return m.Icon()
 	case category.FieldCreatedAt:
 		return m.CreatedAt()
 	case category.FieldUpdatedAt:
@@ -1132,6 +1187,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case category.FieldName:
 		return m.OldName(ctx)
+	case category.FieldIcon:
+		return m.OldIcon(ctx)
 	case category.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case category.FieldUpdatedAt:
@@ -1151,6 +1208,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case category.FieldIcon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcon(v)
 		return nil
 	case category.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1195,7 +1259,11 @@ func (m *CategoryMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *CategoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(category.FieldIcon) {
+		fields = append(fields, category.FieldIcon)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1208,6 +1276,11 @@ func (m *CategoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *CategoryMutation) ClearField(name string) error {
+	switch name {
+	case category.FieldIcon:
+		m.ClearIcon()
+		return nil
+	}
 	return fmt.Errorf("unknown Category nullable field %s", name)
 }
 
@@ -1217,6 +1290,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 	switch name {
 	case category.FieldName:
 		m.ResetName()
+		return nil
+	case category.FieldIcon:
+		m.ResetIcon()
 		return nil
 	case category.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -1364,6 +1440,7 @@ type HouseholdMutation struct {
 	id                        *int
 	name                      *string
 	currency                  *string
+	icon                      *string
 	created_at                *time.Time
 	updated_at                *time.Time
 	clearedFields             map[string]struct{}
@@ -1551,6 +1628,55 @@ func (m *HouseholdMutation) OldCurrency(ctx context.Context) (v string, err erro
 // ResetCurrency resets all changes to the "currency" field.
 func (m *HouseholdMutation) ResetCurrency() {
 	m.currency = nil
+}
+
+// SetIcon sets the "icon" field.
+func (m *HouseholdMutation) SetIcon(s string) {
+	m.icon = &s
+}
+
+// Icon returns the value of the "icon" field in the mutation.
+func (m *HouseholdMutation) Icon() (r string, exists bool) {
+	v := m.icon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcon returns the old "icon" field's value of the Household entity.
+// If the Household object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HouseholdMutation) OldIcon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcon: %w", err)
+	}
+	return oldValue.Icon, nil
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (m *HouseholdMutation) ClearIcon() {
+	m.icon = nil
+	m.clearedFields[household.FieldIcon] = struct{}{}
+}
+
+// IconCleared returns if the "icon" field was cleared in this mutation.
+func (m *HouseholdMutation) IconCleared() bool {
+	_, ok := m.clearedFields[household.FieldIcon]
+	return ok
+}
+
+// ResetIcon resets all changes to the "icon" field.
+func (m *HouseholdMutation) ResetIcon() {
+	m.icon = nil
+	delete(m.clearedFields, household.FieldIcon)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1860,12 +1986,15 @@ func (m *HouseholdMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HouseholdMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, household.FieldName)
 	}
 	if m.currency != nil {
 		fields = append(fields, household.FieldCurrency)
+	}
+	if m.icon != nil {
+		fields = append(fields, household.FieldIcon)
 	}
 	if m.created_at != nil {
 		fields = append(fields, household.FieldCreatedAt)
@@ -1885,6 +2014,8 @@ func (m *HouseholdMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case household.FieldCurrency:
 		return m.Currency()
+	case household.FieldIcon:
+		return m.Icon()
 	case household.FieldCreatedAt:
 		return m.CreatedAt()
 	case household.FieldUpdatedAt:
@@ -1902,6 +2033,8 @@ func (m *HouseholdMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldName(ctx)
 	case household.FieldCurrency:
 		return m.OldCurrency(ctx)
+	case household.FieldIcon:
+		return m.OldIcon(ctx)
 	case household.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case household.FieldUpdatedAt:
@@ -1928,6 +2061,13 @@ func (m *HouseholdMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCurrency(v)
+		return nil
+	case household.FieldIcon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcon(v)
 		return nil
 	case household.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1972,7 +2112,11 @@ func (m *HouseholdMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *HouseholdMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(household.FieldIcon) {
+		fields = append(fields, household.FieldIcon)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1985,6 +2129,11 @@ func (m *HouseholdMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *HouseholdMutation) ClearField(name string) error {
+	switch name {
+	case household.FieldIcon:
+		m.ClearIcon()
+		return nil
+	}
 	return fmt.Errorf("unknown Household nullable field %s", name)
 }
 
@@ -1997,6 +2146,9 @@ func (m *HouseholdMutation) ResetField(name string) error {
 		return nil
 	case household.FieldCurrency:
 		m.ResetCurrency()
+		return nil
+	case household.FieldIcon:
+		m.ResetIcon()
 		return nil
 	case household.FieldCreatedAt:
 		m.ResetCreatedAt()

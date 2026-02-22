@@ -60,6 +60,26 @@ func (_u *HouseholdUpdate) SetNillableCurrency(v *string) *HouseholdUpdate {
 	return _u
 }
 
+// SetIcon sets the "icon" field.
+func (_u *HouseholdUpdate) SetIcon(v string) *HouseholdUpdate {
+	_u.mutation.SetIcon(v)
+	return _u
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_u *HouseholdUpdate) SetNillableIcon(v *string) *HouseholdUpdate {
+	if v != nil {
+		_u.SetIcon(*v)
+	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *HouseholdUpdate) ClearIcon() *HouseholdUpdate {
+	_u.mutation.ClearIcon()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *HouseholdUpdate) SetUpdatedAt(v time.Time) *HouseholdUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -244,6 +264,11 @@ func (_u *HouseholdUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Icon(); ok {
+		if err := household.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Household.icon": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Household.owner"`)
 	}
@@ -267,6 +292,12 @@ func (_u *HouseholdUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Icon(); ok {
+		_spec.SetField(household.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(household.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(household.FieldUpdatedAt, field.TypeTime, value)
@@ -483,6 +514,26 @@ func (_u *HouseholdUpdateOne) SetNillableCurrency(v *string) *HouseholdUpdateOne
 	return _u
 }
 
+// SetIcon sets the "icon" field.
+func (_u *HouseholdUpdateOne) SetIcon(v string) *HouseholdUpdateOne {
+	_u.mutation.SetIcon(v)
+	return _u
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_u *HouseholdUpdateOne) SetNillableIcon(v *string) *HouseholdUpdateOne {
+	if v != nil {
+		_u.SetIcon(*v)
+	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *HouseholdUpdateOne) ClearIcon() *HouseholdUpdateOne {
+	_u.mutation.ClearIcon()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *HouseholdUpdateOne) SetUpdatedAt(v time.Time) *HouseholdUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -680,6 +731,11 @@ func (_u *HouseholdUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Icon(); ok {
+		if err := household.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Household.icon": %w`, err)}
+		}
+	}
 	if _u.mutation.OwnerCleared() && len(_u.mutation.OwnerIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Household.owner"`)
 	}
@@ -720,6 +776,12 @@ func (_u *HouseholdUpdateOne) sqlSave(ctx context.Context) (_node *Household, er
 	}
 	if value, ok := _u.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Icon(); ok {
+		_spec.SetField(household.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(household.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(household.FieldUpdatedAt, field.TypeTime, value)

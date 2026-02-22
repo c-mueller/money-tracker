@@ -45,6 +45,26 @@ func (_u *CategoryUpdate) SetNillableName(v *string) *CategoryUpdate {
 	return _u
 }
 
+// SetIcon sets the "icon" field.
+func (_u *CategoryUpdate) SetIcon(v string) *CategoryUpdate {
+	_u.mutation.SetIcon(v)
+	return _u
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_u *CategoryUpdate) SetNillableIcon(v *string) *CategoryUpdate {
+	if v != nil {
+		_u.SetIcon(*v)
+	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *CategoryUpdate) ClearIcon() *CategoryUpdate {
+	_u.mutation.ClearIcon()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *CategoryUpdate) SetUpdatedAt(v time.Time) *CategoryUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -188,6 +208,11 @@ func (_u *CategoryUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Icon(); ok {
+		if err := category.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Category.icon": %w`, err)}
+		}
+	}
 	if _u.mutation.HouseholdCleared() && len(_u.mutation.HouseholdIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Category.household"`)
 	}
@@ -208,6 +233,12 @@ func (_u *CategoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(category.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Icon(); ok {
+		_spec.SetField(category.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(category.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)
@@ -362,6 +393,26 @@ func (_u *CategoryUpdateOne) SetNillableName(v *string) *CategoryUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
 	}
+	return _u
+}
+
+// SetIcon sets the "icon" field.
+func (_u *CategoryUpdateOne) SetIcon(v string) *CategoryUpdateOne {
+	_u.mutation.SetIcon(v)
+	return _u
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_u *CategoryUpdateOne) SetNillableIcon(v *string) *CategoryUpdateOne {
+	if v != nil {
+		_u.SetIcon(*v)
+	}
+	return _u
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (_u *CategoryUpdateOne) ClearIcon() *CategoryUpdateOne {
+	_u.mutation.ClearIcon()
 	return _u
 }
 
@@ -521,6 +572,11 @@ func (_u *CategoryUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Icon(); ok {
+		if err := category.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Category.icon": %w`, err)}
+		}
+	}
 	if _u.mutation.HouseholdCleared() && len(_u.mutation.HouseholdIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Category.household"`)
 	}
@@ -558,6 +614,12 @@ func (_u *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err 
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(category.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Icon(); ok {
+		_spec.SetField(category.FieldIcon, field.TypeString, value)
+	}
+	if _u.mutation.IconCleared() {
+		_spec.ClearField(category.FieldIcon, field.TypeString)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(category.FieldUpdatedAt, field.TypeTime, value)

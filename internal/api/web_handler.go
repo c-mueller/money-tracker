@@ -16,6 +16,7 @@ type pageData struct {
 	User               *domain.User
 	Households         []*domain.Household
 	Household          *domain.Household
+	Category           *domain.Category
 	Categories         []*domain.Category
 	Transactions       []*domain.Transaction
 	Transaction        *domain.Transaction
@@ -28,6 +29,7 @@ type pageData struct {
 	PrevMonth          string
 	NextMonth          string
 	Currencies         []Currency
+	Icons              []string
 	ActiveTab          string
 	Frequencies        []domain.Frequency
 }
@@ -97,6 +99,7 @@ func (s *Server) handleWebHouseholdNew(c echo.Context) error {
 		User:       s.getUserFromContext(c),
 		Household:  &domain.Household{Currency: "EUR"},
 		Currencies: s.renderer.Currencies,
+		Icons:      s.renderer.Icons,
 	})
 }
 
@@ -106,8 +109,9 @@ func (s *Server) handleWebHouseholdCreate(c echo.Context) error {
 	if currency == "" {
 		currency = "EUR"
 	}
+	icon := c.FormValue("icon")
 
-	_, err := s.services.Household.Create(c.Request().Context(), name, currency)
+	_, err := s.services.Household.Create(c.Request().Context(), name, currency, icon)
 	if err != nil {
 		return err
 	}
@@ -300,7 +304,8 @@ func (s *Server) handleWebCategoryCreate(c echo.Context) error {
 	}
 
 	name := c.FormValue("name")
-	_, err = s.services.Category.Create(c.Request().Context(), id, name)
+	icon := c.FormValue("icon")
+	_, err = s.services.Category.Create(c.Request().Context(), id, name, icon)
 	if err != nil {
 		return err
 	}
@@ -502,6 +507,108 @@ func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
 	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/recurring", id))
 }
 
+func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+
+	return c.Render(http.StatusOK, "household_settings", pageData{
+		Title:      "Settings",
+		User:       s.getUserFromContext(c),
+		Household:  hh,
+		Currencies: s.renderer.Currencies,
+		Icons:      s.renderer.Icons,
+		Month:      month,
+		ActiveTab:  "settings",
+	})
+}
+
+func (s *Server) handleWebHouseholdSettingsUpdate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	name := c.FormValue("name")
+	currency := c.FormValue("currency")
+	icon := c.FormValue("icon")
+
+	_, err = s.services.Household.Update(c.Request().Context(), id, name, currency, icon)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/settings", id))
+}
+
+func (s *Server) handleWebCategoryEdit(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	categoryID, err := parseID(c, "categoryId")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	cat, err := s.services.Category.GetByID(ctx, categoryID)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+
+	return c.Render(http.StatusOK, "category_form", pageData{
+		Title:     "Edit Category",
+		User:      s.getUserFromContext(c),
+		Household: hh,
+		Category:  cat,
+		Icons:     s.renderer.Icons,
+		Month:     month,
+		ActiveTab: "categories",
+	})
+}
+
+func (s *Server) handleWebCategoryUpdate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	categoryID, err := parseID(c, "categoryId")
+	if err != nil {
+		return err
+	}
+
+	name := c.FormValue("name")
+	icon := c.FormValue("icon")
+
+	_, err = s.services.Category.Update(c.Request().Context(), categoryID, name, icon)
+	if err != nil {
+		return err
+	}
+
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d/categories", id))
+}
+
 // resolveCategory returns the category ID from the form, creating a new category if "NEW" was selected.
 func (s *Server) resolveCategory(c echo.Context, householdID int) (int, error) {
 	catVal := c.FormValue("category_id")
@@ -510,7 +617,7 @@ func (s *Server) resolveCategory(c echo.Context, householdID int) (int, error) {
 		if name == "" {
 			return 0, echo.NewHTTPError(http.StatusBadRequest, "category name required")
 		}
-		cat, err := s.services.Category.Create(c.Request().Context(), householdID, name)
+		cat, err := s.services.Category.Create(c.Request().Context(), householdID, name, "category")
 		if err != nil {
 			return 0, err
 		}

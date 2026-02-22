@@ -44,6 +44,20 @@ func (_c *HouseholdCreate) SetNillableCurrency(v *string) *HouseholdCreate {
 	return _c
 }
 
+// SetIcon sets the "icon" field.
+func (_c *HouseholdCreate) SetIcon(v string) *HouseholdCreate {
+	_c.mutation.SetIcon(v)
+	return _c
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_c *HouseholdCreate) SetNillableIcon(v *string) *HouseholdCreate {
+	if v != nil {
+		_c.SetIcon(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *HouseholdCreate) SetCreatedAt(v time.Time) *HouseholdCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -167,6 +181,10 @@ func (_c *HouseholdCreate) defaults() {
 		v := household.DefaultCurrency
 		_c.mutation.SetCurrency(v)
 	}
+	if _, ok := _c.mutation.Icon(); !ok {
+		v := household.DefaultIcon
+		_c.mutation.SetIcon(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := household.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -193,6 +211,11 @@ func (_c *HouseholdCreate) check() error {
 	if v, ok := _c.mutation.Currency(); ok {
 		if err := household.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "Household.currency": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Icon(); ok {
+		if err := household.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Household.icon": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
@@ -237,6 +260,10 @@ func (_c *HouseholdCreate) createSpec() (*Household, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(household.FieldCurrency, field.TypeString, value)
 		_node.Currency = value
+	}
+	if value, ok := _c.mutation.Icon(); ok {
+		_spec.SetField(household.FieldIcon, field.TypeString, value)
+		_node.Icon = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(household.FieldCreatedAt, field.TypeTime, value)

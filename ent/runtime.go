@@ -66,12 +66,18 @@ func init() {
 			return nil
 		}
 	}()
+	// categoryDescIcon is the schema descriptor for icon field.
+	categoryDescIcon := categoryFields[1].Descriptor()
+	// category.DefaultIcon holds the default value on creation for the icon field.
+	category.DefaultIcon = categoryDescIcon.Default.(string)
+	// category.IconValidator is a validator for the "icon" field. It is called by the builders before save.
+	category.IconValidator = categoryDescIcon.Validators[0].(func(string) error)
 	// categoryDescCreatedAt is the schema descriptor for created_at field.
-	categoryDescCreatedAt := categoryFields[1].Descriptor()
+	categoryDescCreatedAt := categoryFields[2].Descriptor()
 	// category.DefaultCreatedAt holds the default value on creation for the created_at field.
 	category.DefaultCreatedAt = categoryDescCreatedAt.Default.(func() time.Time)
 	// categoryDescUpdatedAt is the schema descriptor for updated_at field.
-	categoryDescUpdatedAt := categoryFields[2].Descriptor()
+	categoryDescUpdatedAt := categoryFields[3].Descriptor()
 	// category.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	category.DefaultUpdatedAt = categoryDescUpdatedAt.Default.(func() time.Time)
 	// category.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -116,12 +122,18 @@ func init() {
 			return nil
 		}
 	}()
+	// householdDescIcon is the schema descriptor for icon field.
+	householdDescIcon := householdFields[2].Descriptor()
+	// household.DefaultIcon holds the default value on creation for the icon field.
+	household.DefaultIcon = householdDescIcon.Default.(string)
+	// household.IconValidator is a validator for the "icon" field. It is called by the builders before save.
+	household.IconValidator = householdDescIcon.Validators[0].(func(string) error)
 	// householdDescCreatedAt is the schema descriptor for created_at field.
-	householdDescCreatedAt := householdFields[2].Descriptor()
+	householdDescCreatedAt := householdFields[3].Descriptor()
 	// household.DefaultCreatedAt holds the default value on creation for the created_at field.
 	household.DefaultCreatedAt = householdDescCreatedAt.Default.(func() time.Time)
 	// householdDescUpdatedAt is the schema descriptor for updated_at field.
-	householdDescUpdatedAt := householdFields[3].Descriptor()
+	householdDescUpdatedAt := householdFields[4].Descriptor()
 	// household.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	household.DefaultUpdatedAt = householdDescUpdatedAt.Default.(func() time.Time)
 	// household.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

@@ -21,6 +21,7 @@ func NewCategoryRepository(client *ent.Client) *CategoryRepository {
 func (r *CategoryRepository) Create(ctx context.Context, category *domain.Category) (*domain.Category, error) {
 	c, err := r.client.Category.Create().
 		SetName(category.Name).
+		SetIcon(category.Icon).
 		SetHouseholdID(category.HouseholdID).
 		Save(ctx)
 	if err != nil {
@@ -66,6 +67,7 @@ func (r *CategoryRepository) ListByHousehold(ctx context.Context, householdID in
 func (r *CategoryRepository) Update(ctx context.Context, category *domain.Category) (*domain.Category, error) {
 	c, err := r.client.Category.UpdateOneID(category.ID).
 		SetName(category.Name).
+		SetIcon(category.Icon).
 		Save(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

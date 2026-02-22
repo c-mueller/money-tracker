@@ -22,6 +22,7 @@ go.work.sum
 
 # Dependency directories
 vendor/
+!web/static/vendor/
 
 # Environment files
 .env

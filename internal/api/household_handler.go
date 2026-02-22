@@ -30,7 +30,7 @@ func (s *Server) handleCreateHousehold(c echo.Context) error {
 		req.Currency = "EUR"
 	}
 
-	h, err := s.services.Household.Create(c.Request().Context(), req.Name, req.Currency)
+	h, err := s.services.Household.Create(c.Request().Context(), req.Name, req.Currency, "")
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -49,7 +49,7 @@ func (s *Server) handleUpdateHousehold(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
 	}
 
-	h, err := s.services.Household.Update(c.Request().Context(), id, req.Name, req.Currency)
+	h, err := s.services.Household.Update(c.Request().Context(), id, req.Name, req.Currency, "")
 	if err != nil {
 		return respondError(c, err)
 	}

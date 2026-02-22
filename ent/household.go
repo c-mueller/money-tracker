@@ -22,6 +22,8 @@ type Household struct {
 	Name string `json:"name,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency string `json:"currency,omitempty"`
+	// Icon holds the value of the "icon" field.
+	Icon string `json:"icon,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -93,7 +95,7 @@ func (*Household) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case household.FieldID:
 			values[i] = new(sql.NullInt64)
-		case household.FieldName, household.FieldCurrency:
+		case household.FieldName, household.FieldCurrency, household.FieldIcon:
 			values[i] = new(sql.NullString)
 		case household.FieldCreatedAt, household.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -131,6 +133,12 @@ func (_m *Household) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field currency", values[i])
 			} else if value.Valid {
 				_m.Currency = value.String
+			}
+		case household.FieldIcon:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field icon", values[i])
+			} else if value.Valid {
+				_m.Icon = value.String
 			}
 		case household.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -212,6 +220,9 @@ func (_m *Household) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(_m.Currency)
+	builder.WriteString(", ")
+	builder.WriteString("icon=")
+	builder.WriteString(_m.Icon)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

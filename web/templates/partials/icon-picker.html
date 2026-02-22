@@ -1,0 +1,26 @@
+{{define "icon_picker"}}
+<div class="mb-3">
+    <label class="form-label">Icon</label>
+    <input type="hidden" name="icon" id="icon-input" value="{{.SelectedIcon}}">
+    <div class="d-flex flex-wrap gap-1" id="icon-picker">
+        {{range .Icons}}
+        <button type="button" class="btn btn-outline-secondary icon-pick p-2{{if eq . $.SelectedIcon}} active{{end}}" data-icon="{{.}}" title="{{.}}">
+            <span class="material-symbols-outlined">{{.}}</span>
+        </button>
+        {{end}}
+    </div>
+</div>
+<script>
+(function() {
+    var picker = document.getElementById('icon-picker');
+    var input = document.getElementById('icon-input');
+    picker.addEventListener('click', function(e) {
+        var btn = e.target.closest('.icon-pick');
+        if (!btn) return;
+        picker.querySelectorAll('.icon-pick').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        input.value = btn.dataset.icon;
+    });
+})();
+</script>
+{{end}}

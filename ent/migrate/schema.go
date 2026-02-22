@@ -36,6 +36,7 @@ var (
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "icon", Type: field.TypeString, Nullable: true, Size: 50, Default: "category"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "household_categories", Type: field.TypeInt},
@@ -48,7 +49,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "categories_households_categories",
-				Columns:    []*schema.Column{CategoriesColumns[4]},
+				Columns:    []*schema.Column{CategoriesColumns[5]},
 				RefColumns: []*schema.Column{HouseholdsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -57,7 +58,7 @@ var (
 			{
 				Name:    "category_name_household_categories",
 				Unique:  true,
-				Columns: []*schema.Column{CategoriesColumns[1], CategoriesColumns[4]},
+				Columns: []*schema.Column{CategoriesColumns[1], CategoriesColumns[5]},
 			},
 		},
 	}
@@ -66,6 +67,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "currency", Type: field.TypeString, Size: 3, Default: "EUR"},
+		{Name: "icon", Type: field.TypeString, Nullable: true, Size: 50, Default: "home"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_households", Type: field.TypeInt},
@@ -78,7 +80,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "households_users_households",
-				Columns:    []*schema.Column{HouseholdsColumns[5]},
+				Columns:    []*schema.Column{HouseholdsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

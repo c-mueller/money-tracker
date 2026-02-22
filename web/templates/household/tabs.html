@@ -1,11 +1,8 @@
 {{define "household_header"}}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1>{{.Household.Name}}</h1>
+        <h1><span class="material-symbols-outlined align-middle">{{.Household.Icon}}</span> {{.Household.Name}}</h1>
         <span class="badge bg-secondary">{{.Household.Currency}}</span>
-    </div>
-    <div>
-        <button class="btn btn-outline-danger btn-sm" data-confirm="Delete this household?" data-action="/api/v1/households/{{.Household.ID}}" data-method="DELETE" data-redirect="/">Delete</button>
     </div>
 </div>
 
@@ -18,6 +15,9 @@
     </li>
     <li class="nav-item">
         <a class="nav-link {{if eq .ActiveTab "recurring"}}active{{end}}" href="/households/{{.Household.ID}}/recurring">Recurring</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{if eq .ActiveTab "settings"}}active{{end}}" href="/households/{{.Household.ID}}/settings">Settings</a>
     </li>
 </ul>
 {{end}}

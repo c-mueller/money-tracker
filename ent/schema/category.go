@@ -14,6 +14,7 @@ type Category struct {
 func (Category) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty().MaxLen(50),
+		field.String("icon").Optional().MaxLen(50).Default("category"),
 		field.Time("created_at").Immutable().Default(timeNow),
 		field.Time("updated_at").Default(timeNow).UpdateDefault(timeNow),
 	}

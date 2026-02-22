@@ -22,6 +22,7 @@ type Currency struct {
 type TemplateRenderer struct {
 	templates      map[string]*template.Template
 	Currencies     []Currency
+	Icons          []string
 	currencyByCode map[string]Currency
 }
 
@@ -40,6 +41,17 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 	currencyByCode := make(map[string]Currency, len(currencies))
 	for _, c := range currencies {
 		currencyByCode[c.Code] = c
+	}
+
+	// Load icons from embedded JSON
+	iconData, err := fs.ReadFile(web.Content, "static/icons.json")
+	if err != nil {
+		return nil, fmt.Errorf("reading icons.json: %w", err)
+	}
+
+	var icons []string
+	if err := json.Unmarshal(iconData, &icons); err != nil {
+		return nil, fmt.Errorf("parsing icons.json: %w", err)
 	}
 
 	funcMap := template.FuncMap{
@@ -81,6 +93,13 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		"isNegative": func(d decimal.Decimal) bool {
 			return d.IsNegative()
 		},
+		"dict": func(pairs ...interface{}) map[string]interface{} {
+			m := make(map[string]interface{}, len(pairs)/2)
+			for i := 0; i+1 < len(pairs); i += 2 {
+				m[pairs[i].(string)] = pairs[i+1]
+			}
+			return m
+		},
 	}
 
 	templatesFS, err := fs.Sub(web.Content, "templates")
@@ -96,6 +115,7 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 	// Load partials (shared template fragments)
 	partials := []string{
 		"household/tabs.html",
+		"partials/icon-picker.html",
 	}
 	var partialBytes [][]byte
 	for _, p := range partials {
@@ -112,6 +132,8 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		"household_detail": "household/detail.html",
 		"household_form":   "household/form.html",
 		"category_list":    "category/list.html",
+		"category_form":    "category/form.html",
+		"household_settings": "household/settings.html",
 		"recurring_list":   "recurring/list.html",
 		"recurring_form":   "recurring/form.html",
 		"transaction_form": "transaction/form.html",
@@ -144,6 +166,7 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 	return &TemplateRenderer{
 		templates:      templates,
 		Currencies:     currencies,
+		Icons:          icons,
 		currencyByCode: currencyByCode,
 	}, nil
 }

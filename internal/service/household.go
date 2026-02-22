@@ -28,7 +28,7 @@ func NewHouseholdService(
 	}
 }
 
-func (s *HouseholdService) Create(ctx context.Context, name, currency string) (*domain.Household, error) {
+func (s *HouseholdService) Create(ctx context.Context, name, currency, icon string) (*domain.Household, error) {
 	userID, ok := UserIDFromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("%w: no authenticated user", domain.ErrForbidden)
@@ -41,9 +41,14 @@ func (s *HouseholdService) Create(ctx context.Context, name, currency string) (*
 		return nil, err
 	}
 
+	if icon == "" {
+		icon = "home"
+	}
+
 	return s.repo.Create(ctx, &domain.Household{
 		Name:     name,
 		Currency: currency,
+		Icon:     icon,
 		OwnerID:  userID,
 	})
 }
@@ -70,7 +75,7 @@ func (s *HouseholdService) List(ctx context.Context) ([]*domain.Household, error
 	return s.repo.ListByOwner(ctx, userID)
 }
 
-func (s *HouseholdService) Update(ctx context.Context, id int, name, currency string) (*domain.Household, error) {
+func (s *HouseholdService) Update(ctx context.Context, id int, name, currency, icon string) (*domain.Household, error) {
 	hh, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -89,6 +94,7 @@ func (s *HouseholdService) Update(ctx context.Context, id int, name, currency st
 
 	hh.Name = name
 	hh.Currency = currency
+	hh.Icon = icon
 	return s.repo.Update(ctx, hh)
 }
 

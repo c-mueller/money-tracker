@@ -19,7 +19,11 @@
     <tbody>
         {{range .Categories}}
         <tr>
-            <td>{{.Name}}</td>
+            <td>
+                <a href="/households/{{$.Household.ID}}/categories/{{.ID}}/edit" class="text-decoration-none text-body">
+                    <span class="material-symbols-outlined align-middle me-1">{{.Icon}}</span>{{.Name}}
+                </a>
+            </td>
             <td>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="Delete category '{{.Name}}'?" data-action="/api/v1/households/{{$.Household.ID}}/categories/{{.ID}}" data-method="DELETE">Delete</button>
             </td>

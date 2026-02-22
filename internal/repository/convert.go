@@ -22,6 +22,7 @@ func householdToDomain(h *ent.Household) *domain.Household {
 		ID:        h.ID,
 		Name:      h.Name,
 		Currency:  h.Currency,
+		Icon:      h.Icon,
 		CreatedAt: h.CreatedAt,
 		UpdatedAt: h.UpdatedAt,
 	}
@@ -35,6 +36,7 @@ func categoryToDomain(c *ent.Category) *domain.Category {
 	cat := &domain.Category{
 		ID:        c.ID,
 		Name:      c.Name,
+		Icon:      c.Icon,
 		CreatedAt: c.CreatedAt,
 		UpdatedAt: c.UpdatedAt,
 	}

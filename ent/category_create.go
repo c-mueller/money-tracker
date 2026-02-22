@@ -29,6 +29,20 @@ func (_c *CategoryCreate) SetName(v string) *CategoryCreate {
 	return _c
 }
 
+// SetIcon sets the "icon" field.
+func (_c *CategoryCreate) SetIcon(v string) *CategoryCreate {
+	_c.mutation.SetIcon(v)
+	return _c
+}
+
+// SetNillableIcon sets the "icon" field if the given value is not nil.
+func (_c *CategoryCreate) SetNillableIcon(v *string) *CategoryCreate {
+	if v != nil {
+		_c.SetIcon(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *CategoryCreate) SetCreatedAt(v time.Time) *CategoryCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -133,6 +147,10 @@ func (_c *CategoryCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *CategoryCreate) defaults() {
+	if _, ok := _c.mutation.Icon(); !ok {
+		v := category.DefaultIcon
+		_c.mutation.SetIcon(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := category.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -151,6 +169,11 @@ func (_c *CategoryCreate) check() error {
 	if v, ok := _c.mutation.Name(); ok {
 		if err := category.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Category.name": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.Icon(); ok {
+		if err := category.IconValidator(v); err != nil {
+			return &ValidationError{Name: "icon", err: fmt.Errorf(`ent: validator failed for field "Category.icon": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
@@ -191,6 +214,10 @@ func (_c *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(category.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.Icon(); ok {
+		_spec.SetField(category.FieldIcon, field.TypeString, value)
+		_node.Icon = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(category.FieldCreatedAt, field.TypeTime, value)
