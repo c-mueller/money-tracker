@@ -94,6 +94,7 @@ func NewTemplateRenderer() (*TemplateRenderer, error) {
 		"household_form":   "household/form.html",
 		"category_list":    "category/list.html",
 		"recurring_list":   "recurring/list.html",
+		"transaction_form": "transaction/form.html",
 		"token_list":       "token/list.html",
 	}
 

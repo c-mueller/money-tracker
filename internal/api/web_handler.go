@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -107,6 +108,70 @@ func (s *Server) handleWebHouseholdCreate(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusFound, "/")
+}
+
+func (s *Server) handleWebTransactionNew(c echo.Context) error {
+	ctx := c.Request().Context()
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	hh, err := s.services.Household.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	month := c.QueryParam("month")
+	if month == "" {
+		now := time.Now()
+		month = fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+	}
+
+	return c.Render(http.StatusOK, "transaction_form", pageData{
+		Title:      "New Transaction",
+		User:       s.getUserFromContext(c),
+		Household:  hh,
+		Categories: categories,
+		Month:      month,
+	})
+}
+
+func (s *Server) handleWebTransactionCreate(c echo.Context) error {
+	id, err := parseID(c, "id")
+	if err != nil {
+		return err
+	}
+
+	amount, err := domain.NewMoney(c.FormValue("amount"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+	}
+
+	categoryID, err := strconv.Atoi(c.FormValue("category_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid category")
+	}
+
+	date, err := time.Parse("2006-01-02", c.FormValue("date"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid date")
+	}
+
+	description := c.FormValue("description")
+
+	_, err = s.services.Transaction.Create(c.Request().Context(), id, categoryID, amount, description, date)
+	if err != nil {
+		return err
+	}
+
+	month := fmt.Sprintf("%d-%02d", date.Year(), date.Month())
+	return c.Redirect(http.StatusFound, fmt.Sprintf("/households/%d?month=%s", id, month))
 }
 
 func (s *Server) handleWebCategoryList(c echo.Context) error {
