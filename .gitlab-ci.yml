@@ -14,7 +14,7 @@ test:
   image: golang:1.24-alpine
   script:
     - go test ./... -count=1 -coverprofile=unit.out -covermode=atomic
-    - go test ./tests/integration/... -count=1 -tags=integration -coverprofile=integration.out -covermode=atomic
+    - go test ./tests/integration/... -count=1 -tags=integration,dev -coverprofile=integration.out -covermode=atomic
     - |
       # Merge coverage profiles
       echo "mode: atomic" > coverage.out
