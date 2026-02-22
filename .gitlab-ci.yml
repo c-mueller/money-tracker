@@ -1,0 +1,88 @@
+stages:
+  - test
+  - build
+  - docker
+
+variables:
+  GOPATH: /go
+  CGO_ENABLED: "0"
+
+# --- Test Stage ---
+
+test:
+  stage: test
+  image: golang:1.24-alpine
+  script:
+    - go test ./... -count=1 -coverprofile=unit.out -covermode=atomic
+    - go test ./tests/integration/... -count=1 -tags=integration -coverprofile=integration.out -covermode=atomic
+    - |
+      # Merge coverage profiles
+      echo "mode: atomic" > coverage.out
+      tail -n +2 unit.out >> coverage.out
+      tail -n +2 integration.out >> coverage.out
+    - go tool cover -func=coverage.out
+    - go tool cover -html=coverage.out -o coverage.html
+  coverage: '/total:\s+\(statements\)\s+(\d+\.\d+)%/'
+  artifacts:
+    paths:
+      - coverage.out
+      - coverage.html
+    expire_in: 30 days
+
+# --- Build Stage ---
+
+build:goreleaser:
+  stage: build
+  image: goreleaser/goreleaser
+  only:
+    - master
+  script:
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        goreleaser release --clean
+      else
+        goreleaser release --snapshot --clean
+      fi
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 7 days
+
+build:manual:
+  stage: build
+  image: golang:1.24-alpine
+  except:
+    - master
+  when: manual
+  script:
+    - make build
+    - make build-dev
+  artifacts:
+    paths:
+      - bin/
+    expire_in: 7 days
+
+# --- Docker Stage ---
+
+docker:
+  stage: docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  only:
+    - master
+  needs:
+    - build:goreleaser
+  script:
+    - |
+      mkdir -p /kaniko/.docker
+      echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64)\"}}}" > /kaniko/.docker/config.json
+    - |
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}" \
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE}:1.0.${CI_PIPELINE_IID}" \
+        --destination "${CI_REGISTRY_IMAGE}:latest" \
+        --build-arg "VERSION=${CI_COMMIT_TAG:-1.0.${CI_PIPELINE_IID}}" \
+        --build-arg "COMMIT=${CI_COMMIT_SHORT_SHA}" \
+        --build-arg "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)"

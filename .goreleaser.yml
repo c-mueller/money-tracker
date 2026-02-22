@@ -1,0 +1,50 @@
+version: 2
+
+builds:
+  - main: ./cmd/money-tracker
+    binary: money-tracker
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X icekalt.dev/money-tracker/internal/buildinfo.Version={{.Version}}
+      - -X icekalt.dev/money-tracker/internal/buildinfo.Commit={{.Commit}}
+      - -X icekalt.dev/money-tracker/internal/buildinfo.BuildDate={{.Date}}
+      - -X icekalt.dev/money-tracker/internal/buildinfo.GoVersion={{.Env.GOVERSION}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: amd64
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  gitlab:
+    owner: "{{ .Env.CI_PROJECT_NAMESPACE }}"
+    name: "{{ .Env.CI_PROJECT_NAME }}"
