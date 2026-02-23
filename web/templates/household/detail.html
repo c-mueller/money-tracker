@@ -49,16 +49,18 @@
             <th>{{t "description"}}</th>
             <th>{{t "category"}}</th>
             <th class="text-end">{{t "amount"}}</th>
+            <th>{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         {{range .IncomeTransactions}}
         <tr>
-            <td>{{formatDate .Date}}</td>
+            <td data-sort-value="{{formatDateISO .Date}}">{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
             <td>{{.CategoryID}}</td>
-            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td class="text-end" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td data-sort-value="{{formatDateISO .CreatedAt}}">{{formatDate .CreatedAt}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
@@ -71,7 +73,7 @@
         <tr>
             <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
             <td class="text-end"><strong class="text-success">{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</strong></td>
-            <td></td>
+            <td colspan="2"></td>
         </tr>
     </tfoot>
     {{end}}
@@ -89,16 +91,18 @@
             <th>{{t "description"}}</th>
             <th>{{t "category"}}</th>
             <th class="text-end">{{t "amount"}}</th>
+            <th>{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         {{range .ExpenseTransactions}}
         <tr>
-            <td>{{formatDate .Date}}</td>
+            <td data-sort-value="{{formatDateISO .Date}}">{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
             <td>{{.CategoryID}}</td>
-            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td class="text-end" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td data-sort-value="{{formatDateISO .CreatedAt}}">{{formatDate .CreatedAt}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
@@ -111,7 +115,7 @@
         <tr>
             <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
             <td class="text-end"><strong class="text-danger">{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</strong></td>
-            <td></td>
+            <td colspan="2"></td>
         </tr>
     </tfoot>
     {{end}}

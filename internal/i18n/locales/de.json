@@ -103,6 +103,7 @@
     "no_income_month": "Keine Einnahmen in diesem Monat.",
     "no_expenses_month": "Keine Ausgaben in diesem Monat.",
     "no_recurring_income": "Keine wiederkehrenden Einnahmen.",
-    "no_recurring_expenses": "Keine wiederkehrenden Ausgaben."
+    "no_recurring_expenses": "Keine wiederkehrenden Ausgaben.",
+    "since": "Seit"
   }
 }

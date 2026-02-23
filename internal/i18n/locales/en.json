@@ -103,6 +103,7 @@
     "no_income_month": "No income this month.",
     "no_expenses_month": "No expenses this month.",
     "no_recurring_income": "No recurring income.",
-    "no_recurring_expenses": "No recurring expenses."
+    "no_recurring_expenses": "No recurring expenses.",
+    "since": "Since"
   }
 }

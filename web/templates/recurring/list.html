@@ -15,6 +15,7 @@
             <th>{{t "name"}}</th>
             <th>{{t "amount"}}</th>
             <th>{{t "frequency"}}</th>
+            <th>{{t "since"}}</th>
             <th>{{t "active"}}</th>
             <th></th>
         </tr>
@@ -23,8 +24,9 @@
         {{range .IncomeRecurring}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td data-sort-value="{{formatDateISO .StartDate}}">{{formatDate .StartDate}}</td>
             <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/recurring/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
@@ -38,7 +40,7 @@
         <tr>
             <td class="text-end"><strong>{{t "total"}}</strong></td>
             <td><strong class="text-success">{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</strong></td>
-            <td colspan="3"></td>
+            <td colspan="4"></td>
         </tr>
     </tfoot>
     {{end}}
@@ -55,6 +57,7 @@
             <th>{{t "name"}}</th>
             <th>{{t "amount"}}</th>
             <th>{{t "frequency"}}</th>
+            <th>{{t "since"}}</th>
             <th>{{t "active"}}</th>
             <th></th>
         </tr>
@@ -63,8 +66,9 @@
         {{range .ExpenseRecurring}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td data-sort-value="{{formatDateISO .StartDate}}">{{formatDate .StartDate}}</td>
             <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/recurring/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
@@ -78,7 +82,7 @@
         <tr>
             <td class="text-end"><strong>{{t "total"}}</strong></td>
             <td><strong class="text-danger">{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</strong></td>
-            <td colspan="3"></td>
+            <td colspan="4"></td>
         </tr>
     </tfoot>
     {{end}}
