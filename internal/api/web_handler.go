@@ -354,11 +354,17 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 	now := time.Now()
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
+	summary, err := s.services.Summary.GetMonthlySummary(ctx, id, now.Year(), now.Month())
+	if err != nil {
+		return err
+	}
+
 	return c.Render(http.StatusOK, "recurring_list", pageData{
 		Title:             "recurring",
 		User:              s.getUserFromContext(c),
 		Household:         hh,
 		RecurringExpenses: expenses,
+		Summary:           summary,
 		Month:             month,
 		ActiveTab:         "recurring",
 		Lang:              string(s.getLocale(c)),
@@ -567,6 +573,11 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 	now := time.Now()
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
+	summary, err := s.services.Summary.GetMonthlySummary(ctx, id, now.Year(), now.Month())
+	if err != nil {
+		return err
+	}
+
 	section := c.QueryParam("section")
 	if section == "" {
 		section = "household"
@@ -577,6 +588,7 @@ func (s *Server) handleWebHouseholdSettings(c echo.Context) error {
 		User:          s.getUserFromContext(c),
 		Household:     hh,
 		Categories:    categories,
+		Summary:       summary,
 		Currencies:    s.renderer.Currencies,
 		Icons:         s.renderer.Icons,
 		Month:         month,

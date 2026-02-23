@@ -6,6 +6,35 @@
     </div>
 </div>
 
+{{if .Summary}}
+<div class="row mb-4 g-3">
+    <div class="col-md-4 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_income"}}</h6>
+                <h5 class="text-success">{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_expenses"}}</h6>
+                <h5 class="text-danger">{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</h5>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{t "monthly_total"}}</h6>
+                <h5>{{formatMoneyWithCurrency .Summary.MonthlyTotal .Household.Currency}}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
         <a class="nav-link {{if eq .ActiveTab "transactions"}}active{{end}}" href="/households/{{.Household.ID}}?month={{.Month}}">{{t "transactions"}}</a>
