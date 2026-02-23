@@ -39,10 +39,12 @@
     {{if .Summary.IncomeRecurringEntries}}
     <tbody>
         <tr class="table-light" data-bs-toggle="collapse" data-bs-target="#recurring-income-rows" style="cursor:pointer">
-            <td colspan="5">
+            <td colspan="3">
                 <span class="material-symbols-outlined align-middle" style="font-size:18px">expand_more</span>
                 {{t "recurring_transactions"}} ({{len .Summary.IncomeRecurringEntries}})
             </td>
+            <td class="text-end text-income"><strong>{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</strong></td>
+            <td></td>
         </tr>
     </tbody>
     <tbody id="recurring-income-rows" class="collapse">
@@ -100,10 +102,12 @@
     {{if .Summary.ExpenseRecurringEntries}}
     <tbody>
         <tr class="table-light" data-bs-toggle="collapse" data-bs-target="#recurring-expense-rows" style="cursor:pointer">
-            <td colspan="5">
+            <td colspan="3">
                 <span class="material-symbols-outlined align-middle" style="font-size:18px">expand_more</span>
                 {{t "recurring_transactions"}} ({{len .Summary.ExpenseRecurringEntries}})
             </td>
+            <td class="text-end text-expense"><strong>{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</strong></td>
+            <td></td>
         </tr>
     </tbody>
     <tbody id="recurring-expense-rows" class="collapse">
