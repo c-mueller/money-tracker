@@ -104,6 +104,8 @@
     "no_expenses_month": "Keine Ausgaben in diesem Monat.",
     "no_recurring_income": "Keine wiederkehrenden Einnahmen.",
     "no_recurring_expenses": "Keine wiederkehrenden Ausgaben.",
-    "since": "Seit"
+    "since": "Seit",
+    "recurring_payments": "Wiederkehrende Zahlungen",
+    "monthly_amount": "Monatlicher Betrag"
   }
 }

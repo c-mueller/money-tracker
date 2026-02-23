@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type MonthlySummary struct {
 	Month             string // YYYY-MM
 	HouseholdID       int
@@ -13,6 +15,7 @@ type MonthlySummary struct {
 	OneTimeExpenses   Money
 	MonthlyTotal      Money
 	CategoryBreakdown []CategorySummary
+	RecurringGroups   []RecurringFrequencyGroup
 }
 
 type CategorySummary struct {
@@ -21,4 +24,18 @@ type CategorySummary struct {
 	Recurring    Money
 	OneTime      Money
 	Total        Money
+}
+
+type RecurringFrequencyGroup struct {
+	Frequency Frequency
+	Total     Money
+	Entries   []RecurringEntry
+}
+
+type RecurringEntry struct {
+	Name          string
+	Amount        Money
+	Frequency     Frequency
+	MonthlyAmount Money
+	EffectiveDate time.Time
 }

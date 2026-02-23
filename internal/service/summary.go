@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -69,6 +70,10 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 	totalRecurring := decimal.Zero
 	recurringIncome := decimal.Zero
 	recurringExpenses := decimal.Zero
+
+	// Build frequency groups for pseudo-transactions
+	freqGroupMap := make(map[domain.Frequency]*domain.RecurringFrequencyGroup)
+
 	for _, re := range recurring {
 		if !re.IsActiveInMonth(year, month) {
 			continue
@@ -94,7 +99,36 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		} else {
 			recurringExpenses = recurringExpenses.Add(monthly)
 		}
+
+		// Add to frequency group
+		group, ok := freqGroupMap[freq]
+		if !ok {
+			group = &domain.RecurringFrequencyGroup{
+				Frequency: freq,
+				Total:     decimal.Zero,
+			}
+			freqGroupMap[freq] = group
+		}
+		group.Total = group.Total.Add(monthly)
+		group.Entries = append(group.Entries, domain.RecurringEntry{
+			Name:          re.Name,
+			Amount:        amount,
+			Frequency:     freq,
+			MonthlyAmount: monthly,
+			EffectiveDate: refMonth, // 1st of queried month (FE-006)
+		})
 	}
+
+	// Convert frequency group map to sorted slice
+	var recurringGroups []domain.RecurringFrequencyGroup
+	for _, group := range freqGroupMap {
+		if !group.Total.IsZero() {
+			recurringGroups = append(recurringGroups, *group)
+		}
+	}
+	sort.Slice(recurringGroups, func(i, j int) bool {
+		return string(recurringGroups[i].Frequency) < string(recurringGroups[j].Frequency)
+	})
 
 	totalOneTime := decimal.Zero
 	totalIncome := decimal.Zero
@@ -146,5 +180,6 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		OneTimeExpenses:   totalExpenses,
 		MonthlyTotal:      totalRecurring.Add(totalOneTime),
 		CategoryBreakdown: breakdown,
+		RecurringGroups:   recurringGroups,
 	}, nil
 }

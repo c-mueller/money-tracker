@@ -129,5 +129,51 @@
         <h4>{{formatMoneyWithCurrency .Summary.OneTimeTotal .Household.Currency}}</h4>
     </div>
 </div>
+
+{{if .Summary.RecurringGroups}}
+<h5 class="mt-4">{{t "recurring_payments"}}</h5>
+<div class="accordion mt-3" id="recurringGroups">
+    {{range $i, $group := .Summary.RecurringGroups}}
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#group-{{$i}}">
+                {{tf (printf "%s" $group.Frequency)}} &mdash; {{formatMoneyWithCurrency $group.Total $.Household.Currency}}
+            </button>
+        </h2>
+        <div id="group-{{$i}}" class="accordion-collapse collapse" data-bs-parent="#recurringGroups">
+            <div class="accordion-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{t "name"}}</th>
+                            <th class="text-end">{{t "amount"}}</th>
+                            <th class="text-end">{{t "monthly_amount"}}</th>
+                            <th>{{t "date"}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $group.Entries}}
+                        <tr>
+                            <td>{{.Name}}</td>
+                            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+                            <td class="text-end">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
+                            <td>{{formatDate .EffectiveDate}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="text-end"><strong>{{t "total"}}</strong></td>
+                            <td class="text-end"><strong>{{formatMoneyWithCurrency $group.Total $.Household.Currency}}</strong></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
 {{end}}
 {{end}}
