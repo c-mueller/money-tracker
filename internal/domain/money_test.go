@@ -19,6 +19,9 @@ func TestNewMoney(t *testing.T) {
 		{"small decimal", "0.01", "0.01", false},
 		{"invalid string", "abc", "", true},
 		{"empty string", "", "", true},
+		{"comma decimal", "12,50", "12.5", false},
+		{"comma zero", "0,01", "0.01", false},
+		{"comma large", "1234,56", "1234.56", false},
 		{"double dot", "1.2.3", "", true},
 	}
 

@@ -38,6 +38,7 @@ type pageData struct {
 	ActiveSection      string
 	Frequencies        []domain.Frequency
 	Lang               string
+	ErrorMessage       string
 }
 
 func (s *Server) getLocale(c echo.Context) i18n.Locale {
@@ -182,14 +183,17 @@ func (s *Server) handleWebTransactionNew(c echo.Context) error {
 }
 
 func (s *Server) handleWebTransactionCreate(c echo.Context) error {
+	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
 	if err != nil {
 		return err
 	}
 
+	locale := s.getLocale(c)
+
 	amount, err := domain.NewMoney(c.FormValue("amount"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+		return s.renderTransactionForm(c, id, nil, locale, s.i18nBundle.T(locale, "error_invalid_amount"))
 	}
 
 	if c.FormValue("type") == "expense" {
@@ -203,12 +207,12 @@ func (s *Server) handleWebTransactionCreate(c echo.Context) error {
 
 	date, err := time.Parse("2006-01-02", c.FormValue("date"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid date")
+		return s.renderTransactionForm(c, id, nil, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 	}
 
 	description := c.FormValue("description")
 
-	_, err = s.services.Transaction.Create(c.Request().Context(), id, categoryID, amount, description, date)
+	_, err = s.services.Transaction.Create(ctx, id, categoryID, amount, description, date)
 	if err != nil {
 		return err
 	}
@@ -258,6 +262,7 @@ func (s *Server) handleWebTransactionEdit(c echo.Context) error {
 }
 
 func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
+	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
 	if err != nil {
 		return err
@@ -268,9 +273,16 @@ func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
 		return err
 	}
 
+	locale := s.getLocale(c)
+
+	tx, err := s.services.Transaction.GetByID(ctx, txID)
+	if err != nil {
+		return err
+	}
+
 	amount, err := domain.NewMoney(c.FormValue("amount"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+		return s.renderTransactionForm(c, id, tx, locale, s.i18nBundle.T(locale, "error_invalid_amount"))
 	}
 
 	if c.FormValue("type") == "expense" {
@@ -284,12 +296,12 @@ func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
 
 	date, err := time.Parse("2006-01-02", c.FormValue("date"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid date")
+		return s.renderTransactionForm(c, id, tx, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 	}
 
 	description := c.FormValue("description")
 
-	_, err = s.services.Transaction.Update(c.Request().Context(), id, txID, categoryID, amount, description, date)
+	_, err = s.services.Transaction.Update(ctx, id, txID, categoryID, amount, description, date)
 	if err != nil {
 		return err
 	}
@@ -386,6 +398,8 @@ func (s *Server) handleWebRecurringCreate(c echo.Context) error {
 		return err
 	}
 
+	locale := s.getLocale(c)
+
 	// Handle new category creation
 	categoryID, err := s.resolveCategory(c, id)
 	if err != nil {
@@ -394,7 +408,7 @@ func (s *Server) handleWebRecurringCreate(c echo.Context) error {
 
 	amount, err := domain.NewMoney(c.FormValue("amount"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+		return s.renderRecurringForm(c, id, nil, locale, s.i18nBundle.T(locale, "error_invalid_amount"))
 	}
 
 	if c.FormValue("type") == "expense" {
@@ -405,14 +419,14 @@ func (s *Server) handleWebRecurringCreate(c echo.Context) error {
 
 	startDate, err := time.Parse("2006-01-02", c.FormValue("start_date"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid start date")
+		return s.renderRecurringForm(c, id, nil, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 	}
 
 	var endDate *time.Time
 	if ed := c.FormValue("end_date"); ed != "" {
 		t, err := time.Parse("2006-01-02", ed)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "invalid end date")
+			return s.renderRecurringForm(c, id, nil, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 		}
 		endDate = &t
 	}
@@ -473,12 +487,20 @@ func (s *Server) handleWebRecurringEdit(c echo.Context) error {
 }
 
 func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
+	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
 	if err != nil {
 		return err
 	}
 
 	recurringID, err := parseID(c, "recurringId")
+	if err != nil {
+		return err
+	}
+
+	locale := s.getLocale(c)
+
+	re, err := s.services.RecurringExpense.GetByID(ctx, recurringID)
 	if err != nil {
 		return err
 	}
@@ -490,7 +512,7 @@ func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
 
 	amount, err := domain.NewMoney(c.FormValue("amount"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+		return s.renderRecurringForm(c, id, re, locale, s.i18nBundle.T(locale, "error_invalid_amount"))
 	}
 
 	if c.FormValue("type") == "expense" {
@@ -501,14 +523,14 @@ func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
 
 	startDate, err := time.Parse("2006-01-02", c.FormValue("start_date"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid start date")
+		return s.renderRecurringForm(c, id, re, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 	}
 
 	var endDate *time.Time
 	if ed := c.FormValue("end_date"); ed != "" {
 		t, err := time.Parse("2006-01-02", ed)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "invalid end date")
+			return s.renderRecurringForm(c, id, re, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 		}
 		endDate = &t
 	}
@@ -517,7 +539,7 @@ func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
 	description := c.FormValue("description")
 	active := c.FormValue("active") == "on"
 
-	_, err = s.services.RecurringExpense.Update(c.Request().Context(), recurringID, categoryID, name, description, amount, freq, active, startDate, endDate)
+	_, err = s.services.RecurringExpense.Update(ctx, recurringID, categoryID, name, description, amount, freq, active, startDate, endDate)
 	if err != nil {
 		return err
 	}
@@ -699,6 +721,7 @@ func (s *Server) handleWebTokenCreate(c echo.Context) error {
 }
 
 func (s *Server) handleWebOverrideCreate(c echo.Context) error {
+	ctx := c.Request().Context()
 	id, err := parseID(c, "id")
 	if err != nil {
 		return err
@@ -709,9 +732,12 @@ func (s *Server) handleWebOverrideCreate(c echo.Context) error {
 		return err
 	}
 
+	locale := s.getLocale(c)
+
 	amount, err := domain.NewMoney(c.FormValue("amount"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid amount")
+		re, _ := s.services.RecurringExpense.GetByID(ctx, recurringID)
+		return s.renderRecurringForm(c, id, re, locale, s.i18nBundle.T(locale, "error_invalid_amount"))
 	}
 
 	if c.FormValue("type") == "expense" {
@@ -722,10 +748,11 @@ func (s *Server) handleWebOverrideCreate(c echo.Context) error {
 
 	effectiveDate, err := time.Parse("2006-01-02", c.FormValue("effective_date"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "invalid effective date")
+		re, _ := s.services.RecurringExpense.GetByID(ctx, recurringID)
+		return s.renderRecurringForm(c, id, re, locale, s.i18nBundle.T(locale, "error_invalid_date"))
 	}
 
-	_, err = s.services.RecurringExpense.CreateOverride(c.Request().Context(), recurringID, effectiveDate, amount, freq)
+	_, err = s.services.RecurringExpense.CreateOverride(ctx, recurringID, effectiveDate, amount, freq)
 	if err != nil {
 		return err
 	}
@@ -783,4 +810,65 @@ func (s *Server) getUserFromContext(c echo.Context) *domain.User {
 		return nil
 	}
 	return user
+}
+
+func (s *Server) renderTransactionForm(c echo.Context, householdID int, tx *domain.Transaction, locale i18n.Locale, errorMsg string) error {
+	ctx := c.Request().Context()
+	hh, err := s.services.Household.GetByID(ctx, householdID)
+	if err != nil {
+		return err
+	}
+	categories, err := s.services.Category.List(ctx, householdID)
+	if err != nil {
+		return err
+	}
+	title := "new_transaction"
+	month := c.QueryParam("month")
+	if month == "" {
+		now := time.Now()
+		month = fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+	}
+	if tx != nil {
+		title = "edit_transaction"
+		month = fmt.Sprintf("%d-%02d", tx.Date.Year(), tx.Date.Month())
+	}
+	return c.Render(http.StatusOK, "transaction_form", pageData{
+		Title:        title,
+		User:         s.getUserFromContext(c),
+		Household:    hh,
+		Transaction:  tx,
+		Categories:   categories,
+		Month:        month,
+		Lang:         string(locale),
+		ErrorMessage: errorMsg,
+	})
+}
+
+func (s *Server) renderRecurringForm(c echo.Context, householdID int, re *domain.RecurringExpense, locale i18n.Locale, errorMsg string) error {
+	ctx := c.Request().Context()
+	hh, err := s.services.Household.GetByID(ctx, householdID)
+	if err != nil {
+		return err
+	}
+	categories, err := s.services.Category.List(ctx, householdID)
+	if err != nil {
+		return err
+	}
+	title := "new_recurring"
+	var overrides []*domain.RecurringScheduleOverride
+	if re != nil {
+		title = "edit_recurring"
+		overrides, _ = s.services.RecurringExpense.ListOverrides(ctx, re.ID)
+	}
+	return c.Render(http.StatusOK, "recurring_form", pageData{
+		Title:             title,
+		User:              s.getUserFromContext(c),
+		Household:         hh,
+		RecurringExpense:  re,
+		Categories:        categories,
+		ScheduleOverrides: overrides,
+		Frequencies:       domain.AllFrequencies(),
+		Lang:              string(locale),
+		ErrorMessage:      errorMsg,
+	})
 }

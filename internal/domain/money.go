@@ -1,10 +1,15 @@
 package domain
 
-import "github.com/shopspring/decimal"
+import (
+	"strings"
+
+	"github.com/shopspring/decimal"
+)
 
 type Money = decimal.Decimal
 
 func NewMoney(value string) (Money, error) {
+	value = strings.Replace(value, ",", ".", 1)
 	return decimal.NewFromString(value)
 }
 

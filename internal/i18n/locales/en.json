@@ -95,6 +95,8 @@
     "monthly_total": "Monthly Total",
     "schedule_overrides": "Schedule Overrides",
     "schedule_overrides_help": "Override the amount and frequency for specific time periods.",
-    "effective_date": "Effective Date"
+    "effective_date": "Effective Date",
+    "error_invalid_amount": "Invalid amount. Please enter a valid number (e.g. 12.50 or 12,50).",
+    "error_invalid_date": "Invalid date. Please enter a valid date (YYYY-MM-DD)."
   }
 }

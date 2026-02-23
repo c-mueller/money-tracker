@@ -45,6 +45,7 @@
     </nav>
 
     <div class="container mt-4">
+        {{if .ErrorMessage}}<div class="alert alert-danger alert-dismissible fade show" role="alert">{{.ErrorMessage}}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{{end}}
         {{template "content" .}}
     </div>
 

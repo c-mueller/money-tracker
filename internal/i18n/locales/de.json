@@ -95,6 +95,8 @@
     "monthly_total": "Monatliches Gesamtergebnis",
     "schedule_overrides": "Zeitplan-Anpassungen",
     "schedule_overrides_help": "Betrag und Frequenz für bestimmte Zeiträume überschreiben.",
-    "effective_date": "Gültig ab"
+    "effective_date": "Gültig ab",
+    "error_invalid_amount": "Ungültiger Betrag. Bitte geben Sie eine gültige Zahl ein (z.B. 12.50 oder 12,50).",
+    "error_invalid_date": "Ungültiges Datum. Bitte geben Sie ein gültiges Datum ein (JJJJ-MM-TT)."
   }
 }
