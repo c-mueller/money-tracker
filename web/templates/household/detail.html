@@ -38,8 +38,9 @@
     <a href="/households/{{.Household.ID}}/transactions/new?month={{.Month}}" class="btn btn-sm btn-primary">{{t "add_transaction"}}</a>
 </div>
 
-{{if not .Transactions}}
-<p class="text-muted">{{t "no_transactions_month"}}</p>
+<h5 class="text-success">{{t "income"}}</h5>
+{{if not .IncomeTransactions}}
+<p class="text-muted">{{t "no_income_month"}}</p>
 {{else}}
 <table class="table table-hover">
     <thead>
@@ -52,7 +53,7 @@
         </tr>
     </thead>
     <tbody>
-        {{range .Transactions}}
+        {{range .IncomeTransactions}}
         <tr>
             <td>{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
@@ -65,6 +66,64 @@
         </tr>
         {{end}}
     </tbody>
+    {{if .Summary}}
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
+            <td class="text-end"><strong class="text-success">{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</strong></td>
+            <td></td>
+        </tr>
+    </tfoot>
+    {{end}}
 </table>
+{{end}}
+
+<h5 class="text-danger mt-4">{{t "expense"}}</h5>
+{{if not .ExpenseTransactions}}
+<p class="text-muted">{{t "no_expenses_month"}}</p>
+{{else}}
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>{{t "date"}}</th>
+            <th>{{t "description"}}</th>
+            <th>{{t "category"}}</th>
+            <th class="text-end">{{t "amount"}}</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .ExpenseTransactions}}
+        <tr>
+            <td>{{formatDate .Date}}</td>
+            <td>{{.Description}}</td>
+            <td>{{.CategoryID}}</td>
+            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
+            <td class="text-end text-nowrap">
+                <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
+                <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+    {{if .Summary}}
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
+            <td class="text-end"><strong class="text-danger">{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</strong></td>
+            <td></td>
+        </tr>
+    </tfoot>
+    {{end}}
+</table>
+{{end}}
+
+{{if .Summary}}
+<div class="card mt-4">
+    <div class="card-body text-center">
+        <h6 class="card-subtitle mb-2 text-muted">{{t "result"}}</h6>
+        <h4>{{formatMoneyWithCurrency .Summary.OneTimeTotal .Household.Currency}}</h4>
+    </div>
+</div>
 {{end}}
 {{end}}

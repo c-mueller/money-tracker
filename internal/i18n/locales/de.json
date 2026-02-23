@@ -97,6 +97,12 @@
     "schedule_overrides_help": "Betrag und Frequenz für bestimmte Zeiträume überschreiben.",
     "effective_date": "Gültig ab",
     "error_invalid_amount": "Ungültiger Betrag. Bitte geben Sie eine gültige Zahl ein (z.B. 12.50 oder 12,50).",
-    "error_invalid_date": "Ungültiges Datum. Bitte geben Sie ein gültiges Datum ein (JJJJ-MM-TT)."
+    "error_invalid_date": "Ungültiges Datum. Bitte geben Sie ein gültiges Datum ein (JJJJ-MM-TT).",
+    "total": "Summe",
+    "result": "Ergebnis",
+    "no_income_month": "Keine Einnahmen in diesem Monat.",
+    "no_expenses_month": "Keine Ausgaben in diesem Monat.",
+    "no_recurring_income": "Keine wiederkehrenden Einnahmen.",
+    "no_recurring_expenses": "Keine wiederkehrenden Ausgaben."
   }
 }

@@ -97,6 +97,12 @@
     "schedule_overrides_help": "Override the amount and frequency for specific time periods.",
     "effective_date": "Effective Date",
     "error_invalid_amount": "Invalid amount. Please enter a valid number (e.g. 12.50 or 12,50).",
-    "error_invalid_date": "Invalid date. Please enter a valid date (YYYY-MM-DD)."
+    "error_invalid_date": "Invalid date. Please enter a valid date (YYYY-MM-DD).",
+    "total": "Total",
+    "result": "Result",
+    "no_income_month": "No income this month.",
+    "no_expenses_month": "No expenses this month.",
+    "no_recurring_income": "No recurring income.",
+    "no_recurring_expenses": "No recurring expenses."
   }
 }

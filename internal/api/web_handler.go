@@ -22,7 +22,11 @@ type pageData struct {
 	Categories         []*domain.Category
 	Transactions       []*domain.Transaction
 	Transaction        *domain.Transaction
+	IncomeTransactions []*domain.Transaction
+	ExpenseTransactions []*domain.Transaction
 	RecurringExpenses  []*domain.RecurringExpense
+	IncomeRecurring    []*domain.RecurringExpense
+	ExpenseRecurring   []*domain.RecurringExpense
 	RecurringExpense   *domain.RecurringExpense
 	ScheduleOverrides  []*domain.RecurringScheduleOverride
 	Summary            *domain.MonthlySummary
@@ -102,22 +106,33 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 		return err
 	}
 
+	var incomeTx, expenseTx []*domain.Transaction
+	for _, tx := range transactions {
+		if tx.Amount.IsPositive() {
+			incomeTx = append(incomeTx, tx)
+		} else {
+			expenseTx = append(expenseTx, tx)
+		}
+	}
+
 	summary, err := s.services.Summary.GetMonthlySummary(ctx, id, year, month)
 	if err != nil {
 		return err
 	}
 
 	return c.Render(http.StatusOK, "household_detail", pageData{
-		Title:        hh.Name,
-		User:         s.getUserFromContext(c),
-		Household:    hh,
-		Transactions: transactions,
-		Summary:      summary,
-		Month:        monthStr,
-		PrevMonth:    fmt.Sprintf("%d-%02d", prev.Year(), prev.Month()),
-		NextMonth:    fmt.Sprintf("%d-%02d", next.Year(), next.Month()),
-		ActiveTab:    "transactions",
-		Lang:         string(s.getLocale(c)),
+		Title:               hh.Name,
+		User:                s.getUserFromContext(c),
+		Household:           hh,
+		Transactions:        transactions,
+		IncomeTransactions:  incomeTx,
+		ExpenseTransactions: expenseTx,
+		Summary:             summary,
+		Month:               monthStr,
+		PrevMonth:           fmt.Sprintf("%d-%02d", prev.Year(), prev.Month()),
+		NextMonth:           fmt.Sprintf("%d-%02d", next.Year(), next.Month()),
+		ActiveTab:           "transactions",
+		Lang:                string(s.getLocale(c)),
 	})
 }
 
@@ -351,6 +366,15 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 		return err
 	}
 
+	var incomeRec, expenseRec []*domain.RecurringExpense
+	for _, re := range expenses {
+		if re.Amount.IsPositive() {
+			incomeRec = append(incomeRec, re)
+		} else {
+			expenseRec = append(expenseRec, re)
+		}
+	}
+
 	now := time.Now()
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
 
@@ -364,6 +388,8 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 		User:              s.getUserFromContext(c),
 		Household:         hh,
 		RecurringExpenses: expenses,
+		IncomeRecurring:   incomeRec,
+		ExpenseRecurring:  expenseRec,
 		Summary:           summary,
 		Month:             month,
 		ActiveTab:         "recurring",
