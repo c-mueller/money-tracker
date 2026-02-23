@@ -30,6 +30,21 @@ type RecurringScheduleOverride struct {
 	UpdatedAt          time.Time
 }
 
+// IsActiveInMonth returns true if this recurring expense is active during the given month.
+// Returns false if StartDate is after end of month, or EndDate is before start of month.
+func (re *RecurringExpense) IsActiveInMonth(year int, month time.Month) bool {
+	startOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	endOfMonth := time.Date(year, month+1, 0, 23, 59, 59, 0, time.UTC)
+
+	if re.StartDate.After(endOfMonth) {
+		return false
+	}
+	if re.EndDate != nil && re.EndDate.Before(startOfMonth) {
+		return false
+	}
+	return true
+}
+
 // EffectiveSchedule returns the amount and frequency in effect for a given month,
 // considering any schedule overrides. Overrides are sorted by effective_date ascending.
 // The latest override where effective_date <= last day of queried month is used.

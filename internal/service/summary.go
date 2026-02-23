@@ -70,6 +70,9 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 	recurringIncome := decimal.Zero
 	recurringExpenses := decimal.Zero
 	for _, re := range recurring {
+		if !re.IsActiveInMonth(year, month) {
+			continue
+		}
 		// Check for schedule overrides
 		amount := re.Amount
 		freq := re.Frequency

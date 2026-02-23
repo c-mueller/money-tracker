@@ -178,6 +178,62 @@ func TestGetMonthlySummary(t *testing.T) {
 		}
 	})
 
+	t.Run("recurring not started yet excluded", func(t *testing.T) {
+		hhF, _ := svc.Household.Create(ctx, "Summary Test Future", "", "EUR", "")
+		catF, _ := svc.Category.Create(ctx, hhF.ID, "Future", "")
+
+		recurAmount, _ := domain.NewMoney("-500.00")
+		// Recurring starts in March 2026
+		svc.RecurringExpense.Create(ctx, hhF.ID, catF.ID, "Future Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC), nil)
+
+		// January summary should not include it
+		summary, err := svc.Summary.GetMonthlySummary(ctx, hhF.ID, 2026, time.January)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !summary.RecurringTotal.IsZero() {
+			t.Errorf("RecurringTotal = %s, want 0 (recurring not yet started)", summary.RecurringTotal.String())
+		}
+
+		// March summary should include it
+		summaryMar, err := svc.Summary.GetMonthlySummary(ctx, hhF.ID, 2026, time.March)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		wantMar, _ := domain.NewMoney("-500")
+		if !summaryMar.RecurringTotal.Equal(wantMar) {
+			t.Errorf("RecurringTotal = %s, want %s", summaryMar.RecurringTotal.String(), wantMar.String())
+		}
+	})
+
+	t.Run("recurring already ended excluded", func(t *testing.T) {
+		hhE, _ := svc.Household.Create(ctx, "Summary Test Ended", "", "EUR", "")
+		catE, _ := svc.Category.Create(ctx, hhE.ID, "Ended", "")
+
+		recurAmount, _ := domain.NewMoney("-300.00")
+		endDate := time.Date(2026, 2, 28, 0, 0, 0, 0, time.UTC)
+		svc.RecurringExpense.Create(ctx, hhE.ID, catE.ID, "Old Sub", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+
+		// February should include it
+		summaryFeb, err := svc.Summary.GetMonthlySummary(ctx, hhE.ID, 2026, time.February)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		wantFeb, _ := domain.NewMoney("-300")
+		if !summaryFeb.RecurringTotal.Equal(wantFeb) {
+			t.Errorf("RecurringTotal = %s, want %s", summaryFeb.RecurringTotal.String(), wantFeb.String())
+		}
+
+		// March should exclude it
+		summaryMar, err := svc.Summary.GetMonthlySummary(ctx, hhE.ID, 2026, time.March)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !summaryMar.RecurringTotal.IsZero() {
+			t.Errorf("RecurringTotal = %s, want 0 (recurring already ended)", summaryMar.RecurringTotal.String())
+		}
+	})
+
 	t.Run("category breakdown", func(t *testing.T) {
 		hh4, _ := svc.Household.Create(ctx, "Summary Test 4", "", "EUR", "")
 		catA, _ := svc.Category.Create(ctx, hh4.ID, "Food", "")

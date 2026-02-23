@@ -5,6 +5,79 @@ import (
 	"time"
 )
 
+func TestIsActiveInMonth(t *testing.T) {
+	tests := []struct {
+		name      string
+		startDate time.Time
+		endDate   *time.Time
+		year      int
+		month     time.Month
+		want      bool
+	}{
+		{
+			name:      "active - started before month",
+			startDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			year:      2026, month: time.March,
+			want: true,
+		},
+		{
+			name:      "active - started same month",
+			startDate: time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC),
+			year:      2026, month: time.March,
+			want: true,
+		},
+		{
+			name:      "inactive - not started yet",
+			startDate: time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC),
+			year:      2026, month: time.March,
+			want: false,
+		},
+		{
+			name:      "active - no end date",
+			startDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			year:      2026, month: time.December,
+			want: true,
+		},
+		{
+			name:      "inactive - ended before month",
+			startDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			endDate:   timePtr(time.Date(2026, 2, 28, 0, 0, 0, 0, time.UTC)),
+			year:      2026, month: time.March,
+			want: false,
+		},
+		{
+			name:      "active - ends during month",
+			startDate: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
+			endDate:   timePtr(time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC)),
+			year:      2026, month: time.March,
+			want: true,
+		},
+		{
+			name:      "active - starts on last day of month",
+			startDate: time.Date(2026, 3, 31, 0, 0, 0, 0, time.UTC),
+			year:      2026, month: time.March,
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			re := &RecurringExpense{
+				StartDate: tt.startDate,
+				EndDate:   tt.endDate,
+			}
+			got := re.IsActiveInMonth(tt.year, tt.month)
+			if got != tt.want {
+				t.Errorf("IsActiveInMonth(%d, %s) = %v, want %v", tt.year, tt.month, got, tt.want)
+			}
+		})
+	}
+}
+
+func timePtr(t time.Time) *time.Time {
+	return &t
+}
+
 func TestEffectiveSchedule(t *testing.T) {
 	baseAmount, _ := NewMoney("-800.00")
 	baseFreq := FrequencyMonthly
