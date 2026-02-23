@@ -38,6 +38,7 @@ type RecurringFrequencyGroup struct {
 
 type RecurringEntry struct {
 	Name          string
+	CategoryID    int
 	Amount        Money
 	Frequency     Frequency
 	MonthlyAmount Money

@@ -112,6 +112,7 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		group.Total = group.Total.Add(monthly)
 		group.Entries = append(group.Entries, domain.RecurringEntry{
 			Name:          re.Name,
+			CategoryID:    re.CategoryID,
 			Amount:        amount,
 			Frequency:     freq,
 			MonthlyAmount: monthly,

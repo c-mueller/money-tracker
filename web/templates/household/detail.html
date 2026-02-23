@@ -52,7 +52,7 @@
         <tr class="table-light">
             <td>{{tf (printf "%s" .Frequency)}}</td>
             <td>{{.Name}}</td>
-            <td></td>
+            <td>{{index $.CategoryMap .CategoryID}}</td>
             <td class="text-end text-income">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
             <td></td>
         </tr>
@@ -115,7 +115,7 @@
         <tr class="table-light">
             <td>{{tf (printf "%s" .Frequency)}}</td>
             <td>{{.Name}}</td>
-            <td></td>
+            <td>{{index $.CategoryMap .CategoryID}}</td>
             <td class="text-end text-expense">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
             <td></td>
         </tr>
