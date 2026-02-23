@@ -42,14 +42,14 @@
 {{if not .IncomeTransactions}}
 <p class="text-muted">{{t "no_income_month"}}</p>
 {{else}}
-<table class="table table-hover">
+<table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th>{{t "date"}}</th>
-            <th>{{t "description"}}</th>
-            <th>{{t "category"}}</th>
-            <th class="text-end">{{t "amount"}}</th>
-            <th>{{t "since"}}</th>
+            <th data-sort-type="date">{{t "date"}}</th>
+            <th data-sort-type="text">{{t "description"}}</th>
+            <th data-sort-type="text">{{t "category"}}</th>
+            <th class="text-end" data-sort-type="number">{{t "amount"}}</th>
+            <th data-sort-type="date">{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -84,14 +84,14 @@
 {{if not .ExpenseTransactions}}
 <p class="text-muted">{{t "no_expenses_month"}}</p>
 {{else}}
-<table class="table table-hover">
+<table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th>{{t "date"}}</th>
-            <th>{{t "description"}}</th>
-            <th>{{t "category"}}</th>
-            <th class="text-end">{{t "amount"}}</th>
-            <th>{{t "since"}}</th>
+            <th data-sort-type="date">{{t "date"}}</th>
+            <th data-sort-type="text">{{t "description"}}</th>
+            <th data-sort-type="text">{{t "category"}}</th>
+            <th class="text-end" data-sort-type="number">{{t "amount"}}</th>
+            <th data-sort-type="date">{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>

@@ -9,3 +9,28 @@ body {
 .table th {
     border-top: none;
 }
+
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 1.2em;
+}
+
+th.sortable::after {
+    content: "\2195";
+    position: absolute;
+    right: 0.3em;
+    opacity: 0.3;
+    font-size: 0.85em;
+}
+
+th.sortable.sort-asc::after {
+    content: "\2191";
+    opacity: 0.8;
+}
+
+th.sortable.sort-desc::after {
+    content: "\2193";
+    opacity: 0.8;
+}

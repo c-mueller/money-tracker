@@ -41,4 +41,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Sortable tables
+    document.querySelectorAll('table[data-sortable]').forEach(function(table) {
+        var headers = table.querySelectorAll('th[data-sort-type]');
+        headers.forEach(function(th, colIndex) {
+            th.classList.add('sortable');
+            th.addEventListener('click', function() {
+                var tbody = table.querySelector('tbody');
+                if (!tbody) return;
+
+                var rows = Array.from(tbody.querySelectorAll('tr'));
+                var sortType = th.dataset.sortType;
+                var asc = !th.classList.contains('sort-asc');
+
+                // Reset all headers in this table
+                headers.forEach(function(h) {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+                th.classList.add(asc ? 'sort-asc' : 'sort-desc');
+
+                // Find column index relative to all th in the row
+                var allThs = Array.from(th.parentElement.children);
+                var ci = allThs.indexOf(th);
+
+                rows.sort(function(a, b) {
+                    var cellA = a.children[ci];
+                    var cellB = b.children[ci];
+                    if (!cellA || !cellB) return 0;
+
+                    var valA = cellA.dataset.sortValue || cellA.textContent.trim();
+                    var valB = cellB.dataset.sortValue || cellB.textContent.trim();
+
+                    var cmp = 0;
+                    if (sortType === 'number') {
+                        cmp = (parseFloat(valA) || 0) - (parseFloat(valB) || 0);
+                    } else if (sortType === 'date') {
+                        cmp = valA.localeCompare(valB);
+                    } else {
+                        cmp = valA.localeCompare(valB, undefined, { sensitivity: 'base' });
+                    }
+
+                    return asc ? cmp : -cmp;
+                });
+
+                rows.forEach(function(row) {
+                    tbody.appendChild(row);
+                });
+            });
+        });
+    });
 });

@@ -9,14 +9,14 @@
 {{if not .IncomeRecurring}}
 <p class="text-muted">{{t "no_recurring_income"}}</p>
 {{else}}
-<table class="table table-hover">
+<table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th>{{t "name"}}</th>
-            <th>{{t "amount"}}</th>
-            <th>{{t "frequency"}}</th>
-            <th>{{t "since"}}</th>
-            <th>{{t "active"}}</th>
+            <th data-sort-type="text">{{t "name"}}</th>
+            <th data-sort-type="number">{{t "amount"}}</th>
+            <th data-sort-type="text">{{t "frequency"}}</th>
+            <th data-sort-type="date">{{t "since"}}</th>
+            <th data-sort-type="text">{{t "active"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -51,14 +51,14 @@
 {{if not .ExpenseRecurring}}
 <p class="text-muted">{{t "no_recurring_expenses"}}</p>
 {{else}}
-<table class="table table-hover">
+<table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th>{{t "name"}}</th>
-            <th>{{t "amount"}}</th>
-            <th>{{t "frequency"}}</th>
-            <th>{{t "since"}}</th>
-            <th>{{t "active"}}</th>
+            <th data-sort-type="text">{{t "name"}}</th>
+            <th data-sort-type="number">{{t "amount"}}</th>
+            <th data-sort-type="text">{{t "frequency"}}</th>
+            <th data-sort-type="date">{{t "since"}}</th>
+            <th data-sort-type="text">{{t "active"}}</th>
             <th></th>
         </tr>
     </thead>
