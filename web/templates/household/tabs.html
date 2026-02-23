@@ -1,34 +1,49 @@
 {{define "household_header"}}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1><span class="material-symbols-outlined align-middle">{{.Household.Icon}}</span> {{.Household.Name}}</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <h1 class="mb-0"><span class="material-symbols-outlined align-middle">{{.Household.Icon}}</span> {{.Household.Name}}</h1>
         <span class="badge bg-secondary">{{.Household.Currency}}</span>
     </div>
+    {{if and .Month (eq .ActiveTab "transactions")}}
+    <div class="d-flex align-items-center gap-2">
+        <a href="?month={{.PrevMonth}}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
+        <strong>{{.Month}}</strong>
+        <a href="?month={{.NextMonth}}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
+    </div>
+    {{end}}
 </div>
 
 {{if .Summary}}
 <div class="row mb-4 g-3">
-    <div class="col-md-4 col-lg-4">
-        <div class="card text-center h-100">
+    <div class="col-md-4">
+        <div class="card text-center h-100 summary-card" tabindex="0">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_income"}}</h6>
-                <h5 class="text-success">{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "gross_income"}}</h6>
+                <h5 class="text-income">{{formatMoneyWithCurrency .Summary.GrossIncome .Household.Currency}}</h5>
+            </div>
+            <div class="summary-tooltip">
+                <div class="d-flex justify-content-between"><span>{{t "one_time_income"}}</span><span>{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</span></div>
+                <div class="d-flex justify-content-between"><span>{{t "recurring_income"}}</span><span>{{formatMoneyWithCurrency .Summary.RecurringIncome .Household.Currency}}</span></div>
             </div>
         </div>
     </div>
-    <div class="col-md-4 col-lg-4">
-        <div class="card text-center h-100">
+    <div class="col-md-4">
+        <div class="card text-center h-100 summary-card" tabindex="0">
             <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "recurring_expenses"}}</h6>
-                <h5 class="text-danger">{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{t "gross_expenses"}}</h6>
+                <h5 class="text-expense">{{formatMoneyWithCurrency .Summary.GrossExpenses .Household.Currency}}</h5>
+            </div>
+            <div class="summary-tooltip">
+                <div class="d-flex justify-content-between"><span>{{t "one_time_expenses"}}</span><span>{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</span></div>
+                <div class="d-flex justify-content-between"><span>{{t "recurring_expenses"}}</span><span>{{formatMoneyWithCurrency .Summary.RecurringExpenses .Household.Currency}}</span></div>
             </div>
         </div>
     </div>
-    <div class="col-md-4 col-lg-4">
+    <div class="col-md-4">
         <div class="card text-center h-100">
             <div class="card-body">
                 <h6 class="card-subtitle mb-2 text-muted">{{t "monthly_total"}}</h6>
-                <h5>{{formatMoneyWithCurrency .Summary.MonthlyTotal .Household.Currency}}</h5>
+                <h5 class="{{if .Summary.MonthlyTotal.IsNegative}}text-expense{{else}}text-income{{end}}">{{formatMoneyWithCurrency .Summary.MonthlyTotal .Household.Currency}}</h5>
             </div>
         </div>
     </div>

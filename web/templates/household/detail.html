@@ -1,55 +1,24 @@
 {{define "content"}}
 {{template "household_header" .}}
 
-<div class="row mb-4 g-3">
-    <div class="col-md-4 col-lg-3">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "month"}}</h6>
-                <div class="d-flex justify-content-center align-items-center gap-2">
-                    <a href="?month={{.PrevMonth}}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
-                    <strong>{{.Month}}</strong>
-                    <a href="?month={{.NextMonth}}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {{if .Summary}}
-    <div class="col-md-4 col-lg-3">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time_income"}}</h6>
-                <h5 class="text-success">{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</h5>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4 col-lg-3">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-2 text-muted">{{t "one_time_expenses"}}</h6>
-                <h5 class="text-danger">{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</h5>
-            </div>
-        </div>
-    </div>
-    {{end}}
-</div>
-
 <div class="mb-3">
     <a href="/households/{{.Household.ID}}/transactions/new?month={{.Month}}" class="btn btn-sm btn-primary">{{t "add_transaction"}}</a>
 </div>
 
-<h5 class="text-success">{{t "income"}}</h5>
-{{if not .IncomeTransactions}}
+{{if .Summary}}
+{{/* ===== INCOME SECTION ===== */}}
+<h5 class="text-income">{{t "income"}}</h5>
+
+{{if and (not .IncomeTransactions) (not .Summary.IncomeRecurringEntries)}}
 <p class="text-muted">{{t "no_income_month"}}</p>
 {{else}}
 <table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th data-sort-type="date">{{t "date"}}</th>
+            <th data-sort-type="date">{{t "date_interval"}}</th>
             <th data-sort-type="text">{{t "description"}}</th>
             <th data-sort-type="text">{{t "category"}}</th>
             <th class="text-end" data-sort-type="number">{{t "amount"}}</th>
-            <th data-sort-type="date">{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -58,9 +27,8 @@
         <tr>
             <td data-sort-value="{{formatDateISO .Date}}">{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
-            <td>{{.CategoryID}}</td>
-            <td class="text-end" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
-            <td data-sort-value="{{formatDateISO .CreatedAt}}">{{formatDate .CreatedAt}}</td>
+            <td>{{index $.CategoryMap .CategoryID}}</td>
+            <td class="text-end text-income" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
@@ -68,30 +36,50 @@
         </tr>
         {{end}}
     </tbody>
-    {{if .Summary}}
+    {{if .Summary.IncomeRecurringEntries}}
+    <tbody>
+        <tr class="table-light" data-bs-toggle="collapse" data-bs-target="#recurring-income-rows" style="cursor:pointer">
+            <td colspan="5">
+                <span class="material-symbols-outlined align-middle" style="font-size:18px">expand_more</span>
+                {{t "recurring_transactions"}} ({{len .Summary.IncomeRecurringEntries}})
+            </td>
+        </tr>
+    </tbody>
+    <tbody id="recurring-income-rows" class="collapse">
+        {{range .Summary.IncomeRecurringEntries}}
+        <tr class="table-light">
+            <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td>{{.Name}}</td>
+            <td></td>
+            <td class="text-end text-income">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
+            <td></td>
+        </tr>
+        {{end}}
+    </tbody>
+    {{end}}
     <tfoot>
         <tr>
-            <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
-            <td class="text-end"><strong class="text-success">{{formatMoneyWithCurrency .Summary.OneTimeIncome .Household.Currency}}</strong></td>
-            <td colspan="2"></td>
+            <td colspan="3" class="text-end"><strong>{{t "subtotal_income"}}</strong></td>
+            <td class="text-end"><strong class="text-income">{{formatMoneyWithCurrency .Summary.GrossIncome .Household.Currency}}</strong></td>
+            <td></td>
         </tr>
     </tfoot>
-    {{end}}
 </table>
 {{end}}
 
-<h5 class="text-danger mt-4">{{t "expense"}}</h5>
-{{if not .ExpenseTransactions}}
+{{/* ===== EXPENSES SECTION ===== */}}
+<h5 class="text-expense mt-4">{{t "expense"}}</h5>
+
+{{if and (not .ExpenseTransactions) (not .Summary.ExpenseRecurringEntries)}}
 <p class="text-muted">{{t "no_expenses_month"}}</p>
 {{else}}
 <table class="table table-hover" data-sortable>
     <thead>
         <tr>
-            <th data-sort-type="date">{{t "date"}}</th>
+            <th data-sort-type="date">{{t "date_interval"}}</th>
             <th data-sort-type="text">{{t "description"}}</th>
             <th data-sort-type="text">{{t "category"}}</th>
             <th class="text-end" data-sort-type="number">{{t "amount"}}</th>
-            <th data-sort-type="date">{{t "since"}}</th>
             <th></th>
         </tr>
     </thead>
@@ -100,9 +88,8 @@
         <tr>
             <td data-sort-value="{{formatDateISO .Date}}">{{formatDate .Date}}</td>
             <td>{{.Description}}</td>
-            <td>{{.CategoryID}}</td>
-            <td class="text-end" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
-            <td data-sort-value="{{formatDateISO .CreatedAt}}">{{formatDate .CreatedAt}}</td>
+            <td>{{index $.CategoryMap .CategoryID}}</td>
+            <td class="text-end text-expense" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
             <td class="text-end text-nowrap">
                 <a href="/households/{{$.Household.ID}}/transactions/{{.ID}}/edit" class="btn btn-sm btn-outline-secondary" title="{{t "edit"}}"><span class="material-symbols-outlined" style="font-size:18px">edit</span></a>
                 <button class="btn btn-sm btn-outline-danger" data-confirm="{{t "delete_transaction_confirm"}}" data-action="/api/v1/households/{{$.Household.ID}}/transactions/{{.ID}}" data-method="DELETE" title="{{t "delete"}}"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
@@ -110,70 +97,43 @@
         </tr>
         {{end}}
     </tbody>
-    {{if .Summary}}
+    {{if .Summary.ExpenseRecurringEntries}}
+    <tbody>
+        <tr class="table-light" data-bs-toggle="collapse" data-bs-target="#recurring-expense-rows" style="cursor:pointer">
+            <td colspan="5">
+                <span class="material-symbols-outlined align-middle" style="font-size:18px">expand_more</span>
+                {{t "recurring_transactions"}} ({{len .Summary.ExpenseRecurringEntries}})
+            </td>
+        </tr>
+    </tbody>
+    <tbody id="recurring-expense-rows" class="collapse">
+        {{range .Summary.ExpenseRecurringEntries}}
+        <tr class="table-light">
+            <td>{{tf (printf "%s" .Frequency)}}</td>
+            <td>{{.Name}}</td>
+            <td></td>
+            <td class="text-end text-expense">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
+            <td></td>
+        </tr>
+        {{end}}
+    </tbody>
+    {{end}}
     <tfoot>
         <tr>
-            <td colspan="3" class="text-end"><strong>{{t "total"}}</strong></td>
-            <td class="text-end"><strong class="text-danger">{{formatMoneyWithCurrency .Summary.OneTimeExpenses .Household.Currency}}</strong></td>
-            <td colspan="2"></td>
+            <td colspan="3" class="text-end"><strong>{{t "subtotal_expenses"}}</strong></td>
+            <td class="text-end"><strong class="text-expense">{{formatMoneyWithCurrency .Summary.GrossExpenses .Household.Currency}}</strong></td>
+            <td></td>
         </tr>
     </tfoot>
-    {{end}}
 </table>
 {{end}}
 
-{{if .Summary}}
+{{/* ===== RESULT ===== */}}
 <div class="card mt-4">
     <div class="card-body text-center">
-        <h6 class="card-subtitle mb-2 text-muted">{{t "result"}}</h6>
-        <h4>{{formatMoneyWithCurrency .Summary.OneTimeTotal .Household.Currency}}</h4>
+        <h6 class="card-subtitle mb-2 text-muted">{{t "total_result"}}</h6>
+        <h4 class="{{if .Summary.MonthlyTotal.IsNegative}}text-expense{{else}}text-income{{end}}">{{formatMoneyWithCurrency .Summary.MonthlyTotal .Household.Currency}}</h4>
     </div>
 </div>
-
-{{if .Summary.RecurringGroups}}
-<h5 class="mt-4">{{t "recurring_payments"}}</h5>
-<div class="accordion mt-3" id="recurringGroups">
-    {{range $i, $group := .Summary.RecurringGroups}}
-    <div class="accordion-item">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#group-{{$i}}">
-                {{tf (printf "%s" $group.Frequency)}} &mdash; {{formatMoneyWithCurrency $group.Total $.Household.Currency}}
-            </button>
-        </h2>
-        <div id="group-{{$i}}" class="accordion-collapse collapse" data-bs-parent="#recurringGroups">
-            <div class="accordion-body p-0">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th>{{t "name"}}</th>
-                            <th class="text-end">{{t "amount"}}</th>
-                            <th class="text-end">{{t "monthly_amount"}}</th>
-                            <th>{{t "date"}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $group.Entries}}
-                        <tr>
-                            <td>{{.Name}}</td>
-                            <td class="text-end">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
-                            <td class="text-end">{{formatMoneyWithCurrency .MonthlyAmount $.Household.Currency}}</td>
-                            <td>{{formatDate .EffectiveDate}}</td>
-                        </tr>
-                        {{end}}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" class="text-end"><strong>{{t "total"}}</strong></td>
-                            <td class="text-end"><strong>{{formatMoneyWithCurrency $group.Total $.Household.Currency}}</strong></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-    {{end}}
-</div>
-{{end}}
 {{end}}
 {{end}}

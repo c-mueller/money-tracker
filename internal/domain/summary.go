@@ -5,17 +5,21 @@ import "time"
 type MonthlySummary struct {
 	Month             string // YYYY-MM
 	HouseholdID       int
-	TotalIncome       Money
-	TotalExpenses     Money
+	TotalIncome       Money // one-time income
+	TotalExpenses     Money // one-time expenses
 	RecurringTotal    Money
 	RecurringIncome   Money
 	RecurringExpenses Money
 	OneTimeTotal      Money
 	OneTimeIncome     Money
 	OneTimeExpenses   Money
+	GrossIncome       Money // one-time + recurring income
+	GrossExpenses     Money // one-time + recurring expenses
 	MonthlyTotal      Money
 	CategoryBreakdown []CategorySummary
 	RecurringGroups   []RecurringFrequencyGroup
+	IncomeRecurringEntries  []RecurringEntry
+	ExpenseRecurringEntries []RecurringEntry
 }
 
 type CategorySummary struct {

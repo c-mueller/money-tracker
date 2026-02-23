@@ -117,6 +117,9 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 			return m
 		},
 		"formatMoneyWithCurrency": formatMoneyWithCurrencyForLocale(defaultLocale, bundle, currencyByCode),
+		"addDecimal": func(a, b decimal.Decimal) decimal.Decimal {
+			return a.Add(b)
+		},
 	}
 
 	templatesFS, err := fs.Sub(web.Content, "templates")

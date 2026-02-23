@@ -105,7 +105,13 @@
     "no_recurring_income": "No recurring income.",
     "no_recurring_expenses": "No recurring expenses.",
     "since": "Since",
-    "recurring_payments": "Recurring Payments",
-    "monthly_amount": "Monthly Amount"
+    "recurring_transactions": "Recurring Transactions",
+    "monthly_amount": "Monthly Amount",
+    "subtotal_income": "Subtotal Income",
+    "subtotal_expenses": "Subtotal Expenses",
+    "total_result": "Total Result",
+    "gross_income": "Income (total)",
+    "gross_expenses": "Expenses (total)",
+    "date_interval": "Date / Interval"
   }
 }

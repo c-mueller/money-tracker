@@ -119,11 +119,19 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 		})
 	}
 
-	// Convert frequency group map to sorted slice
+	// Convert frequency group map to sorted slice and split entries into income/expense
 	var recurringGroups []domain.RecurringFrequencyGroup
+	var incomeRecurringEntries, expenseRecurringEntries []domain.RecurringEntry
 	for _, group := range freqGroupMap {
 		if !group.Total.IsZero() {
 			recurringGroups = append(recurringGroups, *group)
+		}
+		for _, entry := range group.Entries {
+			if entry.MonthlyAmount.IsPositive() {
+				incomeRecurringEntries = append(incomeRecurringEntries, entry)
+			} else {
+				expenseRecurringEntries = append(expenseRecurringEntries, entry)
+			}
 		}
 	}
 	sort.Slice(recurringGroups, func(i, j int) bool {
@@ -168,18 +176,22 @@ func (s *SummaryService) GetMonthlySummary(ctx context.Context, householdID int,
 	}
 
 	return &domain.MonthlySummary{
-		Month:             refMonth.Format("2006-01"),
-		HouseholdID:       householdID,
-		TotalIncome:       totalIncome,
-		TotalExpenses:     totalExpenses,
-		RecurringTotal:    totalRecurring,
-		RecurringIncome:   recurringIncome,
-		RecurringExpenses: recurringExpenses,
-		OneTimeTotal:      totalOneTime,
-		OneTimeIncome:     totalIncome,
-		OneTimeExpenses:   totalExpenses,
-		MonthlyTotal:      totalRecurring.Add(totalOneTime),
-		CategoryBreakdown: breakdown,
-		RecurringGroups:   recurringGroups,
+		Month:                   refMonth.Format("2006-01"),
+		HouseholdID:             householdID,
+		TotalIncome:             totalIncome,
+		TotalExpenses:           totalExpenses,
+		RecurringTotal:          totalRecurring,
+		RecurringIncome:         recurringIncome,
+		RecurringExpenses:       recurringExpenses,
+		OneTimeTotal:            totalOneTime,
+		OneTimeIncome:           totalIncome,
+		OneTimeExpenses:         totalExpenses,
+		GrossIncome:             totalIncome.Add(recurringIncome),
+		GrossExpenses:           totalExpenses.Add(recurringExpenses),
+		MonthlyTotal:            totalRecurring.Add(totalOneTime),
+		CategoryBreakdown:       breakdown,
+		RecurringGroups:         recurringGroups,
+		IncomeRecurringEntries:  incomeRecurringEntries,
+		ExpenseRecurringEntries: expenseRecurringEntries,
 	}, nil
 }

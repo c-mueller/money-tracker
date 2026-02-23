@@ -34,3 +34,42 @@ th.sortable.sort-desc::after {
     content: "\2193";
     opacity: 0.8;
 }
+
+/* Income / Expense color coding */
+.text-income {
+    color: #198754 !important;
+}
+
+.text-expense {
+    color: #dc3545 !important;
+}
+
+.text-neutral {
+    color: #6c757d !important;
+}
+
+/* Summary card hover tooltip */
+.summary-card {
+    position: relative;
+}
+
+.summary-tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    padding: 0.5rem 0.75rem;
+    min-width: 250px;
+    font-size: 0.85rem;
+}
+
+.summary-card:hover .summary-tooltip,
+.summary-card:focus .summary-tooltip {
+    display: block;
+}

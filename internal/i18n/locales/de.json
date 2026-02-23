@@ -105,7 +105,13 @@
     "no_recurring_income": "Keine wiederkehrenden Einnahmen.",
     "no_recurring_expenses": "Keine wiederkehrenden Ausgaben.",
     "since": "Seit",
-    "recurring_payments": "Wiederkehrende Zahlungen",
-    "monthly_amount": "Monatlicher Betrag"
+    "recurring_transactions": "Wiederkehrende Transaktionen",
+    "monthly_amount": "Monatlicher Betrag",
+    "subtotal_income": "Zwischensumme Einnahmen",
+    "subtotal_expenses": "Zwischensumme Ausgaben",
+    "total_result": "Gesamtergebnis",
+    "gross_income": "Einnahmen (gesamt)",
+    "gross_expenses": "Ausgaben (gesamt)",
+    "date_interval": "Datum / Intervall"
   }
 }

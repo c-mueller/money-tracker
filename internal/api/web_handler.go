@@ -43,6 +43,8 @@ type pageData struct {
 	Frequencies        []domain.Frequency
 	Lang               string
 	ErrorMessage       string
+	CategoryMap        map[int]string
+	RecurringMonthlyMap map[int]domain.Money
 }
 
 func (s *Server) getLocale(c echo.Context) i18n.Locale {
@@ -106,6 +108,12 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 		return err
 	}
 
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+	catMap := buildCategoryMap(categories)
+
 	var incomeTx, expenseTx []*domain.Transaction
 	for _, tx := range transactions {
 		if tx.Amount.IsPositive() {
@@ -128,6 +136,7 @@ func (s *Server) handleWebHouseholdDetail(c echo.Context) error {
 		IncomeTransactions:  incomeTx,
 		ExpenseTransactions: expenseTx,
 		Summary:             summary,
+		CategoryMap:         catMap,
 		Month:               monthStr,
 		PrevMonth:           fmt.Sprintf("%d-%02d", prev.Year(), prev.Month()),
 		NextMonth:           fmt.Sprintf("%d-%02d", next.Year(), next.Month()),
@@ -366,6 +375,12 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 		return err
 	}
 
+	categories, err := s.services.Category.List(ctx, id)
+	if err != nil {
+		return err
+	}
+	catMap := buildCategoryMap(categories)
+
 	var incomeRec, expenseRec []*domain.RecurringExpense
 	for _, re := range expenses {
 		if re.Amount.IsPositive() {
@@ -377,23 +392,34 @@ func (s *Server) handleWebRecurringList(c echo.Context) error {
 
 	now := time.Now()
 	month := fmt.Sprintf("%d-%02d", now.Year(), now.Month())
+	refMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 
 	summary, err := s.services.Summary.GetMonthlySummary(ctx, id, now.Year(), now.Month())
 	if err != nil {
 		return err
 	}
 
+	monthlyMap := make(map[int]domain.Money)
+	for _, re := range expenses {
+		monthly, err := domain.NormalizeToMonthly(re.Amount, re.Frequency, refMonth)
+		if err == nil {
+			monthlyMap[re.ID] = monthly
+		}
+	}
+
 	return c.Render(http.StatusOK, "recurring_list", pageData{
-		Title:             "recurring",
-		User:              s.getUserFromContext(c),
-		Household:         hh,
-		RecurringExpenses: expenses,
-		IncomeRecurring:   incomeRec,
-		ExpenseRecurring:  expenseRec,
-		Summary:           summary,
-		Month:             month,
-		ActiveTab:         "recurring",
-		Lang:              string(s.getLocale(c)),
+		Title:               "recurring",
+		User:                s.getUserFromContext(c),
+		Household:           hh,
+		RecurringExpenses:   expenses,
+		IncomeRecurring:     incomeRec,
+		ExpenseRecurring:    expenseRec,
+		Summary:             summary,
+		CategoryMap:         catMap,
+		RecurringMonthlyMap: monthlyMap,
+		Month:               month,
+		ActiveTab:           "recurring",
+		Lang:                string(s.getLocale(c)),
 	})
 }
 
@@ -836,6 +862,14 @@ func (s *Server) handleWebUserSettingsUpdate(c echo.Context) error {
 		return err
 	}
 	return c.Redirect(http.StatusFound, "/settings")
+}
+
+func buildCategoryMap(categories []*domain.Category) map[int]string {
+	m := make(map[int]string, len(categories))
+	for _, c := range categories {
+		m[c.ID] = c.Name
+	}
+	return m
 }
 
 func (s *Server) getUserFromContext(c echo.Context) *domain.User {
