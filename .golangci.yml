@@ -15,6 +15,9 @@ linters:
     errcheck:
       check-type-assertions: true
   exclusions:
+    presets:
+      - std-error-handling
+      - common-false-positives
     paths:
       - ent
 
