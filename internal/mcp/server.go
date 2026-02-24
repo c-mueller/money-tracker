@@ -42,6 +42,15 @@ func (s *Server) Run(ctx context.Context) error {
 	return s.mcpServer.Run(ctx, &mcp.StdioTransport{})
 }
 
+// InProcessTransport returns a pair of in-memory transports for testing.
+// The caller should use the returned transport to connect an MCP client,
+// while the server-side transport is connected automatically.
+func (s *Server) InProcessTransport() mcp.Transport {
+	serverTransport, clientTransport := mcp.NewInMemoryTransports()
+	go s.mcpServer.Connect(context.Background(), serverTransport, nil) //nolint:errcheck
+	return clientTransport
+}
+
 // --- Household Tools ---
 
 type listHouseholdsArgs struct{}
