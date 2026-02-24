@@ -63,6 +63,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
+        id: setup-go
         with:
           go-version-file: go.mod
       - name: GoReleaser snapshot build
@@ -70,6 +71,8 @@ jobs:
         with:
           version: latest
           args: release --snapshot --skip=publish --clean
+        env:
+          GOVERSION: ${{ steps.setup-go.outputs.go-version }}
 
   docker:
     name: Docker
@@ -118,6 +121,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v5
+        id: setup-go
         with:
           go-version-file: go.mod
       - name: GoReleaser release
@@ -127,3 +131,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOVERSION: ${{ steps.setup-go.outputs.go-version }}
