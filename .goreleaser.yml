@@ -45,6 +45,6 @@ changelog:
       - "^chore:"
 
 release:
-  gitlab:
-    owner: "{{ .Env.CI_PROJECT_NAMESPACE }}"
-    name: "{{ .Env.CI_PROJECT_NAME }}"
+  github:
+    owner: c-mueller
+    name: money-tracker
