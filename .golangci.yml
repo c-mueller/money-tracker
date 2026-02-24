@@ -11,16 +11,14 @@ linters:
     - ineffassign
     - staticcheck
     - unused
+  settings:
+    errcheck:
+      check-type-assertions: true
+  exclusions:
+    paths:
+      - ent
 
 formatters:
   exclusions:
     paths:
       - ent
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-
-issues:
-  exclude-dirs:
-    - ent
