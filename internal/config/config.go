@@ -6,6 +6,12 @@ type Config struct {
 	Auth     AuthConfig     `mapstructure:"auth"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	Language string         `mapstructure:"language"`
+	MCP      MCPConfig      `mapstructure:"mcp"`
+}
+
+type MCPConfig struct {
+	URL   string `mapstructure:"url"`
+	Token string `mapstructure:"token"`
 }
 
 type ServerConfig struct {

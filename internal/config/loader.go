@@ -26,6 +26,8 @@ func Load(configFile string) (Config, error) {
 	v.SetDefault("auth.session.secret", cfg.Auth.Session.Secret)
 	v.SetDefault("auth.session.max_age", cfg.Auth.Session.MaxAge)
 	v.SetDefault("logging.level", cfg.Logging.Level)
+	v.SetDefault("mcp.url", "http://localhost:8080")
+	v.SetDefault("mcp.token", "")
 
 	if configFile != "" {
 		v.SetConfigFile(configFile)
