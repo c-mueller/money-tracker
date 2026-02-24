@@ -8,23 +8,32 @@ Ein MCP (Model Context Protocol) Server ermöglicht es LLM-Clients (Claude Deskt
 
 ### Phase 1: Lokaler MCP Server (stdio-basiert)
 
-Der MCP Server wird als eigenständiges Go-Binary implementiert, das über **stdio** (JSON-RPC) kommuniziert und intern die **REST API** des Money Tracker anspricht.
+Der MCP Server wird als **Cobra-Subcommand** (`money-tracker mcp`) in die bestehende Binary integriert. Er kommuniziert über **stdio** (JSON-RPC) mit dem LLM-Client und spricht intern die **REST API** des laufenden Money-Tracker-Servers an.
 
 ```
-┌─────────────────┐     stdio (JSON-RPC)     ┌──────────────────┐     HTTP/REST     ┌──────────────────┐
-│  LLM Client     │ ◄──────────────────────► │  MCP Server      │ ◄──────────────► │  Money Tracker   │
-│  (Claude, etc.) │                           │  (lokales Binary) │                  │  API Server      │
-└─────────────────┘                           └──────────────────┘                  └──────────────────┘
+┌─────────────────┐     stdio (JSON-RPC)     ┌──────────────────────────┐     HTTP/REST     ┌──────────────────┐
+│  LLM Client     │ ◄──────────────────────► │  money-tracker mcp       │ ◄──────────────► │  money-tracker   │
+│  (Claude, etc.) │                           │  (Subcommand, selbe Bin) │                  │  serve           │
+└─────────────────┘                           └──────────────────────────┘                  └──────────────────┘
+```
+
+**Aufruf:**
+```bash
+money-tracker mcp                                        # Default: localhost:8080
+money-tracker mcp --url http://myserver:9090             # Custom URL
+MONEY_TRACKER_API_TOKEN=mt_... money-tracker mcp         # Token via ENV
+money-tracker mcp --token mt_...                         # Token via Flag
 ```
 
 **Konfiguration:**
-- `MONEY_TRACKER_URL` — Base-URL des API-Servers (default: `http://localhost:8080`)
-- `MONEY_TRACKER_API_TOKEN` — Bearer-Token (`mt_...`) für Authentifizierung
+- `--url` / `MONEY_TRACKER_MCP_URL` — Base-URL des API-Servers (default: `http://localhost:8080`)
+- `--token` / `MONEY_TRACKER_API_TOKEN` — Bearer-Token (`mt_...`) für Authentifizierung
 
 **Vorteile Phase 1:**
 - Kein OAuth-Infrastruktur nötig — nutzt existierende API-Token-Auth
 - Schnell umsetzbar, sofort lokal nutzbar
 - Volle Funktionalität über bestehende REST API
+- Eine Binary für alles — Config, Logging, Buildinfo werden wiederverwendet
 
 **Nachteile / Bewusste Trade-offs:**
 - Reimplementierung: MCP-Tool-Layer dupliziert API-Client-Logik
@@ -345,9 +354,8 @@ Schlägt eine Kategorie für eine Transaktion vor.
 ## Projektstruktur (Phase 1)
 
 ```
-cmd/
-  money-tracker-mcp/       MCP Server Entrypoint
-    main.go                Cobra root command, stdio transport setup
+cmd/money-tracker/cmd/
+  mcp.go                   Cobra "mcp" Subcommand (stdio transport setup)
 internal/
   mcp/
     server.go              MCP Server Setup, Tool/Resource/Prompt Registration
@@ -357,9 +365,10 @@ internal/
     prompts.go             Prompt-Templates
 ```
 
-Das Binary wird separat gebaut:
+Das `mcp` Subcommand wird in die bestehende Binary integriert — kein separates Build-Target nötig:
 ```bash
-make build-mcp   # → bin/money-tracker-mcp
+make build       # → bin/money-tracker        (enthält serve + mcp + migrate + version)
+make build-dev   # → bin/money-tracker-dev    (dto., mit Dev-Mode)
 ```
 
 ### MCP Client Konfiguration (Claude Desktop / Claude Code)
@@ -368,9 +377,9 @@ make build-mcp   # → bin/money-tracker-mcp
 {
   "mcpServers": {
     "money-tracker": {
-      "command": "/path/to/money-tracker-mcp",
+      "command": "/path/to/money-tracker",
+      "args": ["mcp"],
       "env": {
-        "MONEY_TRACKER_URL": "http://localhost:8080",
         "MONEY_TRACKER_API_TOKEN": "mt_..."
       }
     }
@@ -382,7 +391,7 @@ make build-mcp   # → bin/money-tracker-mcp
 
 ## Implementierungsreihenfolge
 
-1. **MCP-001:** Projekt-Scaffolding — `cmd/money-tracker-mcp/`, MCP SDK Dependency, stdio Transport
+1. **MCP-001:** Projekt-Scaffolding — Cobra `mcp` Subcommand, MCP SDK Dependency, stdio Transport
 2. **MCP-002:** API Client — HTTP Client mit Token-Auth für alle REST Endpoints
 3. **MCP-003:** Household & Category Tools — list/create/update/delete
 4. **MCP-004:** Transaction Tools — list/create/update/delete
@@ -390,4 +399,4 @@ make build-mcp   # → bin/money-tracker-mcp
 6. **MCP-006:** Summary Tool — get_monthly_summary
 7. **MCP-007:** Resources — households Übersicht, monthly summary
 8. **MCP-008:** Prompts — monthly_report, budget_analysis, categorize_transaction
-9. **MCP-009:** Makefile + Docs — `make build-mcp`, README, Konfigurationsanleitung
+9. **MCP-009:** Docs — README-Abschnitt, Konfigurationsanleitung
