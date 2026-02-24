@@ -20,6 +20,7 @@ linters:
       - common-false-positives
     paths:
       - ent
+      - _test\.go
 
 formatters:
   exclusions:

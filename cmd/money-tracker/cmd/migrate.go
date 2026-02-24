@@ -18,7 +18,7 @@ var migrateCmd = &cobra.Command{
 		if !autoApprove {
 			fmt.Print("Run database migrations? [y/N] ")
 			var answer string
-			fmt.Scanln(&answer)
+			_, _ = fmt.Scanln(&answer)
 			if answer != "y" && answer != "Y" {
 				logger.Info("migration cancelled")
 				return nil

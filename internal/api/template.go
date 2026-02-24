@@ -112,7 +112,11 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 		"dict": func(pairs ...interface{}) map[string]interface{} {
 			m := make(map[string]interface{}, len(pairs)/2)
 			for i := 0; i+1 < len(pairs); i += 2 {
-				m[pairs[i].(string)] = pairs[i+1]
+				key, ok := pairs[i].(string)
+				if !ok {
+					continue
+				}
+				m[key] = pairs[i+1]
 			}
 			return m
 		},

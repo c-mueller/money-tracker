@@ -595,7 +595,7 @@ Please format this as a clear, readable report with:
 		monthsStr := req.Params.Arguments["months"]
 		months := 3
 		if monthsStr != "" {
-			fmt.Sscanf(monthsStr, "%d", &months)
+			_, _ = fmt.Sscanf(monthsStr, "%d", &months)
 		}
 
 		var summaries []string
@@ -707,7 +707,7 @@ func toJSON(v any) (string, error) {
 func toMap(v any) map[string]any {
 	b, _ := json.Marshal(v)
 	var m map[string]any
-	json.Unmarshal(b, &m)
+	_ = json.Unmarshal(b, &m)
 	return m
 }
 

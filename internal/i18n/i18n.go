@@ -195,7 +195,7 @@ func ParseAcceptLanguage(header string) (Locale, bool) {
 			lang = strings.TrimSpace(part[:idx])
 			qPart := strings.TrimSpace(part[idx+1:])
 			if strings.HasPrefix(qPart, "q=") {
-				fmt.Sscanf(qPart[2:], "%f", &weight)
+				_, _ = fmt.Sscanf(qPart[2:], "%f", &weight)
 			}
 		} else {
 			lang = part
