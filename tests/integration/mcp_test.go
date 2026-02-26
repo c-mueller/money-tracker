@@ -154,12 +154,13 @@ func TestMCPFullFlow(t *testing.T) {
 		t.Errorf("expected category name 'Miete', got %v", cat["name"])
 	}
 
-	// 5. Create transaction
+	// 5. Create transaction with details
 	text = callTool(t, session, "create_transaction", map[string]any{
 		"household_id": hhID,
 		"category_id":  catID,
 		"amount":       "-50.00",
 		"description":  "Nebenkosten",
+		"details":      "Strom: 30.00\nWasser: 20.00",
 		"date":         "2026-01-15",
 	})
 	tx := parseJSONObject(t, text)
@@ -169,12 +170,16 @@ func TestMCPFullFlow(t *testing.T) {
 	if tx["description"] != "Nebenkosten" {
 		t.Errorf("expected description 'Nebenkosten', got %v", tx["description"])
 	}
+	if tx["details"] != "Strom: 30.00\nWasser: 20.00" {
+		t.Errorf("expected details, got %v", tx["details"])
+	}
 
-	// 6. Create recurring expense
+	// 6. Create recurring expense with details
 	text = callTool(t, session, "create_recurring_expense", map[string]any{
 		"household_id": hhID,
 		"category_id":  catID,
 		"name":         "Kaltmiete",
+		"details":      "Vertrag Nr. 12345",
 		"amount":       "-800.00",
 		"frequency":    "monthly",
 		"start_date":   "2026-01-01",
@@ -183,6 +188,9 @@ func TestMCPFullFlow(t *testing.T) {
 	reID := int(re["id"].(float64))
 	if re["name"] != "Kaltmiete" {
 		t.Errorf("expected name 'Kaltmiete', got %v", re["name"])
+	}
+	if re["details"] != "Vertrag Nr. 12345" {
+		t.Errorf("expected details 'Vertrag Nr. 12345', got %v", re["details"])
 	}
 
 	// 7. Get monthly summary

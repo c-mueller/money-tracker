@@ -910,6 +910,92 @@ func TestRecurringExpenseDescription(t *testing.T) {
 	}
 }
 
+func TestTransactionDetails(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"Details Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Bills"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create transaction with details
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/transactions",
+		`{"category_id":`+catID+`,"amount":"-50.00","description":"Groceries","details":"Item 1: 10.00\nItem 2: 15.00\nItem 3: 25.00","date":"2026-02-10"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var tx map[string]interface{}
+	decodeJSON(t, resp, &tx)
+	txID := itoa(int(tx["id"].(float64)))
+	if tx["details"] != "Item 1: 10.00\nItem 2: 15.00\nItem 3: 25.00" {
+		t.Errorf("expected details with items, got %v", tx["details"])
+	}
+
+	// Update transaction with new details
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/transactions/"+txID,
+		`{"category_id":`+catID+`,"amount":"-60.00","description":"Groceries Updated","details":"Updated receipt contents","date":"2026-02-10"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &tx)
+	if tx["details"] != "Updated receipt contents" {
+		t.Errorf("expected updated details, got %v", tx["details"])
+	}
+
+	// List transactions — verify details is returned
+	resp = doRequest(t, env, "GET", "/api/v1/households/"+hhID+"/transactions?month=2026-02", "")
+	assertStatus(t, resp, http.StatusOK)
+	var txList []map[string]interface{}
+	decodeJSON(t, resp, &txList)
+	if len(txList) != 1 {
+		t.Fatalf("expected 1 transaction, got %d", len(txList))
+	}
+	if txList[0]["details"] != "Updated receipt contents" {
+		t.Errorf("expected details in list response, got %v", txList[0]["details"])
+	}
+}
+
+func TestRecurringExpenseDetails(t *testing.T) {
+	env := setupTestEnv(t)
+
+	// Setup
+	resp := doRequest(t, env, "POST", "/api/v1/households", `{"name":"RE Details Test","currency":"EUR"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var hh map[string]interface{}
+	decodeJSON(t, resp, &hh)
+	hhID := itoa(int(hh["id"].(float64)))
+
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/categories", `{"name":"Bills"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var cat map[string]interface{}
+	decodeJSON(t, resp, &cat)
+	catID := itoa(int(cat["id"].(float64)))
+
+	// Create with details
+	resp = doRequest(t, env, "POST", "/api/v1/households/"+hhID+"/recurring-expenses",
+		`{"category_id":`+catID+`,"name":"Internet","description":"Fiber","details":"Provider: Telekom\nContract: 12345","amount":"-39.99","frequency":"monthly","start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusCreated)
+	var re map[string]interface{}
+	decodeJSON(t, resp, &re)
+	reID := itoa(int(re["id"].(float64)))
+	if re["details"] != "Provider: Telekom\nContract: 12345" {
+		t.Errorf("expected details with provider info, got %v", re["details"])
+	}
+
+	// Update with new details
+	resp = doRequest(t, env, "PUT", "/api/v1/households/"+hhID+"/recurring-expenses/"+reID,
+		`{"category_id":`+catID+`,"name":"Internet","details":"Provider: Vodafone\nContract: 67890","amount":"-49.99","frequency":"monthly","active":true,"start_date":"2026-01-01"}`)
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSON(t, resp, &re)
+	if re["details"] != "Provider: Vodafone\nContract: 67890" {
+		t.Errorf("expected updated details, got %v", re["details"])
+	}
+}
+
 func itoa(i int) string {
 	return fmt.Sprintf("%d", i)
 }

@@ -175,10 +175,10 @@ func TestGraphQLTransactions(t *testing.T) {
 	}`)
 	catID := int(gqlData(t, result)["createCategory"].(map[string]interface{})["id"].(float64))
 
-	// Create transaction
+	// Create transaction with details
 	result = gqlRequest(t, env, `mutation {
-		createTransaction(input: {householdID: `+itoa(hhID)+`, categoryID: `+itoa(catID)+`, amount: "-50.00", description: "Electric", date: "2026-02-10"}) {
-			id amount description date householdID categoryID
+		createTransaction(input: {householdID: `+itoa(hhID)+`, categoryID: `+itoa(catID)+`, amount: "-50.00", description: "Electric", details: "Meter reading: 12345", date: "2026-02-10"}) {
+			id amount description details date householdID categoryID
 		}
 	}`)
 	data := gqlData(t, result)
@@ -189,6 +189,9 @@ func TestGraphQLTransactions(t *testing.T) {
 	}
 	if tx["description"] != "Electric" {
 		t.Errorf("expected description 'Electric', got %v", tx["description"])
+	}
+	if tx["details"] != "Meter reading: 12345" {
+		t.Errorf("expected details 'Meter reading: 12345', got %v", tx["details"])
 	}
 
 	// Query by month
@@ -237,10 +240,10 @@ func TestGraphQLRecurringExpenses(t *testing.T) {
 	}`)
 	catID := int(gqlData(t, result)["createCategory"].(map[string]interface{})["id"].(float64))
 
-	// Create
+	// Create with details
 	result = gqlRequest(t, env, `mutation {
-		createRecurringExpense(input: {householdID: `+itoa(hhID)+`, categoryID: `+itoa(catID)+`, name: "Internet", description: "Fiber 100Mbit", amount: "-39.99", frequency: "monthly", startDate: "2026-01-01"}) {
-			id name description amount frequency active startDate
+		createRecurringExpense(input: {householdID: `+itoa(hhID)+`, categoryID: `+itoa(catID)+`, name: "Internet", description: "Fiber 100Mbit", details: "Contract: ABC-123", amount: "-39.99", frequency: "monthly", startDate: "2026-01-01"}) {
+			id name description details amount frequency active startDate
 		}
 	}`)
 	data := gqlData(t, result)
@@ -252,22 +255,25 @@ func TestGraphQLRecurringExpenses(t *testing.T) {
 	if re["description"] != "Fiber 100Mbit" {
 		t.Errorf("expected description 'Fiber 100Mbit', got %v", re["description"])
 	}
+	if re["details"] != "Contract: ABC-123" {
+		t.Errorf("expected details 'Contract: ABC-123', got %v", re["details"])
+	}
 	if re["active"] != true {
 		t.Errorf("expected active true, got %v", re["active"])
 	}
 
 	// List
-	result = gqlRequest(t, env, `{ recurringExpenses(householdID: `+itoa(hhID)+`) { id name description } }`)
+	result = gqlRequest(t, env, `{ recurringExpenses(householdID: `+itoa(hhID)+`) { id name description details } }`)
 	data = gqlData(t, result)
 	reList := data["recurringExpenses"].([]interface{})
 	if len(reList) != 1 {
 		t.Errorf("expected 1 recurring expense, got %d", len(reList))
 	}
 
-	// Update
+	// Update with details
 	result = gqlRequest(t, env, `mutation {
-		updateRecurringExpense(input: {id: `+itoa(reID)+`, categoryID: `+itoa(catID)+`, name: "Fiber Internet", description: "Upgraded plan", amount: "-49.99", frequency: "monthly", active: true, startDate: "2026-01-01"}) {
-			id name description amount
+		updateRecurringExpense(input: {id: `+itoa(reID)+`, categoryID: `+itoa(catID)+`, name: "Fiber Internet", description: "Upgraded plan", details: "Contract: XYZ-789", amount: "-49.99", frequency: "monthly", active: true, startDate: "2026-01-01"}) {
+			id name description details amount
 		}
 	}`)
 	data = gqlData(t, result)
@@ -277,6 +283,9 @@ func TestGraphQLRecurringExpenses(t *testing.T) {
 	}
 	if updatedRE["description"] != "Upgraded plan" {
 		t.Errorf("expected description 'Upgraded plan', got %v", updatedRE["description"])
+	}
+	if updatedRE["details"] != "Contract: XYZ-789" {
+		t.Errorf("expected details 'Contract: XYZ-789', got %v", updatedRE["details"])
 	}
 }
 
