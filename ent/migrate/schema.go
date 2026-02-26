@@ -92,6 +92,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500, Default: ""},
+		{Name: "details", Type: field.TypeString, Nullable: true, Size: 5000, Default: ""},
 		{Name: "amount", Type: field.TypeString},
 		{Name: "frequency", Type: field.TypeString},
 		{Name: "active", Type: field.TypeBool, Default: true},
@@ -110,13 +111,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "recurring_expenses_categories_recurring_expenses",
-				Columns:    []*schema.Column{RecurringExpensesColumns[10]},
+				Columns:    []*schema.Column{RecurringExpensesColumns[11]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "recurring_expenses_households_recurring_expenses",
-				Columns:    []*schema.Column{RecurringExpensesColumns[11]},
+				Columns:    []*schema.Column{RecurringExpensesColumns[12]},
 				RefColumns: []*schema.Column{HouseholdsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -151,6 +152,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "amount", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "details", Type: field.TypeString, Nullable: true, Size: 5000},
 		{Name: "date", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -165,13 +167,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "transactions_categories_transactions",
-				Columns:    []*schema.Column{TransactionsColumns[6]},
+				Columns:    []*schema.Column{TransactionsColumns[7]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "transactions_households_transactions",
-				Columns:    []*schema.Column{TransactionsColumns[7]},
+				Columns:    []*schema.Column{TransactionsColumns[8]},
 				RefColumns: []*schema.Column{HouseholdsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -180,7 +182,7 @@ var (
 			{
 				Name:    "transaction_date_household_transactions",
 				Unique:  false,
-				Columns: []*schema.Column{TransactionsColumns[3], TransactionsColumns[7]},
+				Columns: []*schema.Column{TransactionsColumns[4], TransactionsColumns[8]},
 			},
 		},
 	}

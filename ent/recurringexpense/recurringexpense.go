@@ -18,6 +18,8 @@ const (
 	FieldName = "name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldDetails holds the string denoting the details field in the database.
+	FieldDetails = "details"
 	// FieldAmount holds the string denoting the amount field in the database.
 	FieldAmount = "amount"
 	// FieldFrequency holds the string denoting the frequency field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldDescription,
+	FieldDetails,
 	FieldAmount,
 	FieldFrequency,
 	FieldActive,
@@ -106,6 +109,10 @@ var (
 	DefaultDescription string
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
+	// DefaultDetails holds the default value on creation for the "details" field.
+	DefaultDetails string
+	// DetailsValidator is a validator for the "details" field. It is called by the builders before save.
+	DetailsValidator func(string) error
 	// AmountValidator is a validator for the "amount" field. It is called by the builders before save.
 	AmountValidator func(string) error
 	// FrequencyValidator is a validator for the "frequency" field. It is called by the builders before save.
@@ -136,6 +143,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByDetails orders the results by the details field.
+func ByDetails(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDetails, opts...).ToFunc()
 }
 
 // ByAmount orders the results by the amount field.

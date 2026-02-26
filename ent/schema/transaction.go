@@ -15,6 +15,7 @@ func (Transaction) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("amount").NotEmpty(),
 		field.String("description").Optional().MaxLen(500),
+		field.String("details").Optional().MaxLen(5000),
 		field.Time("date"),
 		field.Time("created_at").Immutable().Default(timeNow),
 		field.Time("updated_at").Default(timeNow).UpdateDefault(timeNow),

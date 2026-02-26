@@ -23,6 +23,8 @@ type Transaction struct {
 	Amount string `json:"amount,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Details holds the value of the "details" field.
+	Details string `json:"details,omitempty"`
 	// Date holds the value of the "date" field.
 	Date time.Time `json:"date,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -77,7 +79,7 @@ func (*Transaction) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case transaction.FieldID:
 			values[i] = new(sql.NullInt64)
-		case transaction.FieldAmount, transaction.FieldDescription:
+		case transaction.FieldAmount, transaction.FieldDescription, transaction.FieldDetails:
 			values[i] = new(sql.NullString)
 		case transaction.FieldDate, transaction.FieldCreatedAt, transaction.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -117,6 +119,12 @@ func (_m *Transaction) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case transaction.FieldDetails:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field details", values[i])
+			} else if value.Valid {
+				_m.Details = value.String
 			}
 		case transaction.FieldDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -201,6 +209,9 @@ func (_m *Transaction) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("details=")
+	builder.WriteString(_m.Details)
 	builder.WriteString(", ")
 	builder.WriteString("date=")
 	builder.WriteString(_m.Date.Format(time.ANSIC))

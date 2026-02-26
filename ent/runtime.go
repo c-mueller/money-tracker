@@ -171,24 +171,30 @@ func init() {
 	recurringexpense.DefaultDescription = recurringexpenseDescDescription.Default.(string)
 	// recurringexpense.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	recurringexpense.DescriptionValidator = recurringexpenseDescDescription.Validators[0].(func(string) error)
+	// recurringexpenseDescDetails is the schema descriptor for details field.
+	recurringexpenseDescDetails := recurringexpenseFields[2].Descriptor()
+	// recurringexpense.DefaultDetails holds the default value on creation for the details field.
+	recurringexpense.DefaultDetails = recurringexpenseDescDetails.Default.(string)
+	// recurringexpense.DetailsValidator is a validator for the "details" field. It is called by the builders before save.
+	recurringexpense.DetailsValidator = recurringexpenseDescDetails.Validators[0].(func(string) error)
 	// recurringexpenseDescAmount is the schema descriptor for amount field.
-	recurringexpenseDescAmount := recurringexpenseFields[2].Descriptor()
+	recurringexpenseDescAmount := recurringexpenseFields[3].Descriptor()
 	// recurringexpense.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
 	recurringexpense.AmountValidator = recurringexpenseDescAmount.Validators[0].(func(string) error)
 	// recurringexpenseDescFrequency is the schema descriptor for frequency field.
-	recurringexpenseDescFrequency := recurringexpenseFields[3].Descriptor()
+	recurringexpenseDescFrequency := recurringexpenseFields[4].Descriptor()
 	// recurringexpense.FrequencyValidator is a validator for the "frequency" field. It is called by the builders before save.
 	recurringexpense.FrequencyValidator = recurringexpenseDescFrequency.Validators[0].(func(string) error)
 	// recurringexpenseDescActive is the schema descriptor for active field.
-	recurringexpenseDescActive := recurringexpenseFields[4].Descriptor()
+	recurringexpenseDescActive := recurringexpenseFields[5].Descriptor()
 	// recurringexpense.DefaultActive holds the default value on creation for the active field.
 	recurringexpense.DefaultActive = recurringexpenseDescActive.Default.(bool)
 	// recurringexpenseDescCreatedAt is the schema descriptor for created_at field.
-	recurringexpenseDescCreatedAt := recurringexpenseFields[7].Descriptor()
+	recurringexpenseDescCreatedAt := recurringexpenseFields[8].Descriptor()
 	// recurringexpense.DefaultCreatedAt holds the default value on creation for the created_at field.
 	recurringexpense.DefaultCreatedAt = recurringexpenseDescCreatedAt.Default.(func() time.Time)
 	// recurringexpenseDescUpdatedAt is the schema descriptor for updated_at field.
-	recurringexpenseDescUpdatedAt := recurringexpenseFields[8].Descriptor()
+	recurringexpenseDescUpdatedAt := recurringexpenseFields[9].Descriptor()
 	// recurringexpense.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	recurringexpense.DefaultUpdatedAt = recurringexpenseDescUpdatedAt.Default.(func() time.Time)
 	// recurringexpense.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -223,12 +229,16 @@ func init() {
 	transactionDescDescription := transactionFields[1].Descriptor()
 	// transaction.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	transaction.DescriptionValidator = transactionDescDescription.Validators[0].(func(string) error)
+	// transactionDescDetails is the schema descriptor for details field.
+	transactionDescDetails := transactionFields[2].Descriptor()
+	// transaction.DetailsValidator is a validator for the "details" field. It is called by the builders before save.
+	transaction.DetailsValidator = transactionDescDetails.Validators[0].(func(string) error)
 	// transactionDescCreatedAt is the schema descriptor for created_at field.
-	transactionDescCreatedAt := transactionFields[3].Descriptor()
+	transactionDescCreatedAt := transactionFields[4].Descriptor()
 	// transaction.DefaultCreatedAt holds the default value on creation for the created_at field.
 	transaction.DefaultCreatedAt = transactionDescCreatedAt.Default.(func() time.Time)
 	// transactionDescUpdatedAt is the schema descriptor for updated_at field.
-	transactionDescUpdatedAt := transactionFields[4].Descriptor()
+	transactionDescUpdatedAt := transactionFields[5].Descriptor()
 	// transaction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	transaction.DefaultUpdatedAt = transactionDescUpdatedAt.Default.(func() time.Time)
 	// transaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

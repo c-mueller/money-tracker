@@ -23,6 +23,8 @@ type RecurringExpense struct {
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// Details holds the value of the "details" field.
+	Details string `json:"details,omitempty"`
 	// Amount holds the value of the "amount" field.
 	Amount string `json:"amount,omitempty"`
 	// Frequency holds the value of the "frequency" field.
@@ -98,7 +100,7 @@ func (*RecurringExpense) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case recurringexpense.FieldID:
 			values[i] = new(sql.NullInt64)
-		case recurringexpense.FieldName, recurringexpense.FieldDescription, recurringexpense.FieldAmount, recurringexpense.FieldFrequency:
+		case recurringexpense.FieldName, recurringexpense.FieldDescription, recurringexpense.FieldDetails, recurringexpense.FieldAmount, recurringexpense.FieldFrequency:
 			values[i] = new(sql.NullString)
 		case recurringexpense.FieldStartDate, recurringexpense.FieldEndDate, recurringexpense.FieldCreatedAt, recurringexpense.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -138,6 +140,12 @@ func (_m *RecurringExpense) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				_m.Description = value.String
+			}
+		case recurringexpense.FieldDetails:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field details", values[i])
+			} else if value.Valid {
+				_m.Details = value.String
 			}
 		case recurringexpense.FieldAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -252,6 +260,9 @@ func (_m *RecurringExpense) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
+	builder.WriteString(", ")
+	builder.WriteString("details=")
+	builder.WriteString(_m.Details)
 	builder.WriteString(", ")
 	builder.WriteString("amount=")
 	builder.WriteString(_m.Amount)

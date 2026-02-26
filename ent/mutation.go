@@ -2397,6 +2397,7 @@ type RecurringExpenseMutation struct {
 	id                        *int
 	name                      *string
 	description               *string
+	details                   *string
 	amount                    *string
 	frequency                 *string
 	active                    *bool
@@ -2598,6 +2599,55 @@ func (m *RecurringExpenseMutation) DescriptionCleared() bool {
 func (m *RecurringExpenseMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, recurringexpense.FieldDescription)
+}
+
+// SetDetails sets the "details" field.
+func (m *RecurringExpenseMutation) SetDetails(s string) {
+	m.details = &s
+}
+
+// Details returns the value of the "details" field in the mutation.
+func (m *RecurringExpenseMutation) Details() (r string, exists bool) {
+	v := m.details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDetails returns the old "details" field's value of the RecurringExpense entity.
+// If the RecurringExpense object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RecurringExpenseMutation) OldDetails(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDetails: %w", err)
+	}
+	return oldValue.Details, nil
+}
+
+// ClearDetails clears the value of the "details" field.
+func (m *RecurringExpenseMutation) ClearDetails() {
+	m.details = nil
+	m.clearedFields[recurringexpense.FieldDetails] = struct{}{}
+}
+
+// DetailsCleared returns if the "details" field was cleared in this mutation.
+func (m *RecurringExpenseMutation) DetailsCleared() bool {
+	_, ok := m.clearedFields[recurringexpense.FieldDetails]
+	return ok
+}
+
+// ResetDetails resets all changes to the "details" field.
+func (m *RecurringExpenseMutation) ResetDetails() {
+	m.details = nil
+	delete(m.clearedFields, recurringexpense.FieldDetails)
 }
 
 // SetAmount sets the "amount" field.
@@ -3031,12 +3081,15 @@ func (m *RecurringExpenseMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RecurringExpenseMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.name != nil {
 		fields = append(fields, recurringexpense.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, recurringexpense.FieldDescription)
+	}
+	if m.details != nil {
+		fields = append(fields, recurringexpense.FieldDetails)
 	}
 	if m.amount != nil {
 		fields = append(fields, recurringexpense.FieldAmount)
@@ -3071,6 +3124,8 @@ func (m *RecurringExpenseMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case recurringexpense.FieldDescription:
 		return m.Description()
+	case recurringexpense.FieldDetails:
+		return m.Details()
 	case recurringexpense.FieldAmount:
 		return m.Amount()
 	case recurringexpense.FieldFrequency:
@@ -3098,6 +3153,8 @@ func (m *RecurringExpenseMutation) OldField(ctx context.Context, name string) (e
 		return m.OldName(ctx)
 	case recurringexpense.FieldDescription:
 		return m.OldDescription(ctx)
+	case recurringexpense.FieldDetails:
+		return m.OldDetails(ctx)
 	case recurringexpense.FieldAmount:
 		return m.OldAmount(ctx)
 	case recurringexpense.FieldFrequency:
@@ -3134,6 +3191,13 @@ func (m *RecurringExpenseMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case recurringexpense.FieldDetails:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDetails(v)
 		return nil
 	case recurringexpense.FieldAmount:
 		v, ok := value.(string)
@@ -3217,6 +3281,9 @@ func (m *RecurringExpenseMutation) ClearedFields() []string {
 	if m.FieldCleared(recurringexpense.FieldDescription) {
 		fields = append(fields, recurringexpense.FieldDescription)
 	}
+	if m.FieldCleared(recurringexpense.FieldDetails) {
+		fields = append(fields, recurringexpense.FieldDetails)
+	}
 	if m.FieldCleared(recurringexpense.FieldEndDate) {
 		fields = append(fields, recurringexpense.FieldEndDate)
 	}
@@ -3237,6 +3304,9 @@ func (m *RecurringExpenseMutation) ClearField(name string) error {
 	case recurringexpense.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case recurringexpense.FieldDetails:
+		m.ClearDetails()
+		return nil
 	case recurringexpense.FieldEndDate:
 		m.ClearEndDate()
 		return nil
@@ -3253,6 +3323,9 @@ func (m *RecurringExpenseMutation) ResetField(name string) error {
 		return nil
 	case recurringexpense.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case recurringexpense.FieldDetails:
+		m.ResetDetails()
 		return nil
 	case recurringexpense.FieldAmount:
 		m.ResetAmount()
@@ -4016,6 +4089,7 @@ type TransactionMutation struct {
 	id               *int
 	amount           *string
 	description      *string
+	details          *string
 	date             *time.Time
 	created_at       *time.Time
 	updated_at       *time.Time
@@ -4210,6 +4284,55 @@ func (m *TransactionMutation) DescriptionCleared() bool {
 func (m *TransactionMutation) ResetDescription() {
 	m.description = nil
 	delete(m.clearedFields, transaction.FieldDescription)
+}
+
+// SetDetails sets the "details" field.
+func (m *TransactionMutation) SetDetails(s string) {
+	m.details = &s
+}
+
+// Details returns the value of the "details" field in the mutation.
+func (m *TransactionMutation) Details() (r string, exists bool) {
+	v := m.details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDetails returns the old "details" field's value of the Transaction entity.
+// If the Transaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TransactionMutation) OldDetails(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDetails: %w", err)
+	}
+	return oldValue.Details, nil
+}
+
+// ClearDetails clears the value of the "details" field.
+func (m *TransactionMutation) ClearDetails() {
+	m.details = nil
+	m.clearedFields[transaction.FieldDetails] = struct{}{}
+}
+
+// DetailsCleared returns if the "details" field was cleared in this mutation.
+func (m *TransactionMutation) DetailsCleared() bool {
+	_, ok := m.clearedFields[transaction.FieldDetails]
+	return ok
+}
+
+// ResetDetails resets all changes to the "details" field.
+func (m *TransactionMutation) ResetDetails() {
+	m.details = nil
+	delete(m.clearedFields, transaction.FieldDetails)
 }
 
 // SetDate sets the "date" field.
@@ -4432,12 +4555,15 @@ func (m *TransactionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TransactionMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.amount != nil {
 		fields = append(fields, transaction.FieldAmount)
 	}
 	if m.description != nil {
 		fields = append(fields, transaction.FieldDescription)
+	}
+	if m.details != nil {
+		fields = append(fields, transaction.FieldDetails)
 	}
 	if m.date != nil {
 		fields = append(fields, transaction.FieldDate)
@@ -4460,6 +4586,8 @@ func (m *TransactionMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case transaction.FieldDescription:
 		return m.Description()
+	case transaction.FieldDetails:
+		return m.Details()
 	case transaction.FieldDate:
 		return m.Date()
 	case transaction.FieldCreatedAt:
@@ -4479,6 +4607,8 @@ func (m *TransactionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldAmount(ctx)
 	case transaction.FieldDescription:
 		return m.OldDescription(ctx)
+	case transaction.FieldDetails:
+		return m.OldDetails(ctx)
 	case transaction.FieldDate:
 		return m.OldDate(ctx)
 	case transaction.FieldCreatedAt:
@@ -4507,6 +4637,13 @@ func (m *TransactionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case transaction.FieldDetails:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDetails(v)
 		return nil
 	case transaction.FieldDate:
 		v, ok := value.(time.Time)
@@ -4562,6 +4699,9 @@ func (m *TransactionMutation) ClearedFields() []string {
 	if m.FieldCleared(transaction.FieldDescription) {
 		fields = append(fields, transaction.FieldDescription)
 	}
+	if m.FieldCleared(transaction.FieldDetails) {
+		fields = append(fields, transaction.FieldDetails)
+	}
 	return fields
 }
 
@@ -4579,6 +4719,9 @@ func (m *TransactionMutation) ClearField(name string) error {
 	case transaction.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case transaction.FieldDetails:
+		m.ClearDetails()
+		return nil
 	}
 	return fmt.Errorf("unknown Transaction nullable field %s", name)
 }
@@ -4592,6 +4735,9 @@ func (m *TransactionMutation) ResetField(name string) error {
 		return nil
 	case transaction.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case transaction.FieldDetails:
+		m.ResetDetails()
 		return nil
 	case transaction.FieldDate:
 		m.ResetDate()

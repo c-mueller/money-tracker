@@ -18,6 +18,8 @@ const (
 	FieldAmount = "amount"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldDetails holds the string denoting the details field in the database.
+	FieldDetails = "details"
 	// FieldDate holds the string denoting the date field in the database.
 	FieldDate = "date"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -51,6 +53,7 @@ var Columns = []string{
 	FieldID,
 	FieldAmount,
 	FieldDescription,
+	FieldDetails,
 	FieldDate,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -83,6 +86,8 @@ var (
 	AmountValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
+	// DetailsValidator is a validator for the "details" field. It is called by the builders before save.
+	DetailsValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -107,6 +112,11 @@ func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByDetails orders the results by the details field.
+func ByDetails(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDetails, opts...).ToFunc()
 }
 
 // ByDate orders the results by the date field.

@@ -64,6 +64,26 @@ func (_u *TransactionUpdate) ClearDescription() *TransactionUpdate {
 	return _u
 }
 
+// SetDetails sets the "details" field.
+func (_u *TransactionUpdate) SetDetails(v string) *TransactionUpdate {
+	_u.mutation.SetDetails(v)
+	return _u
+}
+
+// SetNillableDetails sets the "details" field if the given value is not nil.
+func (_u *TransactionUpdate) SetNillableDetails(v *string) *TransactionUpdate {
+	if v != nil {
+		_u.SetDetails(*v)
+	}
+	return _u
+}
+
+// ClearDetails clears the value of the "details" field.
+func (_u *TransactionUpdate) ClearDetails() *TransactionUpdate {
+	_u.mutation.ClearDetails()
+	return _u
+}
+
 // SetDate sets the "date" field.
 func (_u *TransactionUpdate) SetDate(v time.Time) *TransactionUpdate {
 	_u.mutation.SetDate(v)
@@ -171,6 +191,11 @@ func (_u *TransactionUpdate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Transaction.description": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Details(); ok {
+		if err := transaction.DetailsValidator(v); err != nil {
+			return &ValidationError{Name: "details", err: fmt.Errorf(`ent: validator failed for field "Transaction.details": %w`, err)}
+		}
+	}
 	if _u.mutation.HouseholdCleared() && len(_u.mutation.HouseholdIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Transaction.household"`)
 	}
@@ -200,6 +225,12 @@ func (_u *TransactionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(transaction.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.Details(); ok {
+		_spec.SetField(transaction.FieldDetails, field.TypeString, value)
+	}
+	if _u.mutation.DetailsCleared() {
+		_spec.ClearField(transaction.FieldDetails, field.TypeString)
 	}
 	if value, ok := _u.mutation.Date(); ok {
 		_spec.SetField(transaction.FieldDate, field.TypeTime, value)
@@ -316,6 +347,26 @@ func (_u *TransactionUpdateOne) SetNillableDescription(v *string) *TransactionUp
 // ClearDescription clears the value of the "description" field.
 func (_u *TransactionUpdateOne) ClearDescription() *TransactionUpdateOne {
 	_u.mutation.ClearDescription()
+	return _u
+}
+
+// SetDetails sets the "details" field.
+func (_u *TransactionUpdateOne) SetDetails(v string) *TransactionUpdateOne {
+	_u.mutation.SetDetails(v)
+	return _u
+}
+
+// SetNillableDetails sets the "details" field if the given value is not nil.
+func (_u *TransactionUpdateOne) SetNillableDetails(v *string) *TransactionUpdateOne {
+	if v != nil {
+		_u.SetDetails(*v)
+	}
+	return _u
+}
+
+// ClearDetails clears the value of the "details" field.
+func (_u *TransactionUpdateOne) ClearDetails() *TransactionUpdateOne {
+	_u.mutation.ClearDetails()
 	return _u
 }
 
@@ -439,6 +490,11 @@ func (_u *TransactionUpdateOne) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Transaction.description": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Details(); ok {
+		if err := transaction.DetailsValidator(v); err != nil {
+			return &ValidationError{Name: "details", err: fmt.Errorf(`ent: validator failed for field "Transaction.details": %w`, err)}
+		}
+	}
 	if _u.mutation.HouseholdCleared() && len(_u.mutation.HouseholdIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Transaction.household"`)
 	}
@@ -485,6 +541,12 @@ func (_u *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transaction
 	}
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(transaction.FieldDescription, field.TypeString)
+	}
+	if value, ok := _u.mutation.Details(); ok {
+		_spec.SetField(transaction.FieldDetails, field.TypeString, value)
+	}
+	if _u.mutation.DetailsCleared() {
+		_spec.ClearField(transaction.FieldDetails, field.TypeString)
 	}
 	if value, ok := _u.mutation.Date(); ok {
 		_spec.SetField(transaction.FieldDate, field.TypeTime, value)

@@ -42,6 +42,20 @@ func (_c *TransactionCreate) SetNillableDescription(v *string) *TransactionCreat
 	return _c
 }
 
+// SetDetails sets the "details" field.
+func (_c *TransactionCreate) SetDetails(v string) *TransactionCreate {
+	_c.mutation.SetDetails(v)
+	return _c
+}
+
+// SetNillableDetails sets the "details" field if the given value is not nil.
+func (_c *TransactionCreate) SetNillableDetails(v *string) *TransactionCreate {
+	if v != nil {
+		_c.SetDetails(*v)
+	}
+	return _c
+}
+
 // SetDate sets the "date" field.
 func (_c *TransactionCreate) SetDate(v time.Time) *TransactionCreate {
 	_c.mutation.SetDate(v)
@@ -158,6 +172,11 @@ func (_c *TransactionCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Transaction.description": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.Details(); ok {
+		if err := transaction.DetailsValidator(v); err != nil {
+			return &ValidationError{Name: "details", err: fmt.Errorf(`ent: validator failed for field "Transaction.details": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Date(); !ok {
 		return &ValidationError{Name: "date", err: errors.New(`ent: missing required field "Transaction.date"`)}
 	}
@@ -206,6 +225,10 @@ func (_c *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Description(); ok {
 		_spec.SetField(transaction.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := _c.mutation.Details(); ok {
+		_spec.SetField(transaction.FieldDetails, field.TypeString, value)
+		_node.Details = value
 	}
 	if value, ok := _c.mutation.Date(); ok {
 		_spec.SetField(transaction.FieldDate, field.TypeTime, value)

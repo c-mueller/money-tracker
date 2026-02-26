@@ -65,6 +65,11 @@ func Description(v string) predicate.RecurringExpense {
 	return predicate.RecurringExpense(sql.FieldEQ(FieldDescription, v))
 }
 
+// Details applies equality check predicate on the "details" field. It's identical to DetailsEQ.
+func Details(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldEQ(FieldDetails, v))
+}
+
 // Amount applies equality check predicate on the "amount" field. It's identical to AmountEQ.
 func Amount(v string) predicate.RecurringExpense {
 	return predicate.RecurringExpense(sql.FieldEQ(FieldAmount, v))
@@ -238,6 +243,81 @@ func DescriptionEqualFold(v string) predicate.RecurringExpense {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.RecurringExpense {
 	return predicate.RecurringExpense(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// DetailsEQ applies the EQ predicate on the "details" field.
+func DetailsEQ(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldEQ(FieldDetails, v))
+}
+
+// DetailsNEQ applies the NEQ predicate on the "details" field.
+func DetailsNEQ(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldNEQ(FieldDetails, v))
+}
+
+// DetailsIn applies the In predicate on the "details" field.
+func DetailsIn(vs ...string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldIn(FieldDetails, vs...))
+}
+
+// DetailsNotIn applies the NotIn predicate on the "details" field.
+func DetailsNotIn(vs ...string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldNotIn(FieldDetails, vs...))
+}
+
+// DetailsGT applies the GT predicate on the "details" field.
+func DetailsGT(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldGT(FieldDetails, v))
+}
+
+// DetailsGTE applies the GTE predicate on the "details" field.
+func DetailsGTE(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldGTE(FieldDetails, v))
+}
+
+// DetailsLT applies the LT predicate on the "details" field.
+func DetailsLT(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldLT(FieldDetails, v))
+}
+
+// DetailsLTE applies the LTE predicate on the "details" field.
+func DetailsLTE(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldLTE(FieldDetails, v))
+}
+
+// DetailsContains applies the Contains predicate on the "details" field.
+func DetailsContains(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldContains(FieldDetails, v))
+}
+
+// DetailsHasPrefix applies the HasPrefix predicate on the "details" field.
+func DetailsHasPrefix(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldHasPrefix(FieldDetails, v))
+}
+
+// DetailsHasSuffix applies the HasSuffix predicate on the "details" field.
+func DetailsHasSuffix(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldHasSuffix(FieldDetails, v))
+}
+
+// DetailsIsNil applies the IsNil predicate on the "details" field.
+func DetailsIsNil() predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldIsNull(FieldDetails))
+}
+
+// DetailsNotNil applies the NotNil predicate on the "details" field.
+func DetailsNotNil() predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldNotNull(FieldDetails))
+}
+
+// DetailsEqualFold applies the EqualFold predicate on the "details" field.
+func DetailsEqualFold(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldEqualFold(FieldDetails, v))
+}
+
+// DetailsContainsFold applies the ContainsFold predicate on the "details" field.
+func DetailsContainsFold(v string) predicate.RecurringExpense {
+	return predicate.RecurringExpense(sql.FieldContainsFold(FieldDetails, v))
 }
 
 // AmountEQ applies the EQ predicate on the "amount" field.

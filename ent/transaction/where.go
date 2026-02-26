@@ -65,6 +65,11 @@ func Description(v string) predicate.Transaction {
 	return predicate.Transaction(sql.FieldEQ(FieldDescription, v))
 }
 
+// Details applies equality check predicate on the "details" field. It's identical to DetailsEQ.
+func Details(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldEQ(FieldDetails, v))
+}
+
 // Date applies equality check predicate on the "date" field. It's identical to DateEQ.
 func Date(v time.Time) predicate.Transaction {
 	return predicate.Transaction(sql.FieldEQ(FieldDate, v))
@@ -218,6 +223,81 @@ func DescriptionEqualFold(v string) predicate.Transaction {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Transaction {
 	return predicate.Transaction(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// DetailsEQ applies the EQ predicate on the "details" field.
+func DetailsEQ(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldEQ(FieldDetails, v))
+}
+
+// DetailsNEQ applies the NEQ predicate on the "details" field.
+func DetailsNEQ(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldNEQ(FieldDetails, v))
+}
+
+// DetailsIn applies the In predicate on the "details" field.
+func DetailsIn(vs ...string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldIn(FieldDetails, vs...))
+}
+
+// DetailsNotIn applies the NotIn predicate on the "details" field.
+func DetailsNotIn(vs ...string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldNotIn(FieldDetails, vs...))
+}
+
+// DetailsGT applies the GT predicate on the "details" field.
+func DetailsGT(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldGT(FieldDetails, v))
+}
+
+// DetailsGTE applies the GTE predicate on the "details" field.
+func DetailsGTE(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldGTE(FieldDetails, v))
+}
+
+// DetailsLT applies the LT predicate on the "details" field.
+func DetailsLT(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldLT(FieldDetails, v))
+}
+
+// DetailsLTE applies the LTE predicate on the "details" field.
+func DetailsLTE(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldLTE(FieldDetails, v))
+}
+
+// DetailsContains applies the Contains predicate on the "details" field.
+func DetailsContains(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldContains(FieldDetails, v))
+}
+
+// DetailsHasPrefix applies the HasPrefix predicate on the "details" field.
+func DetailsHasPrefix(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldHasPrefix(FieldDetails, v))
+}
+
+// DetailsHasSuffix applies the HasSuffix predicate on the "details" field.
+func DetailsHasSuffix(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldHasSuffix(FieldDetails, v))
+}
+
+// DetailsIsNil applies the IsNil predicate on the "details" field.
+func DetailsIsNil() predicate.Transaction {
+	return predicate.Transaction(sql.FieldIsNull(FieldDetails))
+}
+
+// DetailsNotNil applies the NotNil predicate on the "details" field.
+func DetailsNotNil() predicate.Transaction {
+	return predicate.Transaction(sql.FieldNotNull(FieldDetails))
+}
+
+// DetailsEqualFold applies the EqualFold predicate on the "details" field.
+func DetailsEqualFold(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldEqualFold(FieldDetails, v))
+}
+
+// DetailsContainsFold applies the ContainsFold predicate on the "details" field.
+func DetailsContainsFold(v string) predicate.Transaction {
+	return predicate.Transaction(sql.FieldContainsFold(FieldDetails, v))
 }
 
 // DateEQ applies the EQ predicate on the "date" field.
