@@ -53,6 +53,7 @@ type CreateTransactionRequest struct {
 	CategoryID  int    `json:"category_id"`
 	Amount      string `json:"amount"`
 	Description string `json:"description"`
+	Details     string `json:"details"`
 	Date        string `json:"date"`
 }
 
@@ -60,6 +61,7 @@ type UpdateTransactionRequest struct {
 	CategoryID  int    `json:"category_id"`
 	Amount      string `json:"amount"`
 	Description string `json:"description"`
+	Details     string `json:"details"`
 	Date        string `json:"date"`
 }
 
@@ -69,6 +71,7 @@ type TransactionResponse struct {
 	CategoryID  int       `json:"category_id"`
 	Amount      string    `json:"amount"`
 	Description string    `json:"description"`
+	Details     string    `json:"details"`
 	Date        string    `json:"date"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -79,6 +82,7 @@ type CreateRecurringExpenseRequest struct {
 	CategoryID  int     `json:"category_id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
+	Details     string  `json:"details"`
 	Amount      string  `json:"amount"`
 	Frequency   string  `json:"frequency"`
 	StartDate   string  `json:"start_date"`
@@ -89,6 +93,7 @@ type UpdateRecurringExpenseRequest struct {
 	CategoryID  int     `json:"category_id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
+	Details     string  `json:"details"`
 	Amount      string  `json:"amount"`
 	Frequency   string  `json:"frequency"`
 	Active      bool    `json:"active"`
@@ -102,6 +107,7 @@ type RecurringExpenseResponse struct {
 	CategoryID  int       `json:"category_id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
+	Details     string    `json:"details"`
 	Amount      string    `json:"amount"`
 	Frequency   string    `json:"frequency"`
 	Active      bool      `json:"active"`

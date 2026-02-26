@@ -239,8 +239,9 @@ func (s *Server) handleWebTransactionCreate(c echo.Context) error {
 	}
 
 	description := c.FormValue("description")
+	details := c.FormValue("details")
 
-	_, err = s.services.Transaction.Create(ctx, id, categoryID, amount, description, date)
+	_, err = s.services.Transaction.Create(ctx, id, categoryID, amount, description, details, date)
 	if err != nil {
 		return err
 	}
@@ -328,8 +329,9 @@ func (s *Server) handleWebTransactionUpdate(c echo.Context) error {
 	}
 
 	description := c.FormValue("description")
+	details := c.FormValue("details")
 
-	_, err = s.services.Transaction.Update(ctx, id, txID, categoryID, amount, description, date)
+	_, err = s.services.Transaction.Update(ctx, id, txID, categoryID, amount, description, details, date)
 	if err != nil {
 		return err
 	}
@@ -495,8 +497,9 @@ func (s *Server) handleWebRecurringCreate(c echo.Context) error {
 
 	name := c.FormValue("name")
 	description := c.FormValue("description")
+	details := c.FormValue("details")
 
-	_, err = s.services.RecurringExpense.Create(c.Request().Context(), id, categoryID, name, description, amount, freq, startDate, endDate)
+	_, err = s.services.RecurringExpense.Create(c.Request().Context(), id, categoryID, name, description, details, amount, freq, startDate, endDate)
 	if err != nil {
 		return err
 	}
@@ -599,9 +602,10 @@ func (s *Server) handleWebRecurringUpdate(c echo.Context) error {
 
 	name := c.FormValue("name")
 	description := c.FormValue("description")
+	details := c.FormValue("details")
 	active := c.FormValue("active") == "on"
 
-	_, err = s.services.RecurringExpense.Update(ctx, recurringID, categoryID, name, description, amount, freq, active, startDate, endDate)
+	_, err = s.services.RecurringExpense.Update(ctx, recurringID, categoryID, name, description, details, amount, freq, active, startDate, endDate)
 	if err != nil {
 		return err
 	}

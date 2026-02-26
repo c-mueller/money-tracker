@@ -53,7 +53,7 @@ func (s *Server) handleCreateTransaction(c echo.Context) error {
 		return respondError(c, fmt.Errorf("%w: invalid date format, expected YYYY-MM-DD", domain.ErrValidation))
 	}
 
-	tx, err := s.services.Transaction.Create(c.Request().Context(), householdID, req.CategoryID, amount, req.Description, date)
+	tx, err := s.services.Transaction.Create(c.Request().Context(), householdID, req.CategoryID, amount, req.Description, req.Details, date)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -87,7 +87,7 @@ func (s *Server) handleUpdateTransaction(c echo.Context) error {
 		return respondError(c, fmt.Errorf("%w: invalid date format, expected YYYY-MM-DD", domain.ErrValidation))
 	}
 
-	tx, err := s.services.Transaction.Update(c.Request().Context(), householdID, txID, req.CategoryID, amount, req.Description, date)
+	tx, err := s.services.Transaction.Update(c.Request().Context(), householdID, txID, req.CategoryID, amount, req.Description, req.Details, date)
 	if err != nil {
 		return respondError(c, err)
 	}
@@ -120,6 +120,7 @@ func toTransactionResponse(tx *domain.Transaction) TransactionResponse {
 		CategoryID:  tx.CategoryID,
 		Amount:      tx.Amount.String(),
 		Description: tx.Description,
+		Details:     tx.Details,
 		Date:        tx.Date.Format("2006-01-02"),
 		CreatedAt:   tx.CreatedAt,
 		UpdatedAt:   tx.UpdatedAt,
