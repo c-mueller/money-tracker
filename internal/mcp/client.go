@@ -167,6 +167,7 @@ type Transaction struct {
 	CategoryID  int    `json:"category_id"`
 	Amount      string `json:"amount"`
 	Description string `json:"description"`
+	Details     string `json:"details"`
 	Date        string `json:"date"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
@@ -213,6 +214,7 @@ type RecurringExpense struct {
 	CategoryID  int     `json:"category_id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
+	Details     string  `json:"details"`
 	Amount      string  `json:"amount"`
 	Frequency   string  `json:"frequency"`
 	Active      bool    `json:"active"`

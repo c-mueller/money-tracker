@@ -207,6 +207,7 @@ type createTransactionArgs struct {
 	CategoryID  int    `json:"category_id" jsonschema:"required,Category ID"`
 	Amount      string `json:"amount" jsonschema:"required,Decimal amount as string (negative=expense positive=income)"`
 	Description string `json:"description" jsonschema:"required,Transaction description"`
+	Details     string `json:"details,omitempty" jsonschema:"Extended description (receipt contents, invoice details, notes)"`
 	Date        string `json:"date" jsonschema:"required,Date in YYYY-MM-DD format"`
 }
 
@@ -216,6 +217,7 @@ type updateTransactionArgs struct {
 	CategoryID    int    `json:"category_id,omitempty" jsonschema:"New category ID"`
 	Amount        string `json:"amount,omitempty" jsonschema:"New decimal amount"`
 	Description   string `json:"description,omitempty" jsonschema:"New description"`
+	Details       string `json:"details,omitempty" jsonschema:"New extended description"`
 	Date          string `json:"date,omitempty" jsonschema:"New date in YYYY-MM-DD format"`
 }
 
@@ -285,6 +287,7 @@ type createRecurringExpenseArgs struct {
 	CategoryID  int     `json:"category_id" jsonschema:"required,Category ID"`
 	Name        string  `json:"name" jsonschema:"required,Name of the recurring entry"`
 	Description string  `json:"description,omitempty" jsonschema:"Description"`
+	Details     string  `json:"details,omitempty" jsonschema:"Extended description (receipt contents, invoice details, notes)"`
 	Amount      string  `json:"amount" jsonschema:"required,Decimal amount (negative=expense positive=income)"`
 	Frequency   string  `json:"frequency" jsonschema:"required,Frequency: daily|weekday|weekly|biweekly|monthly|quarterly|yearly"`
 	StartDate   string  `json:"start_date" jsonschema:"required,Start date in YYYY-MM-DD format"`
@@ -298,6 +301,7 @@ type updateRecurringExpenseArgs struct {
 	CategoryID  int     `json:"category_id,omitempty" jsonschema:"New category ID"`
 	Name        string  `json:"name,omitempty" jsonschema:"New name"`
 	Description string  `json:"description,omitempty" jsonschema:"New description"`
+	Details     string  `json:"details,omitempty" jsonschema:"New extended description"`
 	Amount      string  `json:"amount,omitempty" jsonschema:"New decimal amount"`
 	Frequency   string  `json:"frequency,omitempty" jsonschema:"New frequency"`
 	Active      *bool   `json:"active,omitempty" jsonschema:"Active status"`
