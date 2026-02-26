@@ -62,7 +62,7 @@ func (r *mutationResolver) CreateTransaction(ctx context.Context, input model.Cr
 		return nil, fmt.Errorf("%w: invalid date format, expected YYYY-MM-DD", domain.ErrValidation)
 	}
 
-	tx, err := r.TransactionSvc.Create(ctx, input.HouseholdID, input.CategoryID, amount, derefString(input.Description), date)
+	tx, err := r.TransactionSvc.Create(ctx, input.HouseholdID, input.CategoryID, amount, derefString(input.Description), derefString(input.Details), date)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (r *mutationResolver) UpdateTransaction(ctx context.Context, input model.Up
 		return nil, fmt.Errorf("%w: invalid date format, expected YYYY-MM-DD", domain.ErrValidation)
 	}
 
-	tx, err := r.TransactionSvc.Update(ctx, input.HouseholdID, input.ID, input.CategoryID, amount, derefString(input.Description), date)
+	tx, err := r.TransactionSvc.Update(ctx, input.HouseholdID, input.ID, input.CategoryID, amount, derefString(input.Description), derefString(input.Details), date)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (r *mutationResolver) CreateRecurringExpense(ctx context.Context, input mod
 		endDate = &t
 	}
 
-	re, err := r.RecurringExpenseSvc.Create(ctx, input.HouseholdID, input.CategoryID, input.Name, derefString(input.Description), amount, freq, startDate, endDate)
+	re, err := r.RecurringExpenseSvc.Create(ctx, input.HouseholdID, input.CategoryID, input.Name, derefString(input.Description), derefString(input.Details), amount, freq, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (r *mutationResolver) UpdateRecurringExpense(ctx context.Context, input mod
 		endDate = &t
 	}
 
-	re, err := r.RecurringExpenseSvc.Update(ctx, input.ID, input.CategoryID, input.Name, derefString(input.Description), amount, freq, input.Active, startDate, endDate)
+	re, err := r.RecurringExpenseSvc.Update(ctx, input.ID, input.CategoryID, input.Name, derefString(input.Description), derefString(input.Details), amount, freq, input.Active, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}

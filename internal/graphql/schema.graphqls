@@ -24,6 +24,7 @@ type Transaction {
   categoryID: Int!
   amount: String!
   description: String!
+  details: String!
   date: String!
   createdAt: String!
   updatedAt: String!
@@ -35,6 +36,7 @@ type RecurringExpense {
   categoryID: Int!
   name: String!
   description: String!
+  details: String!
   amount: String!
   frequency: String!
   active: Boolean!
@@ -111,6 +113,7 @@ input CreateTransactionInput {
   categoryID: Int!
   amount: String!
   description: String
+  details: String
   date: String!
 }
 
@@ -120,6 +123,7 @@ input UpdateTransactionInput {
   categoryID: Int!
   amount: String!
   description: String
+  details: String
   date: String!
 }
 
@@ -128,6 +132,7 @@ input CreateRecurringExpenseInput {
   categoryID: Int!
   name: String!
   description: String
+  details: String
   amount: String!
   frequency: String!
   startDate: String!
@@ -139,6 +144,7 @@ input UpdateRecurringExpenseInput {
   categoryID: Int!
   name: String!
   description: String
+  details: String
   amount: String!
   frequency: String!
   active: Boolean!

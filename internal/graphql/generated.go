@@ -109,6 +109,7 @@ type ComplexityRoot struct {
 		CategoryID  func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
+		Details     func(childComplexity int) int
 		EndDate     func(childComplexity int) int
 		Frequency   func(childComplexity int) int
 		HouseholdID func(childComplexity int) int
@@ -134,6 +135,7 @@ type ComplexityRoot struct {
 		CreatedAt   func(childComplexity int) int
 		Date        func(childComplexity int) int
 		Description func(childComplexity int) int
+		Details     func(childComplexity int) int
 		HouseholdID func(childComplexity int) int
 		ID          func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -593,6 +595,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.RecurringExpense.Description(childComplexity), true
+	case "RecurringExpense.details":
+		if e.ComplexityRoot.RecurringExpense.Details == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RecurringExpense.Details(childComplexity), true
 	case "RecurringExpense.endDate":
 		if e.ComplexityRoot.RecurringExpense.EndDate == nil {
 			break
@@ -709,6 +717,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Transaction.Description(childComplexity), true
+	case "Transaction.details":
+		if e.ComplexityRoot.Transaction.Details == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Transaction.Details(childComplexity), true
 	case "Transaction.householdID":
 		if e.ComplexityRoot.Transaction.HouseholdID == nil {
 			break
@@ -2274,6 +2288,8 @@ func (ec *executionContext) fieldContext_Mutation_createTransaction(ctx context.
 				return ec.fieldContext_Transaction_amount(ctx, field)
 			case "description":
 				return ec.fieldContext_Transaction_description(ctx, field)
+			case "details":
+				return ec.fieldContext_Transaction_details(ctx, field)
 			case "date":
 				return ec.fieldContext_Transaction_date(ctx, field)
 			case "createdAt":
@@ -2333,6 +2349,8 @@ func (ec *executionContext) fieldContext_Mutation_updateTransaction(ctx context.
 				return ec.fieldContext_Transaction_amount(ctx, field)
 			case "description":
 				return ec.fieldContext_Transaction_description(ctx, field)
+			case "details":
+				return ec.fieldContext_Transaction_details(ctx, field)
 			case "date":
 				return ec.fieldContext_Transaction_date(ctx, field)
 			case "createdAt":
@@ -2392,6 +2410,8 @@ func (ec *executionContext) fieldContext_Mutation_createRecurringExpense(ctx con
 				return ec.fieldContext_RecurringExpense_name(ctx, field)
 			case "description":
 				return ec.fieldContext_RecurringExpense_description(ctx, field)
+			case "details":
+				return ec.fieldContext_RecurringExpense_details(ctx, field)
 			case "amount":
 				return ec.fieldContext_RecurringExpense_amount(ctx, field)
 			case "frequency":
@@ -2459,6 +2479,8 @@ func (ec *executionContext) fieldContext_Mutation_updateRecurringExpense(ctx con
 				return ec.fieldContext_RecurringExpense_name(ctx, field)
 			case "description":
 				return ec.fieldContext_RecurringExpense_description(ctx, field)
+			case "details":
+				return ec.fieldContext_RecurringExpense_details(ctx, field)
 			case "amount":
 				return ec.fieldContext_RecurringExpense_amount(ctx, field)
 			case "frequency":
@@ -2842,6 +2864,8 @@ func (ec *executionContext) fieldContext_Query_transactions(ctx context.Context,
 				return ec.fieldContext_Transaction_amount(ctx, field)
 			case "description":
 				return ec.fieldContext_Transaction_description(ctx, field)
+			case "details":
+				return ec.fieldContext_Transaction_details(ctx, field)
 			case "date":
 				return ec.fieldContext_Transaction_date(ctx, field)
 			case "createdAt":
@@ -2901,6 +2925,8 @@ func (ec *executionContext) fieldContext_Query_recurringExpenses(ctx context.Con
 				return ec.fieldContext_RecurringExpense_name(ctx, field)
 			case "description":
 				return ec.fieldContext_RecurringExpense_description(ctx, field)
+			case "details":
+				return ec.fieldContext_RecurringExpense_details(ctx, field)
 			case "amount":
 				return ec.fieldContext_RecurringExpense_amount(ctx, field)
 			case "frequency":
@@ -3298,6 +3324,35 @@ func (ec *executionContext) _RecurringExpense_description(ctx context.Context, f
 }
 
 func (ec *executionContext) fieldContext_RecurringExpense_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RecurringExpense",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RecurringExpense_details(ctx context.Context, field graphql.CollectedField, obj *model.RecurringExpense) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RecurringExpense_details,
+		func(ctx context.Context) (any, error) {
+			return obj.Details, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RecurringExpense_details(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RecurringExpense",
 		Field:      field,
@@ -3849,6 +3904,35 @@ func (ec *executionContext) _Transaction_description(ctx context.Context, field 
 }
 
 func (ec *executionContext) fieldContext_Transaction_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Transaction",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Transaction_details(ctx context.Context, field graphql.CollectedField, obj *model.Transaction) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Transaction_details,
+		func(ctx context.Context) (any, error) {
+			return obj.Details, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Transaction_details(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Transaction",
 		Field:      field,
@@ -5488,7 +5572,7 @@ func (ec *executionContext) unmarshalInputCreateRecurringExpenseInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"householdID", "categoryID", "name", "description", "amount", "frequency", "startDate", "endDate"}
+	fieldsInOrder := [...]string{"householdID", "categoryID", "name", "description", "details", "amount", "frequency", "startDate", "endDate"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5523,6 +5607,13 @@ func (ec *executionContext) unmarshalInputCreateRecurringExpenseInput(ctx contex
 				return it, err
 			}
 			it.Description = data
+		case "details":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Details = data
 		case "amount":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -5610,7 +5701,7 @@ func (ec *executionContext) unmarshalInputCreateTransactionInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"householdID", "categoryID", "amount", "description", "date"}
+	fieldsInOrder := [...]string{"householdID", "categoryID", "amount", "description", "details", "date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5645,6 +5736,13 @@ func (ec *executionContext) unmarshalInputCreateTransactionInput(ctx context.Con
 				return it, err
 			}
 			it.Description = data
+		case "details":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Details = data
 		case "date":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -5758,7 +5856,7 @@ func (ec *executionContext) unmarshalInputUpdateRecurringExpenseInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "categoryID", "name", "description", "amount", "frequency", "active", "startDate", "endDate"}
+	fieldsInOrder := [...]string{"id", "categoryID", "name", "description", "details", "amount", "frequency", "active", "startDate", "endDate"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5793,6 +5891,13 @@ func (ec *executionContext) unmarshalInputUpdateRecurringExpenseInput(ctx contex
 				return it, err
 			}
 			it.Description = data
+		case "details":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Details = data
 		case "amount":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -5887,7 +5992,7 @@ func (ec *executionContext) unmarshalInputUpdateTransactionInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "householdID", "categoryID", "amount", "description", "date"}
+	fieldsInOrder := [...]string{"id", "householdID", "categoryID", "amount", "description", "details", "date"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5929,6 +6034,13 @@ func (ec *executionContext) unmarshalInputUpdateTransactionInput(ctx context.Con
 				return it, err
 			}
 			it.Description = data
+		case "details":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Details = data
 		case "date":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
 			data, err := ec.unmarshalNString2string(ctx, v)
@@ -6599,6 +6711,11 @@ func (ec *executionContext) _RecurringExpense(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "details":
+			out.Values[i] = ec._RecurringExpense_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "amount":
 			out.Values[i] = ec._RecurringExpense_amount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6756,6 +6873,11 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 			}
 		case "description":
 			out.Values[i] = ec._Transaction_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "details":
+			out.Values[i] = ec._Transaction_details(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
