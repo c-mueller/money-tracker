@@ -22,6 +22,7 @@ func (r *RecurringExpenseRepository) Create(ctx context.Context, expense *domain
 	q := r.client.RecurringExpense.Create().
 		SetName(expense.Name).
 		SetDescription(expense.Description).
+		SetDetails(expense.Details).
 		SetAmount(expense.Amount.String()).
 		SetFrequency(string(expense.Frequency)).
 		SetActive(expense.Active).
@@ -98,6 +99,7 @@ func (r *RecurringExpenseRepository) Update(ctx context.Context, expense *domain
 	q := r.client.RecurringExpense.UpdateOneID(expense.ID).
 		SetName(expense.Name).
 		SetDescription(expense.Description).
+		SetDetails(expense.Details).
 		SetAmount(expense.Amount.String()).
 		SetFrequency(string(expense.Frequency)).
 		SetActive(expense.Active).

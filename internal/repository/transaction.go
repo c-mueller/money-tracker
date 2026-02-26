@@ -23,6 +23,7 @@ func (r *TransactionRepository) Create(ctx context.Context, tx *domain.Transacti
 	t, err := r.client.Transaction.Create().
 		SetAmount(tx.Amount.String()).
 		SetDescription(tx.Description).
+		SetDetails(tx.Details).
 		SetDate(tx.Date).
 		SetHouseholdID(tx.HouseholdID).
 		SetCategoryID(tx.CategoryID).
@@ -78,6 +79,7 @@ func (r *TransactionRepository) Update(ctx context.Context, tx *domain.Transacti
 	t, err := r.client.Transaction.UpdateOneID(tx.ID).
 		SetAmount(tx.Amount.String()).
 		SetDescription(tx.Description).
+		SetDetails(tx.Details).
 		SetDate(tx.Date).
 		SetCategoryID(tx.CategoryID).
 		Save(ctx)
