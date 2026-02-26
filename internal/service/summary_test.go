@@ -32,8 +32,8 @@ func TestGetMonthlySummary(t *testing.T) {
 	t.Run("only one-time transactions", func(t *testing.T) {
 		expense, _ := domain.NewMoney("-50.00")
 		income, _ := domain.NewMoney("1000.00")
-		svc.Transaction.Create(ctx, hh.ID, cat.ID, expense, "Groceries", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
-		svc.Transaction.Create(ctx, hh.ID, cat.ID, income, "Salary", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh.ID, cat.ID, expense, "Groceries", "", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh.ID, cat.ID, income, "Salary", "", time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
 
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hh.ID, 2026, time.January)
 		if err != nil {
@@ -59,7 +59,7 @@ func TestGetMonthlySummary(t *testing.T) {
 		cat2, _ := svc.Category.Create(ctx, hh2.ID, "Bills", "")
 
 		recurAmount, _ := domain.NewMoney("-800.00")
-		svc.RecurringExpense.Create(ctx, hh2.ID, cat2.ID, "Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hh2.ID, cat2.ID, "Rent", "", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hh2.ID, 2026, time.January)
 		if err != nil {
@@ -80,10 +80,10 @@ func TestGetMonthlySummary(t *testing.T) {
 		cat3, _ := svc.Category.Create(ctx, hh3.ID, "Mixed", "")
 
 		recurAmount, _ := domain.NewMoney("-800.00")
-		svc.RecurringExpense.Create(ctx, hh3.ID, cat3.ID, "Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hh3.ID, cat3.ID, "Rent", "", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 		oneTime, _ := domain.NewMoney("-50.00")
-		svc.Transaction.Create(ctx, hh3.ID, cat3.ID, oneTime, "Extra", time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh3.ID, cat3.ID, oneTime, "Extra", "", time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
 
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hh3.ID, 2026, time.January)
 		if err != nil {
@@ -110,13 +110,13 @@ func TestGetMonthlySummary(t *testing.T) {
 
 		recurExpense, _ := domain.NewMoney("-800.00")
 		recurIncome, _ := domain.NewMoney("3000.00")
-		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Rent", "", recurExpense, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
-		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Salary", "", recurIncome, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Rent", "", "", recurExpense, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hh5.ID, cat5.ID, "Salary", "", "", recurIncome, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 		oneTimeExpense, _ := domain.NewMoney("-50.00")
 		oneTimeIncome, _ := domain.NewMoney("200.00")
-		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeExpense, "Groceries", time.Date(2026, 1, 5, 0, 0, 0, 0, time.UTC))
-		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeIncome, "Refund", time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeExpense, "Groceries", "", time.Date(2026, 1, 5, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh5.ID, cat5.ID, oneTimeIncome, "Refund", "", time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC))
 
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hh5.ID, 2026, time.January)
 		if err != nil {
@@ -151,7 +151,7 @@ func TestGetMonthlySummary(t *testing.T) {
 		cat6, _ := svc.Category.Create(ctx, hh6.ID, "Override", "")
 
 		recurAmount, _ := domain.NewMoney("-800.00")
-		re, _ := svc.RecurringExpense.Create(ctx, hh6.ID, cat6.ID, "Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		re, _ := svc.RecurringExpense.Create(ctx, hh6.ID, cat6.ID, "Rent", "", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 		// Add override: from April, rent increases to -900
 		overrideAmount, _ := domain.NewMoney("-900.00")
@@ -184,7 +184,7 @@ func TestGetMonthlySummary(t *testing.T) {
 
 		recurAmount, _ := domain.NewMoney("-500.00")
 		// Recurring starts in March 2026
-		svc.RecurringExpense.Create(ctx, hhF.ID, catF.ID, "Future Rent", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC), nil)
+		svc.RecurringExpense.Create(ctx, hhF.ID, catF.ID, "Future Rent", "", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC), nil)
 
 		// January summary should not include it
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hhF.ID, 2026, time.January)
@@ -212,7 +212,7 @@ func TestGetMonthlySummary(t *testing.T) {
 
 		recurAmount, _ := domain.NewMoney("-300.00")
 		endDate := time.Date(2026, 2, 28, 0, 0, 0, 0, time.UTC)
-		svc.RecurringExpense.Create(ctx, hhE.ID, catE.ID, "Old Sub", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+		svc.RecurringExpense.Create(ctx, hhE.ID, catE.ID, "Old Sub", "", "", recurAmount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
 
 		// February should include it
 		summaryFeb, err := svc.Summary.GetMonthlySummary(ctx, hhE.ID, 2026, time.February)
@@ -241,8 +241,8 @@ func TestGetMonthlySummary(t *testing.T) {
 
 		amountA, _ := domain.NewMoney("-100.00")
 		amountB, _ := domain.NewMoney("-200.00")
-		svc.Transaction.Create(ctx, hh4.ID, catA.ID, amountA, "Groceries", time.Date(2026, 2, 5, 0, 0, 0, 0, time.UTC))
-		svc.Transaction.Create(ctx, hh4.ID, catB.ID, amountB, "Gas", time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh4.ID, catA.ID, amountA, "Groceries", "", time.Date(2026, 2, 5, 0, 0, 0, 0, time.UTC))
+		svc.Transaction.Create(ctx, hh4.ID, catB.ID, amountB, "Gas", "", time.Date(2026, 2, 10, 0, 0, 0, 0, time.UTC))
 
 		summary, err := svc.Summary.GetMonthlySummary(ctx, hh4.ID, 2026, time.February)
 		if err != nil {

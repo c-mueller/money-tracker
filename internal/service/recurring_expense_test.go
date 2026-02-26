@@ -16,7 +16,7 @@ func TestRecurringExpenseCreate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-800.00")
-		re, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "Monthly rent", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		re, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "Monthly rent", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -34,7 +34,7 @@ func TestRecurringExpenseCreate(t *testing.T) {
 	t.Run("with end date", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-100.00")
 		end := time.Date(2026, 12, 31, 0, 0, 0, 0, time.UTC)
-		re, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Subscription", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &end)
+		re, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Subscription", "", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &end)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -44,7 +44,7 @@ func TestRecurringExpenseCreate(t *testing.T) {
 	})
 
 	t.Run("zero amount", func(t *testing.T) {
-		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", domain.ZeroMoney(), domain.FrequencyMonthly, time.Now(), nil)
+		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", "", domain.ZeroMoney(), domain.FrequencyMonthly, time.Now(), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -52,7 +52,7 @@ func TestRecurringExpenseCreate(t *testing.T) {
 
 	t.Run("invalid frequency", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
-		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", amount, domain.Frequency("invalid"), time.Now(), nil)
+		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", "", amount, domain.Frequency("invalid"), time.Now(), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -60,7 +60,27 @@ func TestRecurringExpenseCreate(t *testing.T) {
 
 	t.Run("empty name", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
-		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "", "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("with details", func(t *testing.T) {
+		amount, _ := domain.NewMoney("-50.00")
+		re, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Internet", "Monthly bill", "Provider: Telekom\nContract: 12345", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if re.Details != "Provider: Telekom\nContract: 12345" {
+			t.Errorf("Details = %q, want %q", re.Details, "Provider: Telekom\nContract: 12345")
+		}
+	})
+
+	t.Run("details too long", func(t *testing.T) {
+		amount, _ := domain.NewMoney("-50.00")
+		longDetails := string(make([]byte, 5001))
+		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", longDetails, amount, domain.FrequencyMonthly, time.Now(), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -70,7 +90,7 @@ func TestRecurringExpenseCreate(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
 		start := time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)
 		end := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", amount, domain.FrequencyMonthly, start, &end)
+		_, err := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", "", amount, domain.FrequencyMonthly, start, &end)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -84,8 +104,8 @@ func TestRecurringExpenseList(t *testing.T) {
 	cat := createTestCategory(t, svc, ctx, hh.ID)
 
 	amount, _ := domain.NewMoney("-100.00")
-	svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Expense 1", "", amount, domain.FrequencyMonthly, time.Now(), nil)
-	svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Expense 2", "", amount, domain.FrequencyWeekly, time.Now(), nil)
+	svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Expense 1", "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+	svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Expense 2", "", "", amount, domain.FrequencyWeekly, time.Now(), nil)
 
 	t.Run("filter by household", func(t *testing.T) {
 		list, err := svc.RecurringExpense.List(ctx, hh.ID)
@@ -105,11 +125,11 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 	cat := createTestCategory(t, svc, ctx, hh.ID)
 
 	amount, _ := domain.NewMoney("-800.00")
-	re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+	re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 	t.Run("success", func(t *testing.T) {
 		newAmount, _ := domain.NewMoney("-900.00")
-		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "New Rent", "updated", newAmount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "New Rent", "updated", "", newAmount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -122,7 +142,7 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 	})
 
 	t.Run("change frequency", func(t *testing.T) {
-		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyYearly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyYearly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -132,7 +152,7 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 	})
 
 	t.Run("deactivate", func(t *testing.T) {
-		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyYearly, false, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyYearly, false, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -143,7 +163,7 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		newAmount, _ := domain.NewMoney("10")
-		_, err := svc.RecurringExpense.Update(ctx, 99999, cat.ID, "Test", "", newAmount, domain.FrequencyMonthly, true, time.Now(), nil)
+		_, err := svc.RecurringExpense.Update(ctx, 99999, cat.ID, "Test", "", "", newAmount, domain.FrequencyMonthly, true, time.Now(), nil)
 		if !errors.Is(err, domain.ErrNotFound) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
@@ -151,7 +171,7 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 
 	t.Run("add end date", func(t *testing.T) {
 		endDate := time.Date(2027, 12, 31, 0, 0, 0, 0, time.UTC)
-		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+		updated, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -162,28 +182,28 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 
 	t.Run("end date before start date", func(t *testing.T) {
 		endDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), &endDate)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
 	})
 
 	t.Run("empty name", func(t *testing.T) {
-		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "", "", "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
 	})
 
 	t.Run("zero amount", func(t *testing.T) {
-		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", domain.ZeroMoney(), domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", domain.ZeroMoney(), domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
 	})
 
 	t.Run("invalid frequency", func(t *testing.T) {
-		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", amount, domain.Frequency("invalid"), true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", "", "", amount, domain.Frequency("invalid"), true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -191,7 +211,7 @@ func TestRecurringExpenseUpdate(t *testing.T) {
 
 	t.Run("long description", func(t *testing.T) {
 		longDesc := string(make([]byte, 501))
-		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", longDesc, amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+		_, err := svc.RecurringExpense.Update(ctx, re.ID, cat.ID, "Rent", longDesc, "", amount, domain.FrequencyMonthly, true, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -205,7 +225,7 @@ func TestScheduleOverrideCRUD(t *testing.T) {
 	cat := createTestCategory(t, svc, ctx, hh.ID)
 
 	amount, _ := domain.NewMoney("-800.00")
-	re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+	re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
 
 	t.Run("create override", func(t *testing.T) {
 		overrideAmount, _ := domain.NewMoney("-900.00")
@@ -290,7 +310,7 @@ func TestRecurringExpenseDelete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-100.00")
-		re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "ToDelete", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+		re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "ToDelete", "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
 
 		if err := svc.RecurringExpense.Delete(ctx, hh.ID, re.ID); err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -304,7 +324,7 @@ func TestRecurringExpenseDelete(t *testing.T) {
 
 	t.Run("wrong household", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-100.00")
-		re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+		re, _ := svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Test", "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
 		hh2, _ := svc.Household.Create(ctx, "Other", "", "EUR", "")
 
 		err := svc.RecurringExpense.Delete(ctx, hh2.ID, re.ID)

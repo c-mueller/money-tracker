@@ -153,8 +153,8 @@ func TestHouseholdDelete(t *testing.T) {
 		cat := createTestCategory(t, svc, ctx, hh.ID)
 
 		amount, _ := domain.NewMoney("-50.00")
-		svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "test", time.Now())
-		svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", amount, domain.FrequencyMonthly, time.Now(), nil)
+		svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "test", "", time.Now())
+		svc.RecurringExpense.Create(ctx, hh.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, time.Now(), nil)
 
 		if err := svc.Household.Delete(ctx, hh.ID); err != nil {
 			t.Fatalf("unexpected error: %v", err)

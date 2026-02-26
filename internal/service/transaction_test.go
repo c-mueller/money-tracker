@@ -17,7 +17,7 @@ func TestTransactionCreate(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
-		tx, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Groceries", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+		tx, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Groceries", "", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -33,7 +33,7 @@ func TestTransactionCreate(t *testing.T) {
 	})
 
 	t.Run("zero amount", func(t *testing.T) {
-		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, domain.ZeroMoney(), "test", time.Now())
+		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, domain.ZeroMoney(), "test", "", time.Now())
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -41,7 +41,7 @@ func TestTransactionCreate(t *testing.T) {
 
 	t.Run("household not found", func(t *testing.T) {
 		amount, _ := domain.NewMoney("10")
-		_, err := svc.Transaction.Create(ctx, 99999, cat.ID, amount, "test", time.Now())
+		_, err := svc.Transaction.Create(ctx, 99999, cat.ID, amount, "test", "", time.Now())
 		if !errors.Is(err, domain.ErrNotFound) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
@@ -50,7 +50,27 @@ func TestTransactionCreate(t *testing.T) {
 	t.Run("long description", func(t *testing.T) {
 		amount, _ := domain.NewMoney("10")
 		longDesc := string(make([]byte, 501))
-		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, longDesc, time.Now())
+		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, longDesc, "", time.Now())
+		if !errors.Is(err, domain.ErrValidation) {
+			t.Errorf("expected ErrValidation, got %v", err)
+		}
+	})
+
+	t.Run("with details", func(t *testing.T) {
+		amount, _ := domain.NewMoney("-25.00")
+		tx, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Receipt", "Item 1: 10.00\nItem 2: 15.00", time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if tx.Details != "Item 1: 10.00\nItem 2: 15.00" {
+			t.Errorf("Details = %q, want %q", tx.Details, "Item 1: 10.00\nItem 2: 15.00")
+		}
+	})
+
+	t.Run("details too long", func(t *testing.T) {
+		amount, _ := domain.NewMoney("10")
+		longDetails := string(make([]byte, 5001))
+		_, err := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "test", longDetails, time.Now())
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -64,8 +84,8 @@ func TestTransactionListByMonth(t *testing.T) {
 	cat := createTestCategory(t, svc, ctx, hh.ID)
 
 	amount, _ := domain.NewMoney("-50.00")
-	svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Jan tx", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
-	svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Feb tx", time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC))
+	svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Jan tx", "", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "Feb tx", "", time.Date(2026, 2, 15, 0, 0, 0, 0, time.UTC))
 
 	t.Run("filter by month", func(t *testing.T) {
 		list, err := svc.Transaction.ListByMonth(ctx, hh.ID, 2026, time.January)
@@ -98,11 +118,11 @@ func TestTransactionUpdate(t *testing.T) {
 	cat := createTestCategory(t, svc, ctx, hh.ID)
 
 	amount, _ := domain.NewMoney("-50.00")
-	tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "original", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
+	tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "original", "", time.Date(2026, 1, 15, 0, 0, 0, 0, time.UTC))
 
 	t.Run("success", func(t *testing.T) {
 		newAmount, _ := domain.NewMoney("-75.00")
-		updated, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, newAmount, "updated", time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC))
+		updated, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, newAmount, "updated", "", time.Date(2026, 1, 20, 0, 0, 0, 0, time.UTC))
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -117,7 +137,7 @@ func TestTransactionUpdate(t *testing.T) {
 	t.Run("wrong household", func(t *testing.T) {
 		hh2, _ := svc.Household.Create(ctx, "Other", "", "EUR", "")
 		newAmount, _ := domain.NewMoney("10")
-		_, err := svc.Transaction.Update(ctx, hh2.ID, tx.ID, cat.ID, newAmount, "hack", time.Now())
+		_, err := svc.Transaction.Update(ctx, hh2.ID, tx.ID, cat.ID, newAmount, "hack", "", time.Now())
 		if !errors.Is(err, domain.ErrForbidden) {
 			t.Errorf("expected ErrForbidden, got %v", err)
 		}
@@ -125,14 +145,14 @@ func TestTransactionUpdate(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		newAmount, _ := domain.NewMoney("10")
-		_, err := svc.Transaction.Update(ctx, hh.ID, 99999, cat.ID, newAmount, "test", time.Now())
+		_, err := svc.Transaction.Update(ctx, hh.ID, 99999, cat.ID, newAmount, "test", "", time.Now())
 		if !errors.Is(err, domain.ErrNotFound) {
 			t.Errorf("expected ErrNotFound, got %v", err)
 		}
 	})
 
 	t.Run("zero amount", func(t *testing.T) {
-		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, domain.ZeroMoney(), "test", time.Now())
+		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, domain.ZeroMoney(), "test", "", time.Now())
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -141,7 +161,7 @@ func TestTransactionUpdate(t *testing.T) {
 	t.Run("long description", func(t *testing.T) {
 		amount, _ := domain.NewMoney("10")
 		longDesc := string(make([]byte, 501))
-		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, amount, longDesc, time.Now())
+		_, err := svc.Transaction.Update(ctx, hh.ID, tx.ID, cat.ID, amount, longDesc, "", time.Now())
 		if !errors.Is(err, domain.ErrValidation) {
 			t.Errorf("expected ErrValidation, got %v", err)
 		}
@@ -156,7 +176,7 @@ func TestTransactionDelete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
-		tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "to delete", time.Now())
+		tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "to delete", "", time.Now())
 
 		if err := svc.Transaction.Delete(ctx, hh.ID, tx.ID); err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -170,7 +190,7 @@ func TestTransactionDelete(t *testing.T) {
 
 	t.Run("wrong household", func(t *testing.T) {
 		amount, _ := domain.NewMoney("-50.00")
-		tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "test", time.Now())
+		tx, _ := svc.Transaction.Create(ctx, hh.ID, cat.ID, amount, "test", "", time.Now())
 		hh2, _ := svc.Household.Create(ctx, "Other", "", "EUR", "")
 
 		err := svc.Transaction.Delete(ctx, hh2.ID, tx.ID)
@@ -198,7 +218,7 @@ func TestTransactionNoAuth(t *testing.T) {
 	otherCtx := service.WithUserID(ctx, otherUser.ID)
 
 	amount, _ := domain.NewMoney("-50.00")
-	_, err := svc.Transaction.Create(otherCtx, hh.ID, cat.ID, amount, "test", time.Now())
+	_, err := svc.Transaction.Create(otherCtx, hh.ID, cat.ID, amount, "test", "", time.Now())
 	if !errors.Is(err, domain.ErrForbidden) {
 		t.Errorf("expected ErrForbidden for wrong owner, got %v", err)
 	}
