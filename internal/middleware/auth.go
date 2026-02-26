@@ -43,7 +43,17 @@ func TokenOnlyAuth(tokenSvc *service.APITokenService, devUserID int) echo.Middle
 	}
 }
 
+// Auth returns auth middleware that returns 401 JSON on failure (for API routes).
 func Auth(store sessions.Store, tokenSvc *service.APITokenService, devUserID int) echo.MiddlewareFunc {
+	return authMiddleware(store, tokenSvc, devUserID, "")
+}
+
+// WebAuth returns auth middleware that redirects to /login on failure (for web routes).
+func WebAuth(store sessions.Store, tokenSvc *service.APITokenService, devUserID int) echo.MiddlewareFunc {
+	return authMiddleware(store, tokenSvc, devUserID, "/login")
+}
+
+func authMiddleware(store sessions.Store, tokenSvc *service.APITokenService, devUserID int, redirectURL string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Dev mode: auto-auth
@@ -79,6 +89,9 @@ func Auth(store sessions.Store, tokenSvc *service.APITokenService, devUserID int
 				}
 			}
 
+			if redirectURL != "" {
+				return c.Redirect(http.StatusFound, redirectURL)
+			}
 			return echo.NewHTTPError(http.StatusUnauthorized, "authentication required")
 		}
 	}

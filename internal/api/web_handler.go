@@ -54,6 +54,10 @@ func (s *Server) getLocale(c echo.Context) i18n.Locale {
 	return s.defaultLocale
 }
 
+func (s *Server) handleLoginPage(c echo.Context) error {
+	return c.Render(http.StatusOK, "login", nil)
+}
+
 func (s *Server) handleWebDashboard(c echo.Context) error {
 	ctx := c.Request().Context()
 	households, err := s.services.Household.List(ctx)

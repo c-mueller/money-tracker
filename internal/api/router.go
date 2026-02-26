@@ -25,6 +25,7 @@ func (s *Server) setupRoutes() {
 
 	// Auth routes (no auth middleware)
 	if s.authHandler != nil {
+		s.echo.GET("/login", s.handleLoginPage)
 		s.echo.GET("/auth/login", s.authHandler.HandleLogin)
 		s.echo.GET("/auth/callback", s.authHandler.HandleCallback)
 		s.echo.GET("/auth/logout", s.authHandler.HandleLogout)
@@ -110,7 +111,8 @@ func (s *Server) setupRoutes() {
 	// --- Web Routes ---
 	webGroup := s.echo.Group("")
 	webGroup.Use(localeMW)
-	webGroup.Use(authMW)
+	webAuthMW := mw.WebAuth(s.sessionStore, s.services.APIToken, s.devUserID)
+	webGroup.Use(webAuthMW)
 
 	webGroup.GET("/", s.handleWebDashboard)
 	webGroup.GET("/households/new", s.handleWebHouseholdNew)
