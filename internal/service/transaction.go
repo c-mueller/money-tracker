@@ -17,11 +17,14 @@ func NewTransactionService(repo domain.TransactionRepo, household *HouseholdServ
 	return &TransactionService{repo: repo, household: household}
 }
 
-func (s *TransactionService) Create(ctx context.Context, householdID, categoryID int, amount domain.Money, description string, date time.Time) (*domain.Transaction, error) {
+func (s *TransactionService) Create(ctx context.Context, householdID, categoryID int, amount domain.Money, description, details string, date time.Time) (*domain.Transaction, error) {
 	if err := domain.ValidateAmount(amount); err != nil {
 		return nil, err
 	}
 	if err := domain.ValidateDescription(description); err != nil {
+		return nil, err
+	}
+	if err := domain.ValidateDetails(details); err != nil {
 		return nil, err
 	}
 
@@ -34,6 +37,7 @@ func (s *TransactionService) Create(ctx context.Context, householdID, categoryID
 		CategoryID:  categoryID,
 		Amount:      amount,
 		Description: description,
+		Details:     details,
 		Date:        date,
 	})
 }
@@ -50,11 +54,14 @@ func (s *TransactionService) ListByMonth(ctx context.Context, householdID int, y
 	return s.repo.ListByHouseholdAndMonth(ctx, householdID, year, month)
 }
 
-func (s *TransactionService) Update(ctx context.Context, householdID, id, categoryID int, amount domain.Money, description string, date time.Time) (*domain.Transaction, error) {
+func (s *TransactionService) Update(ctx context.Context, householdID, id, categoryID int, amount domain.Money, description, details string, date time.Time) (*domain.Transaction, error) {
 	if err := domain.ValidateAmount(amount); err != nil {
 		return nil, err
 	}
 	if err := domain.ValidateDescription(description); err != nil {
+		return nil, err
+	}
+	if err := domain.ValidateDetails(details); err != nil {
 		return nil, err
 	}
 
@@ -69,6 +76,7 @@ func (s *TransactionService) Update(ctx context.Context, householdID, id, catego
 	existing.CategoryID = categoryID
 	existing.Amount = amount
 	existing.Description = description
+	existing.Details = details
 	existing.Date = date
 	return s.repo.Update(ctx, existing)
 }
