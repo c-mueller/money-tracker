@@ -31,6 +31,8 @@
     "name": "Name",
     "amount": "Betrag",
     "description": "Beschreibung",
+    "details": "Details",
+    "details_placeholder": "Erweiterte Beschreibung (Kassenbon-Inhalt, Rechnungsdetails, Notizen...)",
     "category": "Kategorie",
     "date": "Datum",
     "frequency": "Frequenz",

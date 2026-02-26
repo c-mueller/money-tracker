@@ -26,7 +26,7 @@
         {{range .IncomeRecurring}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{.Description}}</td>
+            <td>{{.Description}}{{if .Details}} <span class="material-symbols-outlined text-muted" style="font-size:16px;vertical-align:middle;cursor:help" title="{{.Details}}">info</span>{{end}}</td>
             <td>{{tf (printf "%s" .Frequency)}}</td>
             <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-income" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>
@@ -72,7 +72,7 @@
         {{range .ExpenseRecurring}}
         <tr>
             <td>{{.Name}}</td>
-            <td>{{.Description}}</td>
+            <td>{{.Description}}{{if .Details}} <span class="material-symbols-outlined text-muted" style="font-size:16px;vertical-align:middle;cursor:help" title="{{.Details}}">info</span>{{end}}</td>
             <td>{{tf (printf "%s" .Frequency)}}</td>
             <td>{{if .Active}}<span class="badge bg-success">{{t "active"}}</span>{{else}}<span class="badge bg-secondary">{{t "inactive"}}</span>{{end}}</td>
             <td class="text-end text-expense" data-sort-value="{{.Amount.StringFixed 2}}">{{formatMoneyWithCurrency .Amount $.Household.Currency}}</td>

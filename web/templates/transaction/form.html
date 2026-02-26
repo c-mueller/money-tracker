@@ -25,6 +25,10 @@
         <textarea class="form-control" id="description" name="description" maxlength="500" rows="3">{{if .Transaction}}{{.Transaction.Description}}{{end}}</textarea>
     </div>
     <div class="mb-3">
+        <label for="details" class="form-label">{{t "details"}}</label>
+        <textarea class="form-control" id="details" name="details" maxlength="5000" rows="6" placeholder="{{t "details_placeholder"}}">{{if .Transaction}}{{.Transaction.Details}}{{end}}</textarea>
+    </div>
+    <div class="mb-3">
         <label for="category" class="form-label">{{t "category"}}</label>
         <select class="form-select" id="category" name="category_id" required>
             <option value="">{{t "select"}}</option>

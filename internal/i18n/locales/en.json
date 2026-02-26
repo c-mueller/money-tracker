@@ -31,6 +31,8 @@
     "name": "Name",
     "amount": "Amount",
     "description": "Description",
+    "details": "Details",
+    "details_placeholder": "Extended description (receipt contents, invoice details, notes...)",
     "category": "Category",
     "date": "Date",
     "frequency": "Frequency",
