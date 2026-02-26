@@ -11,6 +11,7 @@ type RecurringExpense struct {
 	CategoryID  int
 	Name        string
 	Description string
+	Details     string
 	Amount      Money
 	Frequency   Frequency
 	Active      bool

@@ -8,6 +8,7 @@ type Transaction struct {
 	CategoryID  int
 	Amount      Money
 	Description string
+	Details     string
 	Date        time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

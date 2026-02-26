@@ -72,3 +72,10 @@ func ValidateDescription(desc string) error {
 	}
 	return nil
 }
+
+func ValidateDetails(details string) error {
+	if len(details) > 5000 {
+		return NewValidationError("details", "must be at most 5000 characters")
+	}
+	return nil
+}

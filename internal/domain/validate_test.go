@@ -188,6 +188,31 @@ func TestValidateCategoryName(t *testing.T) {
 	}
 }
 
+func TestValidateDetails(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid", "Some details about the receipt", false},
+		{"empty", "", false},
+		{"max length", strings.Repeat("a", 5000), false},
+		{"too long", strings.Repeat("a", 5001), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateDetails(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateDetails() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !errors.Is(err, ErrValidation) {
+				t.Errorf("expected ErrValidation, got %v", err)
+			}
+		})
+	}
+}
+
 func TestValidateDescription(t *testing.T) {
 	tests := []struct {
 		name    string
