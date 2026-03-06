@@ -1,49 +1,49 @@
 # 002 — Dev Mode via Build Flag
 
-## Kontext
+## Context
 
-Dev Mode wurde von Runtime-Config (`cfg.Auth.OIDC.Issuer == ""`) auf Go Build Tags umgestellt. Produktivbinaries enthalten keinen Dev-Code mehr.
+Dev mode was migrated from runtime config (`cfg.Auth.OIDC.Issuer == ""`) to Go build tags. Production binaries no longer contain any dev code.
 
-## Änderungen
+## Changes
 
-### Neues Package: `internal/devmode/`
-- `devmode_dev.go` (`//go:build dev`) — `Enabled = true`, echte `SetupUser()`-Logik
-- `devmode_prod.go` (`//go:build !dev`) — `Enabled = false`, No-Op Stubs
+### New Package: `internal/devmode/`
+- `devmode_dev.go` (`//go:build dev`) — `Enabled = true`, actual `SetupUser()` logic
+- `devmode_prod.go` (`//go:build !dev`) — `Enabled = false`, no-op stubs
 
 ### `internal/buildinfo/buildinfo.go`
-- `String()` gibt `[DEV BUILD]` Suffix aus wenn `devmode.Enabled`
+- `String()` outputs `[DEV BUILD]` suffix when `devmode.Enabled`
 
 ### `internal/middleware/auth.go`
-- `devMode bool` Parameter entfernt, nutzt `devmode.Enabled` direkt
+- `devMode bool` parameter removed, uses `devmode.Enabled` directly
 
 ### `internal/api/server.go`
-- `devMode` Feld aus Server-Struct entfernt, `devUserID` beibehalten
+- `devMode` field removed from server struct, `devUserID` retained
 
 ### `internal/api/router.go`
-- `SetupAuth()` Signatur vereinfacht: `devMode bool` Parameter entfernt
-- Auth-Middleware-Aufruf angepasst (kein `devMode` mehr)
+- `SetupAuth()` signature simplified: `devMode bool` parameter removed
+- Auth middleware call updated (no more `devMode`)
 
 ### `cmd/money-tracker/cmd/serve.go`
-- Runtime-Check `cfg.Auth.OIDC.Issuer == ""` entfernt
-- Dev-User-Setup über `devmode.Enabled` und `devmode.SetupUser()`
-- OIDC-Setup nur in Prod-Build (`!devmode.Enabled`)
+- Runtime check `cfg.Auth.OIDC.Issuer == ""` removed
+- Dev user setup via `devmode.Enabled` and `devmode.SetupUser()`
+- OIDC setup only in prod build (`!devmode.Enabled`)
 
 ### `tests/integration/testutil.go`
-- `SetupAuth()` Aufruf an neue Signatur angepasst
+- `SetupAuth()` call updated to new signature
 
 ### `Makefile`
-- `build-dev` Target: `-tags=dev`, Output `bin/money-tracker-dev`
-- `run-dev` Target: baut mit dev-Tag und startet
+- `build-dev` target: `-tags=dev`, output `bin/money-tracker-dev`
+- `run-dev` target: builds with dev tag and starts
 
 ### `CLAUDE.md`
-- Quick Reference um `make build-dev` / `make run-dev` ergänzt
-- Dev Mode Doku aktualisiert: Build-Tag statt Runtime-Config
+- Quick reference updated with `make build-dev` / `make run-dev`
+- Dev mode docs updated: build tag instead of runtime config
 
-## Verifikation
+## Verification
 
 ```bash
 make build && ./bin/money-tracker version
-# → money-tracker ... (kein [DEV BUILD])
+# → money-tracker ... (no [DEV BUILD])
 
 make build-dev && ./bin/money-tracker-dev version
 # → money-tracker ... [DEV BUILD]

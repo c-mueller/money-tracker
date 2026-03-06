@@ -1,56 +1,56 @@
-# 004 — Edit Transactions & UI-Verbesserungen
+# 004 — Edit Transactions & UI Improvements
 
-## Kontext
+## Context
 
-Mehrere UX-Probleme beim Web-UI: fehlende Formulare zum Anlegen/Bearbeiten von Transaktionen und wiederkehrenden Transaktionen, keine gemeinsamen Tabs, Vorzeichen-basierte Ein-/Ausgaben-Unterscheidung war umständlich.
+Several UX issues in the web UI: missing forms for creating/editing transactions and recurring transactions, no shared tabs, sign-based income/expense distinction was cumbersome.
 
-## Änderungen
+## Changes
 
 ### Shared Tabs (Commit: 01babe5)
 
-- Neues Partial-Template `web/templates/household/tabs.html` mit Household-Header + Tab-Navigation
-- Kategorie- und Recurring-Views nutzen jetzt dieselben Tabs (kein Back-Button mehr)
-- `ActiveTab` Feld in `pageData` steuert aktiven Tab
-- `Month` wird an alle Tab-Views übergeben
+- New partial template `web/templates/household/tabs.html` with household header + tab navigation
+- Category and recurring views now use the same tabs (no more back button)
+- `ActiveTab` field in `pageData` controls the active tab
+- `Month` is passed to all tab views
 
-### Transaction-Formular (Commit: ec35ccd, 01babe5)
+### Transaction Form (Commit: ec35ccd, 01babe5)
 
 - `GET /households/:id/transactions/new` + `POST /households/:id/transactions`
-- Einnahme/Ausgabe per Radio-Button (Default: Ausgabe) statt Vorzeichen
-- "Today"-Button neben Datumspicker
-- Inline neue Kategorie anlegen ("+ New category…" Option)
-- `resolveCategory()` Shared Helper erstellt bei Bedarf neue Kategorie
+- Income/expense via radio button (default: expense) instead of sign
+- "Today" button next to date picker
+- Inline new category creation ("+ New category…" option)
+- `resolveCategory()` shared helper creates new category when needed
 
-### Recurring Transaction Formular (Commit: 01babe5)
+### Recurring Transaction Form (Commit: 01babe5)
 
 - `GET /households/:id/recurring/new` + `POST /households/:id/recurring`
-- Gleiche UX-Patterns wie Transaction-Formular (Radio, Today, New Category)
-- Frequenz-Dropdown mit allen validen Werten aus `domain.AllFrequencies()`
+- Same UX patterns as transaction form (radio, today, new category)
+- Frequency dropdown with all valid values from `domain.AllFrequencies()`
 
-### Edit-Support (Commit: 2a61658)
+### Edit Support (Commit: 2a61658)
 
-- **Schema**: `description` Feld zu RecurringExpense hinzugefügt (optional, max 500)
-- **Transaction Update**: `Update` Methode in Repo-Interface, Repository und Service
-- **Web-Routes**:
+- **Schema**: `description` field added to RecurringExpense (optional, max 500)
+- **Transaction Update**: `Update` method in repo interface, repository, and service
+- **Web Routes**:
   - `GET/POST /households/:id/transactions/:txId/edit`
   - `GET/POST /households/:id/recurring/:recurringId/edit`
-- Formulare werden im Edit-Modus mit bestehenden Werten vorausgefüllt
-- Template-Funcs `absAmount` und `isNegative` für Betrag-Darstellung
-- Klickbare Links in Tabellen (Datum/Beschreibung bei TX, Name bei Recurring)
+- Forms are pre-filled with existing values in edit mode
+- Template funcs `absAmount` and `isNegative` for amount display
+- Clickable links in tables (date/description for TX, name for recurring)
 
-### UI-Umbenennung
+### UI Renaming
 
-- "Recurring Expenses" → "Recurring Transactions" überall im Web-UI
-- Household "Edit"-Button aus Header entfernt (Route existierte nie)
+- "Recurring Expenses" → "Recurring Transactions" throughout the web UI
+- Household "Edit" button removed from header (route never existed)
 
-### Beschreibung-Feld
+### Description Field
 
-- Beide Formulare nutzen `<textarea>` für Beschreibung (max 500 Zeichen)
-- Ent-Schema `recurringexpense` um `description` erweitert + `make generate`
+- Both forms use `<textarea>` for description (max 500 characters)
+- Ent schema `recurringexpense` extended with `description` + `make generate`
 
-## Geänderte Dateien
+## Modified Files
 
-- `ent/schema/recurringexpense.go` + generierte Ent-Dateien
+- `ent/schema/recurringexpense.go` + generated Ent files
 - `internal/domain/recurring_expense.go`, `internal/domain/repository.go`
 - `internal/repository/convert.go`, `recurring_expense.go`, `transaction.go`
 - `internal/service/transaction.go`, `recurring_expense.go`

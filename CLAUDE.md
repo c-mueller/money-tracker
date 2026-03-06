@@ -54,6 +54,7 @@ tests/integration/     Integration tests
 
 ## Key Conventions
 
+- **Repository language is English** — all code, comments, commit messages, issues, docs, and plans must be in English
 - Domain types are in `internal/domain/` — no external deps except shopspring/decimal
 - Money amounts: use `decimal.Decimal`, stored as strings in DB
 - Frequencies: daily, weekday, weekly, biweekly, monthly, quarterly, yearly

@@ -1,40 +1,40 @@
-# Plan 010: GraphQL API + REST API Vervollständigung
+# Plan 010: GraphQL API + REST API Completion
 
-## Zusammenfassung
-- REST-API um fehlende Felder und Update-Endpoints erweitert
-- GraphQL-API mit gqlgen hinzugefügt (Token-only Auth)
-- Umfassende Integration-Tests für beides
+## Summary
+- REST API extended with missing fields and update endpoints
+- GraphQL API added with gqlgen (token-only auth)
+- Comprehensive integration tests for both
 
-## Änderungen
+## Changes
 
 ### REST API Fixes
-- **DTOs**: `CreateHouseholdRequest` +description/icon, `HouseholdResponse` +description/icon, neues `UpdateHouseholdRequest`
-- **DTOs**: `CreateCategoryRequest` +icon, `CategoryResponse` +icon, neues `UpdateCategoryRequest`
-- **DTOs**: Neues `UpdateTransactionRequest`
+- **DTOs**: `CreateHouseholdRequest` +description/icon, `HouseholdResponse` +description/icon, new `UpdateHouseholdRequest`
+- **DTOs**: `CreateCategoryRequest` +icon, `CategoryResponse` +icon, new `UpdateCategoryRequest`
+- **DTOs**: New `UpdateTransactionRequest`
 - **DTOs**: `CreateRecurringExpenseRequest` +description, `UpdateRecurringExpenseRequest` +description, `RecurringExpenseResponse` +description
-- **Handler**: Alle Handler reichen neue Felder an Service-Layer durch
-- **Route**: `PUT /api/v1/households/:id/transactions/:transactionId` hinzugefügt
+- **Handlers**: All handlers pass new fields to service layer
+- **Route**: `PUT /api/v1/households/:id/transactions/:transactionId` added
 
 ### GraphQL API
-- Schema-first mit gqlgen v0.17.87
+- Schema-first with gqlgen v0.17.87
 - Queries: households, household, categories, transactions, recurringExpenses, monthlySummary
-- Mutations: create/update für Household, Category, Transaction, RecurringExpense (kein Delete)
-- Money als String, Dates als String (YYYY-MM-DD), optionale Felder nullable
-- Token-only Auth Middleware (kein Session-Cookie)
-- Playground unter `/playground` nur im Dev-Mode
+- Mutations: create/update for Household, Category, Transaction, RecurringExpense (no delete)
+- Money as string, dates as string (YYYY-MM-DD), optional fields nullable
+- Token-only auth middleware (no session cookie)
+- Playground at `/playground` only in dev mode
 
 ### Tests
 - REST: TestTransactionUpdate, TestHouseholdFullFields, TestCategoryWithIcon, TestRecurringExpenseDescription
 - GraphQL: TestGraphQLHouseholds, TestGraphQLCategories, TestGraphQLTransactions, TestGraphQLRecurringExpenses, TestGraphQLSummary, TestGraphQLTokenOnlyAuth, TestGraphQLNoDeleteMutations, TestGraphQLValidationErrors, TestGraphQLFullFlow
 
-## Neue Dateien
-- `internal/graphql/schema.graphqls` — GraphQL-Schema
-- `internal/graphql/gqlgen.yml` — gqlgen-Konfiguration
-- `internal/graphql/generate.go` — go:generate-Direktive
-- `internal/graphql/generated.go` — generierter Code
-- `internal/graphql/model/models_gen.go` — generierte Models
-- `internal/graphql/resolver.go` — Root-Resolver
-- `internal/graphql/helpers.go` — Domain→GraphQL-Konvertierung
-- `internal/graphql/schema.resolvers.go` — Resolver-Implementierung
-- `tests/integration/graphql_test.go` — GraphQL-Integration-Tests
-- `docs/plans/010-graphql-rest-api.md` — Dieses Dokument
+## New Files
+- `internal/graphql/schema.graphqls` — GraphQL schema
+- `internal/graphql/gqlgen.yml` — gqlgen configuration
+- `internal/graphql/generate.go` — go:generate directive
+- `internal/graphql/generated.go` — Generated code
+- `internal/graphql/model/models_gen.go` — Generated models
+- `internal/graphql/resolver.go` — Root resolver
+- `internal/graphql/helpers.go` — Domain → GraphQL conversion
+- `internal/graphql/schema.resolvers.go` — Resolver implementation
+- `tests/integration/graphql_test.go` — GraphQL integration tests
+- `docs/plans/010-graphql-rest-api.md` — This document

@@ -2,22 +2,22 @@
 
 ## Motivation
 
-Ein MCP (Model Context Protocol) Server ermöglicht es LLM-Clients (Claude Desktop, Claude Code, etc.), direkt mit Money Tracker zu interagieren — Transaktionen anlegen, Budgets abfragen, Zusammenfassungen generieren, ohne die Web-UI nutzen zu müssen.
+An MCP (Model Context Protocol) server enables LLM clients (Claude Desktop, Claude Code, etc.) to interact directly with Money Tracker — creating transactions, querying budgets, generating summaries, without having to use the web UI.
 
-## Architektur
+## Architecture
 
-### Phase 1: Lokaler MCP Server (stdio-basiert)
+### Phase 1: Local MCP Server (stdio-based)
 
-Der MCP Server wird als **Cobra-Subcommand** (`money-tracker mcp`) in die bestehende Binary integriert. Er kommuniziert über **stdio** (JSON-RPC) mit dem LLM-Client und spricht intern die **REST API** des laufenden Money-Tracker-Servers an.
+The MCP server is integrated into the existing binary as a **Cobra subcommand** (`money-tracker mcp`). It communicates via **stdio** (JSON-RPC) with the LLM client and internally calls the **REST API** of the running Money Tracker server.
 
 ```
 ┌─────────────────┐     stdio (JSON-RPC)     ┌──────────────────────────┐     HTTP/REST     ┌──────────────────┐
 │  LLM Client     │ ◄──────────────────────► │  money-tracker mcp       │ ◄──────────────► │  money-tracker   │
-│  (Claude, etc.) │                           │  (Subcommand, selbe Bin) │                  │  serve           │
+│  (Claude, etc.) │                           │  (Subcommand, same bin)  │                  │  serve           │
 └─────────────────┘                           └──────────────────────────┘                  └──────────────────┘
 ```
 
-**Aufruf:**
+**Invocation:**
 ```bash
 money-tracker mcp                                        # Default: localhost:8080
 money-tracker mcp --url http://myserver:9090             # Custom URL
@@ -25,49 +25,49 @@ MONEY_TRACKER_API_TOKEN=mt_... money-tracker mcp         # Token via ENV
 money-tracker mcp --token mt_...                         # Token via Flag
 ```
 
-**Konfiguration:**
-- `--url` / `MONEY_TRACKER_MCP_URL` — Base-URL des API-Servers (default: `http://localhost:8080`)
-- `--token` / `MONEY_TRACKER_API_TOKEN` — Bearer-Token (`mt_...`) für Authentifizierung
+**Configuration:**
+- `--url` / `MONEY_TRACKER_MCP_URL` — Base URL of the API server (default: `http://localhost:8080`)
+- `--token` / `MONEY_TRACKER_API_TOKEN` — Bearer token (`mt_...`) for authentication
 
-**Vorteile Phase 1:**
-- Kein OAuth-Infrastruktur nötig — nutzt existierende API-Token-Auth
-- Schnell umsetzbar, sofort lokal nutzbar
-- Volle Funktionalität über bestehende REST API
-- Eine Binary für alles — Config, Logging, Buildinfo werden wiederverwendet
+**Phase 1 Advantages:**
+- No OAuth infrastructure required — uses existing API token auth
+- Quick to implement, immediately usable locally
+- Full functionality via existing REST API
+- One binary for everything — config, logging, buildinfo are reused
 
-**Nachteile / Bewusste Trade-offs:**
-- Reimplementierung: MCP-Tool-Layer dupliziert API-Client-Logik
-- Token muss manuell erstellt und konfiguriert werden
-- Nur lokal nutzbar (kein Remote-Zugriff für gehostete LLM-Clients)
+**Disadvantages / Deliberate Trade-offs:**
+- Reimplementation: MCP tool layer duplicates API client logic
+- Token must be manually created and configured
+- Only usable locally (no remote access for hosted LLM clients)
 
-### Phase 2: Remote MCP Server mit OAuth 2.1 (Zukunft)
+### Phase 2: Remote MCP Server with OAuth 2.1 (Future)
 
-Langfristig soll der MCP Server als **Remote HTTP SSE/Streamable HTTP** Endpoint direkt im Money-Tracker-Server laufen und OAuth 2.1 für die Autorisierung nutzen.
+Long-term, the MCP server should run as a **Remote HTTP SSE/Streamable HTTP** endpoint directly in the Money Tracker server, using OAuth 2.1 for authorization.
 
 ```
 ┌─────────────────┐    HTTP SSE / Streamable HTTP    ┌──────────────────────────────┐
 │  LLM Client     │ ◄──────────────────────────────► │  Money Tracker Server        │
-│  (Claude, etc.) │         + OAuth 2.1               │  (integrierter MCP Endpoint) │
+│  (Claude, etc.) │         + OAuth 2.1               │  (integrated MCP endpoint)   │
 └─────────────────┘                                   └──────────────────────────────┘
 ```
 
-**Voraussetzungen für Phase 2:**
-- OAuth 2.1 Authorization Server (entweder self-hosted oder externer Provider)
-- Dynamic Client Registration (RFC 7591) oder vorkonfigurierte Clients
-- PKCE-Flow für LLM-Clients
-- Token-Scoping (welche Households darf ein Client sehen?)
-- MCP-Endpoint direkt in den Echo-Router integriert
+**Phase 2 Prerequisites:**
+- OAuth 2.1 Authorization Server (either self-hosted or external provider)
+- Dynamic Client Registration (RFC 7591) or preconfigured clients
+- PKCE flow for LLM clients
+- Token scoping (which households may a client access?)
+- MCP endpoint integrated directly into the Echo router
 
 **Migration Phase 1 → Phase 2:**
-- Die MCP-Tool-Definitionen und Beschreibungen bleiben identisch
-- Nur der Transport wechselt (stdio → HTTP SSE) und die Auth (API-Token → OAuth)
-- Der API-Client-Layer aus Phase 1 wird durch direkte Service-Layer-Aufrufe ersetzt
+- The MCP tool definitions and descriptions remain identical
+- Only the transport changes (stdio → HTTP SSE) and the auth (API token → OAuth)
+- The API client layer from Phase 1 is replaced by direct service layer calls
 
 ---
 
-## MCP Server Spezifikation (Phase 1)
+## MCP Server Specification (Phase 1)
 
-### Server-Info
+### Server Info
 
 ```json
 {
@@ -81,150 +81,150 @@ Langfristig soll der MCP Server als **Remote HTTP SSE/Streamable HTTP** Endpoint
 #### Household Management
 
 ##### `list_households`
-Alle Haushalte des authentifizierten Benutzers auflisten.
+List all households of the authenticated user.
 
-- **Parameter:** keine
-- **Returns:** Array von Households (id, name, description, currency, icon)
+- **Parameters:** none
+- **Returns:** Array of Households (id, name, description, currency, icon)
 
 ##### `create_household`
-Neuen Haushalt anlegen.
+Create a new household.
 
-- **Parameter:**
-  - `name` (string, required) — Name des Haushalts
-  - `description` (string, optional) — Beschreibung
-  - `currency` (string, required) — ISO 4217 Währungscode (z.B. "EUR")
-  - `icon` (string, optional) — Material Icon Name
-- **Returns:** Der erstellte Haushalt
+- **Parameters:**
+  - `name` (string, required) — Name of the household
+  - `description` (string, optional) — Description
+  - `currency` (string, required) — ISO 4217 currency code (e.g. "EUR")
+  - `icon` (string, optional) — Material Icon name
+- **Returns:** The created household
 
 ##### `update_household`
-Haushalt aktualisieren.
+Update a household.
 
-- **Parameter:**
+- **Parameters:**
   - `id` (integer, required) — Household ID
   - `name` (string, optional)
   - `description` (string, optional)
   - `currency` (string, optional)
   - `icon` (string, optional)
-- **Returns:** Der aktualisierte Haushalt
+- **Returns:** The updated household
 
 ##### `delete_household`
-Haushalt löschen (kaskadiert: alle Kategorien, Transaktionen, Recurring Expenses).
+Delete a household (cascades: all categories, transactions, recurring expenses).
 
-- **Parameter:**
+- **Parameters:**
   - `id` (integer, required) — Household ID
-- **Returns:** Bestätigung
+- **Returns:** Confirmation
 
 ---
 
 #### Category Management
 
 ##### `list_categories`
-Kategorien eines Haushalts auflisten.
+List categories of a household.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
-- **Returns:** Array von Categories (id, name, icon)
+- **Returns:** Array of Categories (id, name, icon)
 
 ##### `create_category`
-Neue Kategorie anlegen.
+Create a new category.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `name` (string, required)
   - `icon` (string, optional)
-- **Returns:** Die erstellte Kategorie
+- **Returns:** The created category
 
 ##### `update_category`
-Kategorie aktualisieren.
+Update a category.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `category_id` (integer, required)
   - `name` (string, optional)
   - `icon` (string, optional)
-- **Returns:** Die aktualisierte Kategorie
+- **Returns:** The updated category
 
 ##### `delete_category`
-Kategorie löschen.
+Delete a category.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `category_id` (integer, required)
-- **Returns:** Bestätigung
+- **Returns:** Confirmation
 
 ---
 
 #### Transaction Management
 
 ##### `list_transactions`
-Transaktionen eines Haushalts für einen Monat auflisten.
+List transactions of a household for a given month.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
-  - `month` (string, optional) — Format "YYYY-MM", default: aktueller Monat
-- **Returns:** Array von Transactions (id, amount, description, date, category_id, category_name)
+  - `month` (string, optional) — Format "YYYY-MM", default: current month
+- **Returns:** Array of Transactions (id, amount, description, date, category_id, category_name)
 
 ##### `create_transaction`
-Neue Transaktion anlegen.
+Create a new transaction.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `category_id` (integer, required)
-  - `amount` (string, required) — Dezimalzahl als String, negativ = Ausgabe, positiv = Einnahme
+  - `amount` (string, required) — Decimal number as string, negative = expense, positive = income
   - `description` (string, required)
   - `date` (string, required) — Format "YYYY-MM-DD"
-- **Returns:** Die erstellte Transaktion
+- **Returns:** The created transaction
 
 ##### `update_transaction`
-Transaktion aktualisieren.
+Update a transaction.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `transaction_id` (integer, required)
   - `category_id` (integer, optional)
   - `amount` (string, optional)
   - `description` (string, optional)
   - `date` (string, optional)
-- **Returns:** Die aktualisierte Transaktion
+- **Returns:** The updated transaction
 
 ##### `delete_transaction`
-Transaktion löschen.
+Delete a transaction.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `transaction_id` (integer, required)
-- **Returns:** Bestätigung
+- **Returns:** Confirmation
 
 ---
 
 #### Recurring Expense Management
 
 ##### `list_recurring_expenses`
-Wiederkehrende Einträge eines Haushalts auflisten.
+List recurring entries of a household.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
-- **Returns:** Array von RecurringExpenses (id, name, description, amount, frequency, active, start_date, end_date, category_id, category_name)
+- **Returns:** Array of RecurringExpenses (id, name, description, amount, frequency, active, start_date, end_date, category_id, category_name)
 
 ##### `create_recurring_expense`
-Neuen wiederkehrenden Eintrag anlegen.
+Create a new recurring entry.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `category_id` (integer, required)
   - `name` (string, required)
   - `description` (string, optional)
-  - `amount` (string, required) — negativ = Ausgabe, positiv = Einnahme
+  - `amount` (string, required) — negative = expense, positive = income
   - `frequency` (string, required) — daily|weekday|weekly|biweekly|monthly|quarterly|yearly
   - `start_date` (string, required) — Format "YYYY-MM-DD"
-  - `end_date` (string, optional) — Format "YYYY-MM-DD", leer = unbefristet
+  - `end_date` (string, optional) — Format "YYYY-MM-DD", empty = indefinite
   - `active` (boolean, optional, default: true)
-- **Returns:** Der erstellte Eintrag
+- **Returns:** The created entry
 
 ##### `update_recurring_expense`
-Wiederkehrenden Eintrag aktualisieren.
+Update a recurring entry.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
   - `category_id` (integer, optional)
@@ -235,123 +235,123 @@ Wiederkehrenden Eintrag aktualisieren.
   - `start_date` (string, optional)
   - `end_date` (string, optional)
   - `active` (boolean, optional)
-- **Returns:** Der aktualisierte Eintrag
+- **Returns:** The updated entry
 
 ##### `delete_recurring_expense`
-Wiederkehrenden Eintrag löschen.
+Delete a recurring entry.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
-- **Returns:** Bestätigung
+- **Returns:** Confirmation
 
 ---
 
 #### Schedule Overrides
 
 ##### `list_schedule_overrides`
-Overrides für einen wiederkehrenden Eintrag auflisten.
+List overrides for a recurring entry.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
-- **Returns:** Array von Overrides (id, effective_date, amount, frequency)
+- **Returns:** Array of Overrides (id, effective_date, amount, frequency)
 
 ##### `create_schedule_override`
-Neuen Override anlegen (ändert Betrag/Frequenz ab einem Stichtag).
+Create a new override (changes amount/frequency from an effective date).
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
   - `effective_date` (string, required) — Format "YYYY-MM-DD"
   - `amount` (string, required)
   - `frequency` (string, required)
-- **Returns:** Der erstellte Override
+- **Returns:** The created override
 
 ##### `update_schedule_override`
-Override aktualisieren.
+Update an override.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
   - `override_id` (integer, required)
   - `effective_date` (string, optional)
   - `amount` (string, optional)
   - `frequency` (string, optional)
-- **Returns:** Der aktualisierte Override
+- **Returns:** The updated override
 
 ##### `delete_schedule_override`
-Override löschen.
+Delete an override.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
   - `recurring_id` (integer, required)
   - `override_id` (integer, required)
-- **Returns:** Bestätigung
+- **Returns:** Confirmation
 
 ---
 
 #### Summary / Analytics
 
 ##### `get_monthly_summary`
-Monatliche Finanzübersicht für einen Haushalt.
+Monthly financial overview for a household.
 
-- **Parameter:**
+- **Parameters:**
   - `household_id` (integer, required)
-  - `month` (string, optional) — Format "YYYY-MM", default: aktueller Monat
-- **Returns:** MonthlySummary mit:
-  - Gesamteinnahmen / -ausgaben (einmalig + wiederkehrend)
-  - Brutto-Einnahmen / -Ausgaben
-  - Monatstotal
-  - Aufschlüsselung nach Kategorien
-  - Wiederkehrende Einträge gruppiert nach Frequenz
+  - `month` (string, optional) — Format "YYYY-MM", default: current month
+- **Returns:** MonthlySummary with:
+  - Total income / expenses (one-time + recurring)
+  - Gross income / expenses
+  - Monthly total
+  - Breakdown by category
+  - Recurring entries grouped by frequency
 
 ---
 
 ### Resources
 
-Der MCP Server stellt folgende Read-Only Resources bereit:
+The MCP server provides the following read-only resources:
 
 ##### `money-tracker://households`
-Übersicht aller Haushalte mit Basis-Infos. Erlaubt dem LLM, Kontext über die verfügbaren Haushalte zu haben, ohne explizit ein Tool aufrufen zu müssen.
+Overview of all households with basic info. Allows the LLM to have context about available households without explicitly calling a tool.
 
 ##### `money-tracker://households/{id}/summary/{month}`
-Monatszusammenfassung als strukturierte Resource. Nützlich, damit der LLM-Client automatisch relevanten Finanzkontext laden kann.
+Monthly summary as a structured resource. Useful for the LLM client to automatically load relevant financial context.
 
 ---
 
 ### Prompts
 
-Vordefinierte Prompt-Templates, die LLM-Clients dem Nutzer anbieten können:
+Predefined prompt templates that LLM clients can offer to the user:
 
 ##### `monthly_report`
-Erstellt einen formatierten Monatsbericht.
+Creates a formatted monthly report.
 
-- **Argumente:**
+- **Arguments:**
   - `household_id` (integer, required)
   - `month` (string, optional)
-- **Prompt-Template:** Lädt Summary + Transaktionen + Recurring und erzeugt einen strukturierten Finanzbericht
+- **Prompt Template:** Loads summary + transactions + recurring and generates a structured financial report
 
 ##### `budget_analysis`
-Analysiert die Ausgaben und gibt Empfehlungen.
+Analyzes spending and provides recommendations.
 
-- **Argumente:**
+- **Arguments:**
   - `household_id` (integer, required)
-  - `months` (integer, optional, default: 3) — Anzahl der zu analysierenden Monate
-- **Prompt-Template:** Lädt Summaries der letzten N Monate und analysiert Trends
+  - `months` (integer, optional, default: 3) — Number of months to analyze
+- **Prompt Template:** Loads summaries of the last N months and analyzes trends
 
 ##### `categorize_transaction`
-Schlägt eine Kategorie für eine Transaktion vor.
+Suggests a category for a transaction.
 
-- **Argumente:**
+- **Arguments:**
   - `household_id` (integer, required)
   - `description` (string, required)
   - `amount` (string, required)
-- **Prompt-Template:** Lädt existierende Kategorien und schlägt basierend auf Beschreibung und Betrag die passendste vor
+- **Prompt Template:** Loads existing categories and suggests the best match based on description and amount
 
 ---
 
-## Projektstruktur (Phase 1)
+## Project Structure (Phase 1)
 
 ```
 cmd/money-tracker/cmd/
@@ -359,19 +359,19 @@ cmd/money-tracker/cmd/
 internal/
   mcp/
     server.go              MCP Server Setup, Tool/Resource/Prompt Registration
-    client.go              HTTP Client für Money Tracker REST API
-    tools.go               Tool-Handler (list_households, create_transaction, ...)
-    resources.go           Resource-Handler
-    prompts.go             Prompt-Templates
+    client.go              HTTP Client for Money Tracker REST API
+    tools.go               Tool handlers (list_households, create_transaction, ...)
+    resources.go           Resource handlers
+    prompts.go             Prompt templates
 ```
 
-Das `mcp` Subcommand wird in die bestehende Binary integriert — kein separates Build-Target nötig:
+The `mcp` subcommand is integrated into the existing binary — no separate build target needed:
 ```bash
-make build       # → bin/money-tracker        (enthält serve + mcp + migrate + version)
-make build-dev   # → bin/money-tracker-dev    (dto., mit Dev-Mode)
+make build       # → bin/money-tracker        (includes serve + mcp + migrate + version)
+make build-dev   # → bin/money-tracker-dev    (same, with dev mode)
 ```
 
-### MCP Client Konfiguration (Claude Desktop / Claude Code)
+### MCP Client Configuration (Claude Desktop / Claude Code)
 
 ```json
 {
@@ -389,14 +389,14 @@ make build-dev   # → bin/money-tracker-dev    (dto., mit Dev-Mode)
 
 ---
 
-## Implementierungsreihenfolge
+## Implementation Order
 
-1. **MCP-001:** Projekt-Scaffolding — Cobra `mcp` Subcommand, MCP SDK Dependency, stdio Transport
-2. **MCP-002:** API Client — HTTP Client mit Token-Auth für alle REST Endpoints
+1. **MCP-001:** Project scaffolding — Cobra `mcp` subcommand, MCP SDK dependency, stdio transport
+2. **MCP-002:** API Client — HTTP client with token auth for all REST endpoints
 3. **MCP-003:** Household & Category Tools — list/create/update/delete
 4. **MCP-004:** Transaction Tools — list/create/update/delete
 5. **MCP-005:** Recurring Expense & Override Tools — list/create/update/delete
 6. **MCP-006:** Summary Tool — get_monthly_summary
-7. **MCP-007:** Resources — households Übersicht, monthly summary
+7. **MCP-007:** Resources — households overview, monthly summary
 8. **MCP-008:** Prompts — monthly_report, budget_analysis, categorize_transaction
-9. **MCP-009:** Docs — README-Abschnitt, Konfigurationsanleitung
+9. **MCP-009:** Docs — README section, configuration guide

@@ -1,27 +1,27 @@
-# Plan 008: i18n Übersetzungen in JSON-Dateien auslagern
+# Plan 008: Move i18n Translations to JSON Files
 
 ## Status: Done
 
-## Kontext
-Die i18n-Übersetzungen lagen als Go-Maps in `internal/i18n/de.go`, `en.go`, `frequencies.go`. Um neue Sprachen ohne Code-Änderung hinzufügen zu können, wurden die Übersetzungen in JSON-Dateien ausgelagert.
+## Context
+The i18n translations were stored as Go maps in `internal/i18n/de.go`, `en.go`, `frequencies.go`. To allow adding new languages without code changes, translations were moved to JSON files.
 
-## Änderungen
+## Changes
 
-### Neue Dateien
-- `internal/i18n/locales/de.json` — Deutsche Übersetzungen + Frequenzen + Formatierung
-- `internal/i18n/locales/en.json` — Englische Übersetzungen + Frequenzen + Formatierung
+### New Files
+- `internal/i18n/locales/de.json` — German translations + frequencies + formatting
+- `internal/i18n/locales/en.json` — English translations + frequencies + formatting
 
-### Gelöschte Dateien
+### Deleted Files
 - `internal/i18n/de.go`
 - `internal/i18n/en.go`
 - `internal/i18n/frequencies.go`
 
-### Geänderte Dateien
-- `internal/i18n/i18n.go` — embed.FS + localeData struct + auto-load via fs.Glob + neue Getter (DateFormat, ThousandsSep, DecimalSep)
-- `internal/api/template.go` — formatMoney/formatDate nutzen jetzt Bundle-Getter statt hardcoded if/else
-- `internal/i18n/i18n_test.go` — Tests erweitert um neue Getter
+### Modified Files
+- `internal/i18n/i18n.go` — embed.FS + localeData struct + auto-load via fs.Glob + new getters (DateFormat, ThousandsSep, DecimalSep)
+- `internal/api/template.go` — formatMoney/formatDate now use bundle getters instead of hardcoded if/else
+- `internal/i18n/i18n_test.go` — Tests extended with new getters
 
-## JSON-Struktur pro Sprache
+## JSON Structure per Language
 ```json
 {
   "locale": "de",
@@ -33,4 +33,4 @@ Die i18n-Übersetzungen lagen als Go-Maps in `internal/i18n/de.go`, `en.go`, `fr
 }
 ```
 
-Neue Sprache hinzufügen = nur neue JSON-Datei in `internal/i18n/locales/` anlegen.
+Adding a new language = just create a new JSON file in `internal/i18n/locales/`.

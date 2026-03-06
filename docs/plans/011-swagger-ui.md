@@ -1,51 +1,51 @@
-# Plan 011: Swagger UI für REST API
+# Plan 011: Swagger UI for REST API
 
-## Übersicht
-Swagger UI zur interaktiven Dokumentation und Test der REST-API, ohne zusätzliche Go-Dependencies.
+## Overview
+Swagger UI for interactive documentation and testing of the REST API, without additional Go dependencies.
 
-## Ansatz
-- **OpenAPI 3.0.1 YAML** manuell geschrieben, via `go:embed` eingebettet
-- **Swagger UI** als minimale HTML-Seite mit CDN-geladenem `swagger-ui-dist@5.18.2`
-- **Null neue Go-Dependencies**
+## Approach
+- **OpenAPI 3.0.1 YAML** manually written, embedded via `go:embed`
+- **Swagger UI** as a minimal HTML page with CDN-loaded `swagger-ui-dist@5.18.2`
+- **Zero new Go dependencies**
 
-## Neue Dateien
+## New Files
 
-| Datei | Beschreibung |
+| File | Description |
 |---|---|
-| `web/static/openapi.yaml` | OpenAPI 3.0.1 Spec — alle 21 REST-Endpoints |
+| `web/static/openapi.yaml` | OpenAPI 3.0.1 spec — all 21 REST endpoints |
 | `web/static/swagger/index.html` | Swagger UI HTML (CDN: swagger-ui-dist@5.18.2) |
-| `internal/api/swagger_handler.go` | Handler für Spec + UI |
-| `tests/integration/swagger_test.go` | Integration-Tests |
+| `internal/api/swagger_handler.go` | Handler for spec + UI |
+| `tests/integration/swagger_test.go` | Integration tests |
 
-## Geänderte Dateien
+## Modified Files
 
-| Datei | Änderung |
+| File | Change |
 |---|---|
-| `internal/api/router.go` | 2 neue Routen hinzugefügt |
+| `internal/api/router.go` | 2 new routes added |
 
 ## Routing
 
-| Route | Auth | Beschreibung |
+| Route | Auth | Description |
 |---|---|---|
-| `GET /api/v1/openapi.yaml` | Nein | OpenAPI Spec (YAML) |
-| `GET /swagger` | Session/Token | Swagger UI HTML-Seite |
+| `GET /api/v1/openapi.yaml` | No | OpenAPI spec (YAML) |
+| `GET /swagger` | Session/Token | Swagger UI HTML page |
 
 ## Details
 
 ### OpenAPI Spec
-- Alle Endpoints aus `router.go` dokumentiert
-- Schemas exakt aus `dto.go` + `token_handler.go` abgeleitet
-- Security: `bearerAuth` (HTTP Bearer), global angewandt
-- Money: `type: string` (nie float)
-- `/health` mit `security: []` (kein Auth)
+- All endpoints from `router.go` documented
+- Schemas derived exactly from `dto.go` + `token_handler.go`
+- Security: `bearerAuth` (HTTP Bearer), applied globally
+- Money: `type: string` (never float)
+- `/health` with `security: []` (no auth)
 
 ### Swagger UI
-- CDN: `unpkg.com/swagger-ui-dist@5.18.2` (gepinnte Version)
-- `tryItOutEnabled: true` — direkt API-Calls testen
-- Bearer Token Auth via "Authorize" Button
+- CDN: `unpkg.com/swagger-ui-dist@5.18.2` (pinned version)
+- `tryItOutEnabled: true` — test API calls directly
+- Bearer token auth via "Authorize" button
 
 ### Tests
-1. `GET /api/v1/openapi.yaml` ohne Auth → 200
-2. `GET /swagger` ohne Auth → 401
-3. `GET /swagger` mit Session-Cookie → 200
-4. `GET /swagger` mit Bearer Token → 200
+1. `GET /api/v1/openapi.yaml` without auth → 200
+2. `GET /swagger` without auth → 401
+3. `GET /swagger` with session cookie → 200
+4. `GET /swagger` with Bearer token → 200

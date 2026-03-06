@@ -1,33 +1,33 @@
 # Plan 009: GitLab CI/CD Pipeline
 
-## Kontext
-Das Projekt hatte keine CI/CD-Konfiguration. Ziel: Tests mit Coverage, Goreleaser-Builds und Docker-Images automatisiert in GitLab CI.
+## Context
+The project had no CI/CD configuration. Goal: Automated tests with coverage, Goreleaser builds, and Docker images in GitLab CI.
 
-## Umgesetzte Änderungen
+## Implemented Changes
 
 ### `.gitlab-ci.yml`
 - **Stages:** `test` → `build` → `docker`
-- **test** (alle Branches): Unit- + Integration-Tests mit Coverage, HTML-Report als Artifact
-- **build:goreleaser** (nur master): Tag → Release, kein Tag → Snapshot
-- **build:manual** (nicht-master, manuell): `make build` + `make build-dev`
-- **docker** (nur master): Kaniko-basierter Image-Build, Push nach `$CI_REGISTRY_IMAGE`
+- **test** (all branches): Unit + integration tests with coverage, HTML report as artifact
+- **build:goreleaser** (master only): Tag → release, no tag → snapshot
+- **build:manual** (non-master, manual): `make build` + `make build-dev`
+- **docker** (master only): Kaniko-based image build, push to `$CI_REGISTRY_IMAGE`
 
 ### `.goreleaser.yml`
-- Build für linux/amd64, linux/arm64, darwin/arm64, windows/amd64
-- Ldflags mit buildinfo-Variablen (Version, Commit, BuildDate, GoVersion)
-- tar.gz für Linux/macOS, zip für Windows
-- GitLab Release-Integration bei Tags
+- Build for linux/amd64, linux/arm64, darwin/arm64, windows/amd64
+- Ldflags with buildinfo variables (Version, Commit, BuildDate, GoVersion)
+- tar.gz for Linux/macOS, zip for Windows
+- GitLab release integration on tags
 
 ### `.dockerignore`
-- Excludiert `.git`, `bin/`, `dist/`, DB-Dateien, `.claude/`
+- Excludes `.git`, `bin/`, `dist/`, DB files, `.claude/`
 
 ### `Dockerfile`
-- ARGs für VERSION, COMMIT, BUILD_DATE mit Fallback-Werten
-- Ldflags injizieren buildinfo-Variablen im Docker-Build
+- ARGs for VERSION, COMMIT, BUILD_DATE with fallback values
+- Ldflags inject buildinfo variables in Docker build
 
-## Verifikation
+## Verification
 ```bash
-goreleaser check          # Goreleaser-Config validieren
-make test                 # Tests lokal grün
-git push origin master    # Pipeline in GitLab prüfen
+goreleaser check          # Validate Goreleaser config
+make test                 # Tests green locally
+git push origin master    # Check pipeline in GitLab
 ```
