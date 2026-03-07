@@ -2,6 +2,7 @@ package api
 
 import (
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"net/http"
 
@@ -50,7 +51,7 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 
 	session, _ := h.store.Get(c.Request(), auth.SessionName)
 	savedState, _ := session.Values["oauth_state"].(string)
-	if c.QueryParam("state") != savedState {
+	if subtle.ConstantTimeCompare([]byte(c.QueryParam("state")), []byte(savedState)) != 1 {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid state"})
 	}
 	delete(session.Values, "oauth_state")

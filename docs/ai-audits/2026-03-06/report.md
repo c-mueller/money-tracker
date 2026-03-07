@@ -135,15 +135,13 @@ The session cookie always has `Secure: true`, meaning it will not be sent over p
 
 **Recommendation:** Make the `Secure` flag configurable or derive it from the environment (e.g., `false` in dev builds).
 
-#### L6 — CI: Overly Broad Permissions and Mutable Action Tags
+#### L6 — CI: Overly Broad Permissions and Mutable Action Tags — FIXED
+
+**Status:** Fixed (2026-03-07)
 
 **Location:** `.github/workflows/ci.yml`
 
-- Top-level `permissions: { contents: write, packages: write }` applies to all jobs including test/build jobs that need only read access
-- Third-party actions are pinned to mutable version tags (e.g., `actions/checkout@v4`) rather than commit SHAs
-- Integration test job is a no-op placeholder that always passes
-
-**Recommendation:** Set minimal permissions at top level; override per-job. Pin actions to commit SHAs.
+**Resolution:** Top-level permissions reduced to `contents: read`. Per-job overrides added for `docker` (`packages: write`) and `release` (`contents: write`). All 9 third-party actions pinned to commit SHAs with version comments. Integration test placeholder replaced with actual `make test-integration`.
 
 #### L7 — Missing Input Validation in Service Layer
 
@@ -160,11 +158,11 @@ These all have Ent schema constraints as a safety net, but service-layer validat
 
 | Finding | Location | Notes |
 |---------|----------|-------|
-| OAuth2 state comparison is not constant-time | `internal/api/auth_handler.go:53` | Not practically exploitable for OAuth state |
-| OIDC logout does not revoke upstream IdP session | `internal/api/auth_handler.go:97` | Common trade-off; document as known limitation |
+| OAuth2 state comparison is not constant-time | `internal/api/auth_handler.go:53` | **Fixed** — now uses `subtle.ConstantTimeCompare` |
+| OIDC logout does not revoke upstream IdP session | `internal/api/auth_handler.go:97` | **Accepted** — intentional design decision |
 | `/api/v1/openapi.yaml` is unauthenticated | `internal/api/router.go:43` | **Accepted** — intentional for local deployment |
-| No CORS headers configured | `internal/api/middleware.go` | Restricts cross-origin access (secure default) |
-| `InjectUserID` middleware is effectively dead code | `internal/middleware/context.go` | Runs before auth; always a no-op |
+| No CORS headers configured | `internal/api/middleware.go` | **Fixed** — configurable CORS via `server.cors_origins` |
+| `InjectUserID` middleware is effectively dead code | `internal/middleware/context.go` | **Fixed** — removed redundant middleware, added `user_id` to request logs |
 | Full request URI logged (incl. query params) | `internal/middleware/logging.go:25` | **Accepted** — no sensitive data in URLs currently |
 | Postgres port bound to all interfaces in compose | `docker-compose.yml:22` | **Accepted** — development artifact |
 
@@ -192,7 +190,10 @@ These all have Ent schema constraints as a safety net, but service-layer validat
 3. ~~**Add `middleware.Secure()` for security headers** (M3)~~ — **FIXED**
 4. ~~**Add CSRF protection to web forms** (M1)~~ — **FIXED**
 5. ~~**Enforce token expiry in validation** (M4)~~ — **FIXED**
-6. **Log a warning when session secret is auto-generated** (L4) — small quality-of-life improvement
+6. ~~**Harden CI pipeline** (L6)~~ — **FIXED**
+7. ~~**Add CORS support** (Informational)~~ — **FIXED**
+8. ~~**Constant-time OAuth2 state** (Informational)~~ — **FIXED**
+9. **Log a warning when session secret is auto-generated** (L4) — small quality-of-life improvement
 
 ---
 

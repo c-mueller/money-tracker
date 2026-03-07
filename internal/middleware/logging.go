@@ -28,6 +28,10 @@ func Logger(logger *zap.Logger) echo.MiddlewareFunc {
 				zap.String("request_id", req.Header.Get(echo.HeaderXRequestID)),
 			}
 
+			if userID, ok := c.Get(UserIDContextKey).(int); ok {
+				fields = append(fields, zap.Int("user_id", userID))
+			}
+
 			n := res.Status
 			switch {
 			case n >= 500:

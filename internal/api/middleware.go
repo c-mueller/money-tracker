@@ -17,5 +17,4 @@ func (s *Server) setupMiddleware() {
 		ContentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
 	}))
 	s.echo.Use(mw.Logger(s.logger))
-	s.echo.Use(mw.InjectUserID())
 }

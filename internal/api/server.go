@@ -21,6 +21,7 @@ type Server struct {
 	logger        *zap.Logger
 	port          int
 	host          string
+	corsOrigins   []string
 	services      *Services
 	sessionStore  sessions.Store
 	authHandler   *AuthHandler
@@ -40,7 +41,7 @@ type Services struct {
 	APIToken         *service.APITokenService
 }
 
-func NewServer(logger *zap.Logger, host string, port int, svc *Services, language string) *Server {
+func NewServer(logger *zap.Logger, host string, port int, corsOrigins []string, svc *Services, language string) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -53,6 +54,7 @@ func NewServer(logger *zap.Logger, host string, port int, svc *Services, languag
 		logger:        logger,
 		port:          port,
 		host:          host,
+		corsOrigins:   corsOrigins,
 		services:      svc,
 		i18nBundle:    bundle,
 		defaultLocale: locale,

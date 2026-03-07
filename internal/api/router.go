@@ -40,6 +40,14 @@ func (s *Server) setupRoutes() {
 
 	// --- API Routes ---
 	apiGroup := s.echo.Group("/api/v1")
+	if len(s.corsOrigins) > 0 {
+		apiGroup.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     s.corsOrigins,
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Authorization", "Content-Type"},
+			AllowCredentials: true,
+		}))
+	}
 	apiGroup.GET("/health", s.handleHealth)
 	apiGroup.GET("/openapi.yaml", s.handleOpenAPISpec)
 	apiGroup.Use(authMW)
@@ -94,6 +102,14 @@ func (s *Server) setupRoutes() {
 	}))
 
 	graphqlGroup := s.echo.Group("/graphql")
+	if len(s.corsOrigins) > 0 {
+		graphqlGroup.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     s.corsOrigins,
+			AllowMethods:     []string{"POST", "OPTIONS"},
+			AllowHeaders:     []string{"Authorization", "Content-Type"},
+			AllowCredentials: true,
+		}))
+	}
 	graphqlGroup.Use(authMW)
 	graphqlGroup.POST("", echo.WrapHandler(gqlHandler))
 

@@ -17,6 +17,7 @@ func Load(configFile string) (Config, error) {
 	// Set defaults so viper knows the keys for env binding
 	v.SetDefault("server.port", cfg.Server.Port)
 	v.SetDefault("server.host", cfg.Server.Host)
+	v.SetDefault("server.cors_origins", cfg.Server.CORSOrigins)
 	v.SetDefault("database.driver", cfg.Database.Driver)
 	v.SetDefault("database.dsn", cfg.Database.DSN)
 	v.SetDefault("auth.oidc.issuer", cfg.Auth.OIDC.Issuer)

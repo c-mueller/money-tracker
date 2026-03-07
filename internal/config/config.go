@@ -15,8 +15,9 @@ type MCPConfig struct {
 }
 
 type ServerConfig struct {
-	Port int    `mapstructure:"port"`
-	Host string `mapstructure:"host"`
+	Port        int      `mapstructure:"port"`
+	Host        string   `mapstructure:"host"`
+	CORSOrigins []string `mapstructure:"cors_origins"`
 }
 
 type DatabaseConfig struct {
