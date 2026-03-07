@@ -2,6 +2,7 @@
 <h1>{{t "api_tokens"}}</h1>
 
 <form method="POST" action="/tokens" class="mb-4 d-flex gap-2" style="max-width: 400px;">
+    {{csrfField}}
     <input type="text" class="form-control" name="name" placeholder="{{t "token_name_placeholder"}}" required maxlength="100">
     <button type="submit" class="btn btn-primary">{{t "create"}}</button>
 </form>

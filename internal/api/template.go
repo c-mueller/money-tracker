@@ -61,8 +61,11 @@ func NewTemplateRenderer(bundle *i18n.Bundle, defaultLocale i18n.Locale) (*Templ
 		return nil, fmt.Errorf("parsing icons.json: %w", err)
 	}
 
-	// Base funcMap with placeholder t/tf — overridden per-request in Render()
+	// Base funcMap with placeholder t/tf/csrfField — overridden per-request in Render()
 	funcMap := template.FuncMap{
+		"csrfField": func() template.HTML {
+			return ""
+		},
 		"t": func(key string, args ...interface{}) string {
 			return bundle.T(defaultLocale, key, args...)
 		},
@@ -216,12 +219,21 @@ func (r *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 		return fmt.Errorf("cloning template %s: %w", name, err)
 	}
 
+	// Get CSRF token from Echo context (set by CSRF middleware)
+	csrfToken, _ := c.Get("csrf").(string)
+
 	tc.Funcs(template.FuncMap{
 		"t": func(key string, args ...interface{}) string {
 			return r.bundle.T(locale, key, args...)
 		},
 		"tf": func(freq string) string {
 			return r.bundle.FrequencyName(locale, freq)
+		},
+		"csrfField": func() template.HTML {
+			if csrfToken == "" {
+				return ""
+			}
+			return template.HTML(`<input type="hidden" name="_csrf" value="` + template.HTMLEscapeString(csrfToken) + `">`)
 		},
 		"formatMoney":             formatMoneyForLocale(locale, r.bundle),
 		"formatMoneyWithCurrency": formatMoneyWithCurrencyForLocale(locale, r.bundle, r.currencyByCode),

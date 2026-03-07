@@ -4,6 +4,7 @@
 <h2>{{t "edit_category"}}</h2>
 
 <form method="POST" action="/households/{{.Household.ID}}/categories/{{.Category.ID}}" class="mt-3" style="max-width: 500px;">
+    {{csrfField}}
     <div class="mb-3">
         <label for="name" class="form-label">{{t "name"}}</label>
         <input type="text" class="form-control" id="name" name="name" value="{{.Category.Name}}" required maxlength="50">

@@ -2,6 +2,7 @@
 <h1>{{t "user_settings"}}</h1>
 
 <form method="POST" action="/settings" class="mt-3" style="max-width: 500px;">
+    {{csrfField}}
     <div class="mb-3">
         <label for="name" class="form-label">{{t "display_name"}}</label>
         <input type="text" class="form-control" id="name" name="name" value="{{.User.Name}}" required maxlength="100">

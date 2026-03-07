@@ -4,6 +4,7 @@
 <h2>{{t "categories"}}</h2>
 
 <form method="POST" action="/households/{{.Household.ID}}/categories" class="mb-4 d-flex gap-2" style="max-width: 400px;">
+    {{csrfField}}
     <input type="text" class="form-control" name="name" placeholder="{{t "new_category_placeholder"}}" required maxlength="50">
     <button type="submit" class="btn btn-primary">{{t "add"}}</button>
 </form>

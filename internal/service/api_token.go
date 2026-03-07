@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	"icekalt.dev/money-tracker/internal/domain"
 )
@@ -76,7 +77,19 @@ func (s *APITokenService) Delete(ctx context.Context, id int) error {
 
 func (s *APITokenService) ValidateToken(ctx context.Context, plaintext string) (*domain.APIToken, error) {
 	hash := hashToken(plaintext)
-	return s.repo.GetByHash(ctx, hash)
+	token, err := s.repo.GetByHash(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	if token.ExpiresAt != nil && token.ExpiresAt.Before(time.Now()) {
+		return nil, fmt.Errorf("%w: api token expired", domain.ErrForbidden)
+	}
+
+	// Best-effort update of last used timestamp
+	_ = s.repo.UpdateLastUsed(ctx, token.ID, time.Now())
+
+	return token, nil
 }
 
 func generateToken() (string, error) {

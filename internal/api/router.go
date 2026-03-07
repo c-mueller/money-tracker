@@ -5,6 +5,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"icekalt.dev/money-tracker/internal/auth"
 	"icekalt.dev/money-tracker/internal/devmode"
 	gql "icekalt.dev/money-tracker/internal/graphql"
@@ -113,6 +114,12 @@ func (s *Server) setupRoutes() {
 	webGroup.Use(localeMW)
 	webAuthMW := mw.WebAuth(s.sessionStore, s.services.APIToken, s.devUserID)
 	webGroup.Use(webAuthMW)
+	webGroup.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "form:_csrf",
+		CookieName:  "_csrf",
+		CookiePath:  "/",
+		ContextKey:  "csrf",
+	}))
 
 	webGroup.GET("/", s.handleWebDashboard)
 	webGroup.GET("/households/new", s.handleWebHouseholdNew)

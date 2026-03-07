@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"icekalt.dev/money-tracker/internal/domain"
+	"icekalt.dev/money-tracker/internal/service"
 )
 
 func TestRecurringExpenseCreate(t *testing.T) {
@@ -298,6 +299,71 @@ func TestScheduleOverrideCRUD(t *testing.T) {
 		remaining, _ := svc.RecurringExpense.ListOverrides(ctx, re.ID)
 		if len(remaining) != 0 {
 			t.Errorf("expected 0 overrides after delete, got %d", len(remaining))
+		}
+	})
+}
+
+func TestScheduleOverrideAuthorization(t *testing.T) {
+	svc := setupTestServices(t)
+
+	// User 1 owns the recurring expense
+	ctx1, _ := createTestUser(t, svc)
+	hh := createTestHousehold(t, svc, ctx1)
+	cat := createTestCategory(t, svc, ctx1, hh.ID)
+	amount, _ := domain.NewMoney("-800.00")
+	re, _ := svc.RecurringExpense.Create(ctx1, hh.ID, cat.ID, "Rent", "", "", amount, domain.FrequencyMonthly, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), nil)
+
+	// Create an override as user 1
+	overrideAmount, _ := domain.NewMoney("-900.00")
+	override, err := svc.RecurringExpense.CreateOverride(ctx1, re.ID, time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC), overrideAmount, domain.FrequencyMonthly)
+	if err != nil {
+		t.Fatalf("unexpected error creating override: %v", err)
+	}
+
+	// User 2 should not be able to access user 1's overrides
+	user2, err := svc.User.GetOrCreate(t.Context(), "other-sub", "other@example.com", "Other User")
+	if err != nil {
+		t.Fatalf("failed to create user 2: %v", err)
+	}
+	ctx2 := service.WithUserID(t.Context(), user2.ID)
+
+	t.Run("list overrides forbidden for other user", func(t *testing.T) {
+		_, err := svc.RecurringExpense.ListOverrides(ctx2, re.ID)
+		if !errors.Is(err, domain.ErrForbidden) {
+			t.Errorf("expected ErrForbidden, got %v", err)
+		}
+	})
+
+	t.Run("create override forbidden for other user", func(t *testing.T) {
+		newAmount, _ := domain.NewMoney("-100.00")
+		_, err := svc.RecurringExpense.CreateOverride(ctx2, re.ID, time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC), newAmount, domain.FrequencyMonthly)
+		if !errors.Is(err, domain.ErrForbidden) {
+			t.Errorf("expected ErrForbidden, got %v", err)
+		}
+	})
+
+	t.Run("update override forbidden for other user", func(t *testing.T) {
+		newAmount, _ := domain.NewMoney("-950.00")
+		_, err := svc.RecurringExpense.UpdateOverride(ctx2, override.ID, time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC), newAmount, domain.FrequencyMonthly)
+		if !errors.Is(err, domain.ErrForbidden) {
+			t.Errorf("expected ErrForbidden, got %v", err)
+		}
+	})
+
+	t.Run("delete override forbidden for other user", func(t *testing.T) {
+		err := svc.RecurringExpense.DeleteOverride(ctx2, override.ID)
+		if !errors.Is(err, domain.ErrForbidden) {
+			t.Errorf("expected ErrForbidden, got %v", err)
+		}
+	})
+
+	t.Run("owner can still access overrides", func(t *testing.T) {
+		overrides, err := svc.RecurringExpense.ListOverrides(ctx1, re.ID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(overrides) != 1 {
+			t.Errorf("expected 1 override, got %d", len(overrides))
 		}
 	})
 }

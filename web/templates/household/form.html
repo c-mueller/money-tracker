@@ -2,6 +2,7 @@
 <h1>{{if .Household.ID}}{{t "edit_household"}}{{else}}{{t "new_household"}}{{end}}</h1>
 
 <form method="POST" action="{{if .Household.ID}}/households/{{.Household.ID}}{{else}}/households{{end}}" class="mt-3" style="max-width: 500px;">
+    {{csrfField}}
     <div class="mb-3">
         <label for="name" class="form-label">{{t "name"}}</label>
         <input type="text" class="form-control" id="name" name="name" value="{{.Household.Name}}" required maxlength="100">

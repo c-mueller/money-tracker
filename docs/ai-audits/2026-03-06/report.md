@@ -47,18 +47,15 @@ All four schedule override operations (List, Create, Update, Delete) performed *
 
 ### Medium
 
-#### M1 — No CSRF Tokens on Web Form Routes
+#### M1 — No CSRF Tokens on Web Form Routes — FIXED
+
+**Status:** Fixed (2026-03-07)
 
 **Location:** `internal/api/router.go` (all web POST routes), `internal/auth/session.go:23`
 
-Web mutation routes (creating transactions, households, categories, etc.) use session cookie authentication with no CSRF token. The session cookie has `SameSite=Lax`, which provides partial CSRF protection — modern browsers will not send the cookie on cross-site POST requests. However, `SameSite=Lax` alone is not a complete CSRF defense:
+Web mutation routes used session cookie authentication with no CSRF token.
 
-- Subdomain takeover scenarios bypass SameSite
-- Older browser versions may not enforce SameSite correctly
-
-**Context adjustment:** Given the local/private deployment model, the risk of a cross-site attack is significantly reduced. An attacker would need to be on the same network and trick a logged-in user into visiting a malicious page. `SameSite=Lax` provides adequate protection for this threat model.
-
-**Recommendation (low priority):** Consider adding a synchronizer CSRF token or switching to `SameSite=Strict` for additional defense-in-depth.
+**Resolution:** Added Echo's CSRF middleware to the web routes group with form-based token lookup (`_csrf` hidden field). Added `csrfField` template function that auto-injects the hidden CSRF input into all form templates. All 12 form templates updated. API routes are unaffected (they use Bearer token auth and are in a separate route group).
 
 #### M2 — API Token Deletion Has No Ownership Check — FIXED
 
@@ -80,13 +77,15 @@ The application set no security-related HTTP headers.
 
 **Resolution:** Added `middleware.SecureWithConfig()` setting: `X-XSS-Protection`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and a restrictive `Content-Security-Policy`.
 
-#### M4 — API Token Expiry Not Enforced
+#### M4 — API Token Expiry Not Enforced — FIXED
+
+**Status:** Fixed (2026-03-07)
 
 **Location:** `internal/service/api_token.go:61-64`
 
-The domain model has an `ExpiresAt` field, but `ValidateToken` does not check whether the token has expired. A token with a past `ExpiresAt` will be accepted. Additionally, `LastUsed` is never updated on token use despite the repository having an `UpdateLastUsed` method.
+`ValidateToken` did not check `ExpiresAt` and never called `UpdateLastUsed`.
 
-**Recommendation:** Check `ExpiresAt` during validation and call `UpdateLastUsed` on successful authentication.
+**Resolution:** `ValidateToken` now checks `ExpiresAt` and returns `ErrForbidden` for expired tokens. `UpdateLastUsed` is called (best-effort) on each successful validation. Unit tests added for expired/valid/no-expiry scenarios.
 
 #### M5 — Hardcoded Weak DB Credentials in docker-compose.yml — ACCEPTED
 
@@ -191,8 +190,9 @@ These all have Ent schema constraints as a safety net, but service-layer validat
 1. ~~**Fix authorization in schedule override endpoints** (H1)~~ — **FIXED**
 2. ~~**Fix API token delete ownership check** (M2)~~ — **FIXED**
 3. ~~**Add `middleware.Secure()` for security headers** (M3)~~ — **FIXED**
-4. **Enforce token expiry in validation** (M4) — small change
-5. **Log a warning when session secret is auto-generated** (L4) — small quality-of-life improvement
+4. ~~**Add CSRF protection to web forms** (M1)~~ — **FIXED**
+5. ~~**Enforce token expiry in validation** (M4)~~ — **FIXED**
+6. **Log a warning when session secret is auto-generated** (L4) — small quality-of-life improvement
 
 ---
 
