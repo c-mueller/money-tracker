@@ -11,6 +11,7 @@ import (
 	"icekalt.dev/money-tracker/ent/recurringexpense"
 	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/schema"
+	"icekalt.dev/money-tracker/ent/session"
 	"icekalt.dev/money-tracker/ent/settings"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
@@ -220,6 +221,22 @@ func init() {
 	recurringscheduleoverride.DefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.Default.(func() time.Time)
 	// recurringscheduleoverride.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	recurringscheduleoverride.UpdateDefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.UpdateDefault.(func() time.Time)
+	sessionFields := schema.Session{}.Fields()
+	_ = sessionFields
+	// sessionDescToken is the schema descriptor for token field.
+	sessionDescToken := sessionFields[0].Descriptor()
+	// session.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	session.TokenValidator = sessionDescToken.Validators[0].(func(string) error)
+	// sessionDescCreatedAt is the schema descriptor for created_at field.
+	sessionDescCreatedAt := sessionFields[4].Descriptor()
+	// session.DefaultCreatedAt holds the default value on creation for the created_at field.
+	session.DefaultCreatedAt = sessionDescCreatedAt.Default.(func() time.Time)
+	// sessionDescUpdatedAt is the schema descriptor for updated_at field.
+	sessionDescUpdatedAt := sessionFields[5].Descriptor()
+	// session.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	session.DefaultUpdatedAt = sessionDescUpdatedAt.Default.(func() time.Time)
+	// session.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	session.UpdateDefaultUpdatedAt = sessionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	settingsFields := schema.Settings{}.Fields()
 	_ = settingsFields
 	// settingsDescKey is the schema descriptor for key field.

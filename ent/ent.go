@@ -17,6 +17,7 @@ import (
 	"icekalt.dev/money-tracker/ent/household"
 	"icekalt.dev/money-tracker/ent/recurringexpense"
 	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
+	"icekalt.dev/money-tracker/ent/session"
 	"icekalt.dev/money-tracker/ent/settings"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
@@ -85,6 +86,7 @@ func checkColumn(t, c string) error {
 			household.Table:                 household.ValidColumn,
 			recurringexpense.Table:          recurringexpense.ValidColumn,
 			recurringscheduleoverride.Table: recurringscheduleoverride.ValidColumn,
+			session.Table:                   session.ValidColumn,
 			settings.Table:                  settings.ValidColumn,
 			transaction.Table:               transaction.ValidColumn,
 			user.Table:                      user.ValidColumn,

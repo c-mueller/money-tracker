@@ -21,6 +21,9 @@ type RecurringExpense func(*sql.Selector)
 // RecurringScheduleOverride is the predicate function for recurringscheduleoverride builders.
 type RecurringScheduleOverride func(*sql.Selector)
 
+// Session is the predicate function for session builders.
+type Session func(*sql.Selector)
+
 // Settings is the predicate function for settings builders.
 type Settings func(*sql.Selector)
 

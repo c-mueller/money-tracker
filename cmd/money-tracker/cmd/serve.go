@@ -86,7 +86,7 @@ var serveCmd = &cobra.Command{
 			}
 		}
 		secure := cfg.Auth.Session.Secure == nil || *cfg.Auth.Session.Secure
-		store := authpkg.NewSessionStore(sessionSecret, cfg.Auth.Session.MaxAge, secure)
+		store := authpkg.NewDBSessionStore(client, sessionSecret, cfg.Auth.Session.MaxAge, secure)
 
 		// Setup auth based on build tag
 		var devUserID int

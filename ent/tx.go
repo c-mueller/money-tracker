@@ -22,6 +22,8 @@ type Tx struct {
 	RecurringExpense *RecurringExpenseClient
 	// RecurringScheduleOverride is the client for interacting with the RecurringScheduleOverride builders.
 	RecurringScheduleOverride *RecurringScheduleOverrideClient
+	// Session is the client for interacting with the Session builders.
+	Session *SessionClient
 	// Settings is the client for interacting with the Settings builders.
 	Settings *SettingsClient
 	// Transaction is the client for interacting with the Transaction builders.
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.Household = NewHouseholdClient(tx.config)
 	tx.RecurringExpense = NewRecurringExpenseClient(tx.config)
 	tx.RecurringScheduleOverride = NewRecurringScheduleOverrideClient(tx.config)
+	tx.Session = NewSessionClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.Transaction = NewTransactionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
