@@ -55,7 +55,23 @@ func (s *APITokenService) List(ctx context.Context) ([]*domain.APIToken, error) 
 }
 
 func (s *APITokenService) Delete(ctx context.Context, id int) error {
-	return s.repo.Delete(ctx, id)
+	userID, ok := UserIDFromContext(ctx)
+	if !ok {
+		return fmt.Errorf("%w: no authenticated user", domain.ErrForbidden)
+	}
+
+	tokens, err := s.repo.ListByUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range tokens {
+		if t.ID == id {
+			return s.repo.Delete(ctx, id)
+		}
+	}
+
+	return fmt.Errorf("%w: api token %d", domain.ErrNotFound, id)
 }
 
 func (s *APITokenService) ValidateToken(ctx context.Context, plaintext string) (*domain.APIToken, error) {

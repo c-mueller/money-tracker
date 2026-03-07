@@ -132,7 +132,23 @@ func (s *RecurringExpenseService) Delete(ctx context.Context, householdID, id in
 
 // Override CRUD
 
+// authorizeRecurringExpense verifies the recurring expense exists and belongs
+// to a household owned by the authenticated user.
+func (s *RecurringExpenseService) authorizeRecurringExpense(ctx context.Context, recurringExpenseID int) error {
+	re, err := s.repo.GetByID(ctx, recurringExpenseID)
+	if err != nil {
+		return err
+	}
+	if _, err := s.household.GetByID(ctx, re.HouseholdID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *RecurringExpenseService) ListOverrides(ctx context.Context, recurringExpenseID int) ([]*domain.RecurringScheduleOverride, error) {
+	if err := s.authorizeRecurringExpense(ctx, recurringExpenseID); err != nil {
+		return nil, err
+	}
 	return s.overrideRepo.ListByRecurringExpense(ctx, recurringExpenseID)
 }
 
@@ -144,8 +160,7 @@ func (s *RecurringExpenseService) CreateOverride(ctx context.Context, recurringE
 		return nil, err
 	}
 
-	// Verify the recurring expense exists
-	if _, err := s.repo.GetByID(ctx, recurringExpenseID); err != nil {
+	if err := s.authorizeRecurringExpense(ctx, recurringExpenseID); err != nil {
 		return nil, err
 	}
 
@@ -170,6 +185,10 @@ func (s *RecurringExpenseService) UpdateOverride(ctx context.Context, overrideID
 		return nil, err
 	}
 
+	if err := s.authorizeRecurringExpense(ctx, existing.RecurringExpenseID); err != nil {
+		return nil, err
+	}
+
 	existing.EffectiveDate = effectiveDate
 	existing.Amount = amount
 	existing.Frequency = freq
@@ -177,5 +196,14 @@ func (s *RecurringExpenseService) UpdateOverride(ctx context.Context, overrideID
 }
 
 func (s *RecurringExpenseService) DeleteOverride(ctx context.Context, overrideID int) error {
+	existing, err := s.overrideRepo.GetByID(ctx, overrideID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.authorizeRecurringExpense(ctx, existing.RecurringExpenseID); err != nil {
+		return err
+	}
+
 	return s.overrideRepo.Delete(ctx, overrideID)
 }
