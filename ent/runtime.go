@@ -11,6 +11,7 @@ import (
 	"icekalt.dev/money-tracker/ent/recurringexpense"
 	"icekalt.dev/money-tracker/ent/recurringscheduleoverride"
 	"icekalt.dev/money-tracker/ent/schema"
+	"icekalt.dev/money-tracker/ent/settings"
 	"icekalt.dev/money-tracker/ent/transaction"
 	"icekalt.dev/money-tracker/ent/user"
 )
@@ -219,6 +220,26 @@ func init() {
 	recurringscheduleoverride.DefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.Default.(func() time.Time)
 	// recurringscheduleoverride.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	recurringscheduleoverride.UpdateDefaultUpdatedAt = recurringscheduleoverrideDescUpdatedAt.UpdateDefault.(func() time.Time)
+	settingsFields := schema.Settings{}.Fields()
+	_ = settingsFields
+	// settingsDescKey is the schema descriptor for key field.
+	settingsDescKey := settingsFields[0].Descriptor()
+	// settings.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	settings.KeyValidator = settingsDescKey.Validators[0].(func(string) error)
+	// settingsDescValue is the schema descriptor for value field.
+	settingsDescValue := settingsFields[1].Descriptor()
+	// settings.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	settings.ValueValidator = settingsDescValue.Validators[0].(func(string) error)
+	// settingsDescCreatedAt is the schema descriptor for created_at field.
+	settingsDescCreatedAt := settingsFields[2].Descriptor()
+	// settings.DefaultCreatedAt holds the default value on creation for the created_at field.
+	settings.DefaultCreatedAt = settingsDescCreatedAt.Default.(func() time.Time)
+	// settingsDescUpdatedAt is the schema descriptor for updated_at field.
+	settingsDescUpdatedAt := settingsFields[3].Descriptor()
+	// settings.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	settings.DefaultUpdatedAt = settingsDescUpdatedAt.Default.(func() time.Time)
+	// settings.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	settings.UpdateDefaultUpdatedAt = settingsDescUpdatedAt.UpdateDefault.(func() time.Time)
 	transactionFields := schema.Transaction{}.Fields()
 	_ = transactionFields
 	// transactionDescAmount is the schema descriptor for amount field.

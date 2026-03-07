@@ -6,9 +6,12 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"errors"
+
 	"icekalt.dev/money-tracker/internal/api"
 	authpkg "icekalt.dev/money-tracker/internal/auth"
 	"icekalt.dev/money-tracker/internal/devmode"
+	"icekalt.dev/money-tracker/internal/domain"
 	"icekalt.dev/money-tracker/internal/repository"
 	"icekalt.dev/money-tracker/internal/service"
 
@@ -38,6 +41,7 @@ var serveCmd = &cobra.Command{
 		recurringRepo := repository.NewRecurringExpenseRepository(client)
 		overrideRepo := repository.NewRecurringScheduleOverrideRepository(client)
 		tokenRepo := repository.NewAPITokenRepository(client)
+		settingsRepo := repository.NewSettingsRepository(client)
 
 		// Services
 		userSvc := service.NewUserService(userRepo)
@@ -60,14 +64,26 @@ var serveCmd = &cobra.Command{
 
 		srv := api.NewServer(logger, cfg.Server.Host, cfg.Server.Port, cfg.Server.CORSOrigins, svcs, cfg.Language)
 
-		// Session store
+		// Session secret: config > DB > generate and persist
 		sessionSecret := cfg.Auth.Session.Secret
 		if sessionSecret == "" {
-			b := make([]byte, 32)
-			if _, err := rand.Read(b); err != nil {
-				return fmt.Errorf("generating session secret: %w", err)
+			stored, err := settingsRepo.Get(context.Background(), "session_secret")
+			if err != nil && !errors.Is(err, domain.ErrNotFound) {
+				return fmt.Errorf("loading session secret: %w", err)
 			}
-			sessionSecret = hex.EncodeToString(b)
+			if stored != "" {
+				sessionSecret = stored
+			} else {
+				b := make([]byte, 32)
+				if _, err := rand.Read(b); err != nil {
+					return fmt.Errorf("generating session secret: %w", err)
+				}
+				sessionSecret = hex.EncodeToString(b)
+				if err := settingsRepo.Set(context.Background(), "session_secret", sessionSecret); err != nil {
+					return fmt.Errorf("storing session secret: %w", err)
+				}
+				logger.Warn("generated and stored new session secret in database")
+			}
 		}
 		secure := cfg.Auth.Session.Secure == nil || *cfg.Auth.Session.Secure
 		store := authpkg.NewSessionStore(sessionSecret, cfg.Auth.Session.MaxAge, secure)
