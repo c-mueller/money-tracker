@@ -64,7 +64,7 @@ func setup(t *testing.T) *testSetup {
 
 func TestAuthMiddleware_BearerToken(t *testing.T) {
 	ts := setup(t)
-	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600)
+	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600, false)
 	authMiddleware := mw.Auth(sessionStore, ts.tokenSvc, 0)
 
 	e := echo.New()
@@ -92,7 +92,7 @@ func TestAuthMiddleware_BearerToken(t *testing.T) {
 
 func TestAuthMiddleware_InvalidToken(t *testing.T) {
 	ts := setup(t)
-	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600)
+	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600, false)
 	authMiddleware := mw.Auth(sessionStore, ts.tokenSvc, 0)
 
 	e := echo.New()
@@ -120,7 +120,7 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 
 func TestAuthMiddleware_NoAuth(t *testing.T) {
 	ts := setup(t)
-	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600)
+	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600, false)
 	authMiddleware := mw.Auth(sessionStore, ts.tokenSvc, 0)
 
 	e := echo.New()
@@ -147,7 +147,7 @@ func TestAuthMiddleware_NoAuth(t *testing.T) {
 
 func TestAuthMiddleware_SessionCookie(t *testing.T) {
 	ts := setup(t)
-	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600)
+	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600, false)
 	authMiddleware := mw.Auth(sessionStore, ts.tokenSvc, 0)
 
 	e := echo.New()
@@ -274,7 +274,7 @@ func TestTokenOnlyAuth_NoToken(t *testing.T) {
 
 func TestTokenOnlyAuth_SessionCookieRejected(t *testing.T) {
 	ts := setup(t)
-	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600)
+	sessionStore := auth.NewSessionStore("test-secret-for-middleware-tests", 3600, false)
 	tokenAuthMW := mw.TokenOnlyAuth(ts.tokenSvc, 0)
 
 	e := echo.New()

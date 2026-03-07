@@ -13,13 +13,13 @@ const (
 	SessionKeyName  = "name"
 )
 
-func NewSessionStore(secret string, maxAge int) sessions.Store {
+func NewSessionStore(secret string, maxAge int, secure bool) sessions.Store {
 	store := sessions.NewCookieStore([]byte(secret))
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 	}
 	return store

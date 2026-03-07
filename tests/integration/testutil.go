@@ -79,7 +79,7 @@ func setupTestEnv(t *testing.T) *testEnv {
 		t.Fatalf("failed to create dev user: %v", err)
 	}
 
-	store := auth.NewSessionStore("test-secret-key-for-testing-only", 3600)
+	store := auth.NewSessionStore("test-secret-key-for-testing-only", 3600, false)
 	srv.SetupAuth(nil, store, devUser.ID)
 
 	// Create an API token for authenticated requests

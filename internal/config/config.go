@@ -40,6 +40,7 @@ type OIDCConfig struct {
 type SessionConfig struct {
 	Secret string `mapstructure:"secret"`
 	MaxAge int    `mapstructure:"max_age"`
+	Secure *bool  `mapstructure:"secure"`
 }
 
 type LoggingConfig struct {
